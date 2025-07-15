@@ -20,8 +20,15 @@ class HomeScreen extends StatelessWidget {
 
       // This FAB floats above the bottom right
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.add),
+            onPressed: () => context.goNamed('active_route'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.deepOrange,
+        tooltip: 'Start Navigation',
+        child: Icon(
+          Icons.assistant_navigation,
+          color: Colors.deepOrange,
+          size: 50,
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
@@ -33,12 +40,14 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             IconButton(
-              icon: const Icon(Icons.settings),
+              tooltip: 'Settings',
+              icon: const Icon(Icons.settings, size: 30),
               color: Colors.white,
               onPressed: () => context.goNamed('settings'),
             ),
             IconButton(
-              icon: const Icon(Icons.assistant_navigation),
+              tooltip: 'Start Navigation',
+              icon: const Icon(Icons.assistant_navigation, size: 30),
               color: Colors.white,
               onPressed: () => context.goNamed('start_navigation'),
             ),
