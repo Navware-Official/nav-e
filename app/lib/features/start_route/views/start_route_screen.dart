@@ -14,15 +14,7 @@ class StartRouteScreen extends StatelessWidget {
           onPressed: () {
             context.goNamed('home');
           },
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              context.goNamed('settings');
-            },
-          ),
-        ],
+        )
       ),
       body: Column(
         children: [
