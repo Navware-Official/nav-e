@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+class ActiveRouteScreen extends StatelessWidget {
+  const ActiveRouteScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
+        title: Text('Active Route'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
@@ -16,7 +16,11 @@ class SettingsScreen extends StatelessWidget {
           },
         )
       ),
-
+      body: Column(
+        children: [
+          //
+        ],
+      ),
     );
   }
 }
