@@ -18,6 +18,12 @@ class StartRouteScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
+          Icon(
+            Icons.mode_of_travel,
+            size: 100,
+            color: Colors.deepOrange,
+          ),
+          // Segmnented buttons for route options like 'Walking', 'Driving', etc.
           //
         ],
       ),
