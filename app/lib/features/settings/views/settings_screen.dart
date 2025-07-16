@@ -8,13 +8,35 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
             context.goNamed('home');
           },
-        )
+        ),
+        title: Text('Settings'),
+        backgroundColor: Colors.deepOrange,
+      ),
+
+      body: 
+      Column(
+        children: [
+
+          Expanded(
+            child: ListView(
+              children: [
+                ListTile(
+                  title: Text('Theme'),
+                  subtitle: Text('Change app theme'),
+                  onTap: () {
+                    // Navigate to theme settings
+                  },
+                ),
+              ],
+            ),
+          ),
+
+        ],
       ),
 
     );
