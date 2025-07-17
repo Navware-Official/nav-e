@@ -26,10 +26,8 @@ class SearchBarWidget extends StatelessWidget {
         autofocus: false,
         onSubmitted: (value) {
           if (onChanged != null) {
-            // Go to search result screen with the search query using GoRouter
             context.goNamed('search_results', queryParameters: {'query': value});
           } else if (onChanged != null) {
-            // Call the onChanged callback if provided
             onChanged!(value);
           }
         },
