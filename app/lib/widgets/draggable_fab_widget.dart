@@ -3,21 +3,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class DraggableFAB extends StatefulWidget {
   final VoidCallback? onPressed;
+  final String identifier;
   final IconData icon;
+  final double? size;
   final String tooltip;
   final Color backgroundColor;
   final Color foregroundColor;
   final Color iconColor;
+  final double? initialX;
+  final double? initialY;
+  // Icon shape can be customized if needed
+  final ShapeBorder shape;
 
   const DraggableFAB({
-    Key? key,
+    super.key,
     this.onPressed,
+    this.identifier = 'draggable_fab',
     this.icon = Icons.location_searching_sharp,
+    this.size = 40.0,
     this.tooltip = '',
     this.backgroundColor = Colors.white,
     this.foregroundColor = Colors.deepOrange,
     this.iconColor = Colors.deepOrange,
-  }) : super(key: key);
+    this.initialX = 300.0,
+    this.initialY = 600.0,
+    this.shape = const RoundedRectangleBorder(
+      borderRadius: BorderRadius.all(Radius.circular(30)),
+    ),
+  });
 
   @override
   State<DraggableFAB> createState() => _DraggableFABState();
@@ -47,6 +60,10 @@ class _DraggableFABState extends State<DraggableFAB> {
       setState(() {
         position = Offset(dx, dy);
       });
+    } else {
+      setState(() {
+        position = Offset(widget.initialX ?? 300.0, widget.initialY ?? 600.0);
+      });
     }
   }
 
@@ -54,14 +71,6 @@ class _DraggableFABState extends State<DraggableFAB> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_keyX, newOffset.dx);
     await prefs.setDouble(_keyY, newOffset.dy);
-
-    // snackbar to confirm position saved
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Position saved: ${newOffset.dx}, ${newOffset.dy}'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
   }
 
   @override
@@ -95,20 +104,23 @@ class _DraggableFABState extends State<DraggableFAB> {
   }
 
   Widget _buildFab({double opacity = 1.0}) {
+    final double fabBoxSize = (widget.size ?? 40.0) + 16; // 16 for padding around the icon
     return Opacity(
       opacity: opacity,
-      child: FloatingActionButton(
-        onPressed: widget.onPressed,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(30),
-        ),
-        backgroundColor: widget.backgroundColor,
-        foregroundColor: widget.foregroundColor,
-        tooltip: widget.tooltip,
-        child: Icon(
-          widget.icon,
-          color: widget.iconColor,
-          size: 40,
+      child: SizedBox(
+        width: fabBoxSize,
+        height: fabBoxSize,
+        child: FloatingActionButton(
+          onPressed: widget.onPressed,
+          shape: widget.shape,
+          backgroundColor: widget.backgroundColor,
+          foregroundColor: widget.foregroundColor,
+          tooltip: widget.tooltip,
+          child: Icon(
+            widget.icon,
+            color: widget.iconColor,
+            size: widget.size,
+          ),
         ),
       ),
     );

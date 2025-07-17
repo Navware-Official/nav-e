@@ -9,12 +9,12 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back,color: Colors.white),
           onPressed: () {
             context.goNamed('home');
           },
         ),
-        title: Text('Settings'),
+        title: Text('Settings', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.deepOrange,
       ),
 
