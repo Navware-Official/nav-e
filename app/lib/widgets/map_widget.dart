@@ -12,14 +12,14 @@ class MapWidget extends StatelessWidget {
     return FlutterMap(
       mapController: mapController,
       options: MapOptions(
-        initialCenter: LatLng(51.5, -0.09),
-        initialZoom: 13.0,
+        initialCenter:
+            LatLng(0, 0),
+        initialZoom: 16.0,
       ),
       children: [
         TileLayer(
-          urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-          subdomains: const ['a', 'b', 'c'],
-          userAgentPackageName: 'com.example.nav_e',
+          urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+          userAgentPackageName: 'nav_e.navware',
         ),
       ],
     );
