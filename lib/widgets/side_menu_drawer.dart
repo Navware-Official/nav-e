@@ -1,0 +1,42 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nav_e/bloc/app_state_bloc.dart';
+
+class SideMenuDrawerWidget extends StatelessWidget {
+  const SideMenuDrawerWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: ListView(
+        children: [
+          Container(
+            height: 120,
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.all(16),
+            child: const Text(
+              'Options',
+              style: TextStyle(fontSize: 20),
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: const Text('Language'),
+            onTap: () {
+              Navigator.of(context).pop();
+                context.read<AppStateBloc>().add(StartNavigation());
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('App Settings'),
+            onTap: () {
+              Navigator.of(context).pop();
+                context.read<AppStateBloc>().add(StartNavigation());
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
