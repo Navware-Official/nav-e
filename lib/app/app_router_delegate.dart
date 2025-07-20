@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:nav_e/bloc/app_state_bloc.dart';
-import 'package:nav_e/screens/home_screen.dart';
-import 'package:nav_e/screens/settings_screen.dart';
-import 'package:nav_e/screens/active_route_screen.dart';
+import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/screens/home/home_screen.dart';
+import 'package:nav_e/screens/settings/settings_screen.dart';
+import 'package:nav_e/screens/navigate/navigation_screen.dart';
 
 class AppRouterDelegate extends RouterDelegate<Object>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<Object> {
@@ -28,7 +29,7 @@ class AppRouterDelegate extends RouterDelegate<Object>
         break;
       case NavigationStage.previewing:
         pages.add(MaterialPage(
-          child: Container(color: Colors.yellow, child: const Center(child: Text("Preview Page"))),
+          child: Container(color: AppColors.lightGray, child: const Center(child: Text("Preview Page"))),
         ));
         break;
       case NavigationStage.navigating:
