@@ -3,19 +3,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class DraggableFAB extends StatefulWidget {
   final VoidCallback? onPressed;
-  final String identifier;
   final IconData icon;
   final double? size;
   final String tooltip;
   final double? initialX;
   final double? initialY;
-  // Icon shape can be customized if needed
   final ShapeBorder shape;
 
   const DraggableFAB({
     super.key,
     this.onPressed,
-    this.identifier = 'draggable_fab',
     this.icon = Icons.location_searching_sharp,
     this.size = 40.0,
     this.tooltip = '',
@@ -72,7 +69,7 @@ class _DraggableFABState extends State<DraggableFAB> {
     return Positioned(
       left: position.dx,
       top: position.dy,
-      child: LongPressDraggable(
+      child: Draggable(
         feedback: _buildFab(opacity: 0.8),
         childWhenDragging: Container(),
         onDragEnd: (details) {

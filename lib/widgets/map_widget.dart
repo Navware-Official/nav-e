@@ -6,11 +6,12 @@ import 'package:nav_e/bloc/map_bloc.dart';
 class MapWidget extends StatelessWidget {
   final MapController mapController;
   final List<Marker> markers;
+  final void Function(dynamic position, bool hasGesture)? onMapInteraction;
 
   const MapWidget({
     super.key,
     required this.mapController,
-    required this.markers,
+    required this.markers, this.onMapInteraction,
   });
 
   @override
@@ -22,16 +23,21 @@ class MapWidget extends StatelessWidget {
           options: MapOptions(
             initialCenter: state.center,
             initialZoom: state.zoom,
-            onPositionChanged: (position, _) {
-              context.read<MapBloc>().add(
-                    MapMoved(position.center, position.zoom),
-                  );
+            onPositionChanged: (position, hasGesture) {
+              if (hasGesture) {
+                context.read<MapBloc>().add(ToggleFollowUser(false));
+              }
+
+              final center = position.center;
+              final zoom = position.zoom;
+              context.read<MapBloc>().add(MapMoved(center, zoom));
             },
           ),
           children: [
             TileLayer(
               urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
               userAgentPackageName: 'nav_e.navware',
+              
             ),
             MarkerLayer(markers: markers),
           ],
