@@ -22,9 +22,11 @@ class SideMenuDrawerWidget extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.language),
             title: const Text('Language'),
-            onTap: () {
-              Navigator.of(context).pop();
-                context.read<AppStateBloc>().add(StartNavigation());
+            onTap: () { 
+              SnackBar(
+                content: const Text('Language settings are not implemented yet.'),
+                duration: const Duration(seconds: 2),
+              );
             },
           ),
           ListTile(
@@ -32,7 +34,7 @@ class SideMenuDrawerWidget extends StatelessWidget {
             title: const Text('App Settings'),
             onTap: () {
               Navigator.of(context).pop();
-                context.read<AppStateBloc>().add(StartNavigation());
+                context.read<AppStateBloc>().add(GoToSettings());
             },
           ),
         ],

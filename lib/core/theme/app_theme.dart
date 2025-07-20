@@ -13,13 +13,13 @@ class AppTheme {
         onPrimary: AppColors.white,
         secondary: AppColors.blueRibbonDark02,
         onSecondary: AppColors.white,
-        surface: AppColors.lightGray,
-        onSurface: AppColors.capeCodDark01,
+        surface: AppColors.white,
+        onSurface: AppColors.capeCodDark02,
         error: Colors.redAccent,
         onError: Colors.white,
       ),
       appBarTheme: const AppBarTheme(
-        color: AppColors.blueRibbonDark02,
+        color: AppColors.capeCodDark01,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -35,25 +35,35 @@ class AppTheme {
         ),
       ),
       textTheme: const TextTheme(
-        bodyLarge: TextStyle(color: AppColors.capeCodDark01),
-        bodyMedium: TextStyle(color: AppColors.capeCodLight02),
+        bodyLarge: TextStyle(color: AppColors.capeCodDark02),
+        bodyMedium: TextStyle(color: AppColors.capeCodDark02),
         titleLarge: TextStyle(
           color: AppColors.blueRibbonDark04,
           fontWeight: FontWeight.bold,
         ),
         labelLarge: TextStyle(color: AppColors.blueRibbon),
       ),
-      cardColor: AppColors.lightGray,
+      cardColor: AppColors.white,
       dividerColor: AppColors.capeCodLight02,
       iconTheme: const IconThemeData(color: AppColors.blueRibbonDark04),
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightGray,
-        border: OutlineInputBorder(),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: AppColors.blueRibbon),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: AppColors.capeCodLight02, width: 1.5),
         ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: AppColors.blueRibbon, width: 2.0),
+        ),
+        border: OutlineInputBorder(), // fallback
         labelStyle: TextStyle(color: AppColors.blueRibbonDark04),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: AppColors.blueRibbon, width: 2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          foregroundColor: AppColors.blueRibbonDark02,
+        ),
       ),
     );
   }
@@ -71,8 +81,6 @@ class AppTheme {
         onSecondary: AppColors.white,
         surface: AppColors.capeCodLight02,
         onSurface: AppColors.white,
-        background: AppColors.capeCodDark02,
-        onBackground: AppColors.white,
         error: Colors.redAccent,
         onError: Colors.white,
       ),
@@ -111,11 +119,25 @@ class AppTheme {
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: AppColors.blueRibbon),
         ),
-        labelStyle: TextStyle(color: AppColors.lightGray),
+        labelStyle: TextStyle(color: AppColors.capeCodDark01),
       ),
     );
   }
- 
+
+  static BoxDecoration get userLocationMarkerDecoration => BoxDecoration(
+    shape: BoxShape.circle,
+    color: AppColors.white,
+    border: Border.all(color: AppColors.blueRibbon, width: 2),
+    boxShadow: const [
+      BoxShadow(
+        color: AppColors.blueRibbon,
+        blurRadius: 10,
+        spreadRadius: 1,
+        offset: Offset(0, 1),
+      ),
+    ],
+  );
+
   // Add custom themes here in the future (if needed i.e high contrast, etc.)
 
 }
