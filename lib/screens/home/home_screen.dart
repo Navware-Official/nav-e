@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/bloc/location_bloc.dart';
 import 'package:nav_e/bloc/map_bloc.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/screens/home/widgets/bottom_navigation_bar.dart';
+import 'package:nav_e/screens/home/widgets/location_preview_widget.dart';
 import 'package:nav_e/screens/home/widgets/map_section.dart';
 import 'package:nav_e/screens/home/widgets/recenter_fab.dart';
 import 'package:nav_e/screens/home/widgets/rotate_north_fab.dart';
@@ -21,11 +23,43 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final MapController _mapController = MapController();
   final List<Marker> _markers = [];
+  bool showRoutePreview = false;
+  dynamic selectedRoute;
 
   @override
   void initState() {
     super.initState();
     context.read<LocationBloc>().add(StartLocationTracking());
+  }
+
+  void onSearchResultSelected(dynamic result) {
+    final marker = Marker(
+      point: result.position,
+      width: 45,
+      height: 45,
+      child: const Icon(Icons.place, color: AppColors.redDark, size: 50),
+    );
+
+    setState(() {
+      selectedRoute = result;
+      showRoutePreview = true;
+      _markers.clear();
+      _markers.add(marker);
+    });
+
+    _mapController.move(result.position, 16.0);
+  }
+
+  void openLocationPreview() {
+    setState(() {
+      showRoutePreview = true;
+    });
+  }
+
+  void closeLocationPreview() {
+    setState(() {
+      showRoutePreview = false;
+    });
   }
 
   @override
@@ -49,12 +83,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 mapController: _mapController,
                 extraMarkers: _markers,
               ),
-              const SearchOverlayWidget(),
+              SearchOverlayWidget(onResultSelected: onSearchResultSelected),
               RecenterFAB(mapController: _mapController),
               RotateNorthFAB(mapController: _mapController),
+              if (showRoutePreview && selectedRoute != null)
+                LocationPreviewWidget(
+                  route: selectedRoute,
+                  onClose: closeLocationPreview,
+                ),
             ],
           ),
-      ),
+        ),
+        
       drawer: SideMenuDrawerWidget(),
       bottomNavigationBar: BottomNavigationBarWidget(),
     );
