@@ -16,7 +16,6 @@ class SettingsScreen extends StatelessWidget {
           },
         ),
         title: Text('Settings', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.deepOrange,
       ),
 
       body: 

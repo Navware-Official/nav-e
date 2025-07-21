@@ -21,7 +21,7 @@ class MapSection extends StatelessWidget {
     final location = context.watch<LocationBloc>().state;
     final followUser = context.watch<MapBloc>().state.followUser;
 
-    final userMarker = UserLocationMarker(position: location.position);
+    final userMarker = UserLocationMarker(position: location.position, heading: location.heading);
 
     return BlocListener<LocationBloc, LocationState>(
       listenWhen: (prev, curr) => curr.position != prev.position,
