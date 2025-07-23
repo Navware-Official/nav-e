@@ -20,7 +20,6 @@ class SearchScreen extends StatelessWidget {
               Hero(
                 tag: 'searchBarHero',
                 child: Material(
-                  elevation: 3,
                   borderRadius: BorderRadius.circular(8),
                   child: TextField(
                     autofocus: true,

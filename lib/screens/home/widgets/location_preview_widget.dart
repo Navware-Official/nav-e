@@ -47,7 +47,6 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                   children: [
                     Container(
                       width: 40,
-                      height: 5,
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
                         color: Colors.grey[300],
@@ -56,6 +55,7 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                     ),
                     Row(
                       children: [
+                        SizedBox(width: 10),
                         Expanded(
                           child: 
                           Text(widget.route.displayName,
@@ -88,9 +88,47 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                 child: ListView(
                   controller: scrollController,
                   children: [
+                  const Divider(),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Start Navigation feature not implemented yet')),
+                              );
+                            },
+                            child: const Text('Start Navigation'),
+                          ),
+                          SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Save Location feature not implemented yet')),
+                              );
+                            },
+                            child: const Text('Save Location'),
+                          ),
+                        ],
+                      ),
+                    ),
                     ListTile(
                       leading: const Icon(Icons.directions),
                       title: Text(widget.route.displayName),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.location_on),
+                      title: Text('Latitude: ${widget.route.position.latitude}, Longitude: ${widget.route.position.longitude}'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.place),
+                      title: Text('Address: ${widget.route.address ?? 'N/A'}'),
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.info),
+                      title: Text('Type: ${widget.route.type}'),
                     ),
                   ],
                 ),

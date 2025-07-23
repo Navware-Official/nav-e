@@ -54,12 +54,15 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       showRoutePreview = true;
     });
+    context.read<LocationBloc>().add(StopLocationTracking());
   }
 
   void closeLocationPreview() {
     setState(() {
       showRoutePreview = false;
     });
+    _markers.clear();
+    context.read<LocationBloc>().add(StartLocationTracking());
   }
 
   @override
