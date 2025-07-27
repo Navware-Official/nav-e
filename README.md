@@ -1,3 +1,3 @@
 # nav-e
 
-Navigation Engine first test.
+The Navigation Engine app for the Navigation Companion.
