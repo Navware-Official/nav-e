@@ -22,6 +22,13 @@ class AppTheme {
         color: AppColors.capeCodDark01,
         foregroundColor: AppColors.white,
         elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.zero,
+          side: BorderSide(
+            color: AppColors.lightGray,
+            width: 20
+          ),
+        ),
       ),
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: AppColors.blueRibbon,
@@ -44,7 +51,7 @@ class AppTheme {
         labelLarge: TextStyle(color: AppColors.blueRibbon),
       ),
       cardColor: AppColors.white,
-      dividerColor: AppColors.capeCodLight02,
+      dividerColor: AppColors.lightGray,
       iconTheme: const IconThemeData(color: AppColors.blueRibbonDark04),
       inputDecorationTheme: const InputDecorationTheme(
         filled: true,
@@ -55,7 +62,7 @@ class AppTheme {
         focusedBorder: OutlineInputBorder(
           borderSide: BorderSide(color: AppColors.blueRibbon, width: 2.0),
         ),
-        border: OutlineInputBorder(), // fallback
+        border: OutlineInputBorder(),
         labelStyle: TextStyle(color: AppColors.blueRibbonDark04),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(

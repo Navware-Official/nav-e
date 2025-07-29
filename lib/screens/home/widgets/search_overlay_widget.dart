@@ -3,7 +3,8 @@ import 'package:nav_e/screens/search/search_screen.dart';
 import 'package:nav_e/widgets/search_bar_widget.dart';
 
 class SearchOverlayWidget extends StatelessWidget {
-  const SearchOverlayWidget({super.key});
+  final Function(dynamic result) onResultSelected;
+  const SearchOverlayWidget({super.key, required this.onResultSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -14,10 +15,13 @@ class SearchOverlayWidget extends StatelessWidget {
       child: Hero(
         tag: 'searchBarHero',
         child: SearchBarWidget(
-          onTap: () {
-            Navigator.of(context).push(
+          onTap: () async {
+            final result = await Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const SearchScreen()),
             );
+            if (result != null) {
+              onResultSelected(result);
+            }
           },
         ),
       ),
