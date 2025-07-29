@@ -10,7 +10,7 @@ class StartLocationTracking extends LocationEvent {}
 
 class StopLocationTracking extends LocationEvent {}
 
-/// --- State ---
+/// --- States ---
 class LocationState {
   final LatLng? position;
   final double? heading;
