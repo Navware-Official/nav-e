@@ -4,12 +4,13 @@ import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/screens/home/home_screen.dart';
 import 'package:nav_e/screens/settings/settings_screen.dart';
 import 'package:nav_e/screens/navigate/navigation_screen.dart';
+import 'package:nav_e/screens/device_management_screen.dart';
 
-class AppRouterDelegate extends RouterDelegate<Object>
-    with ChangeNotifier, PopNavigatorRouterDelegateMixin<Object> {
-  final AppStateBloc bloc;
+class AppRouterDelegate extends RouterDelegate<Object> with ChangeNotifier, PopNavigatorRouterDelegateMixin<Object> {
   @override
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  final AppStateBloc bloc;
 
   AppRouterDelegate(this.bloc) {
     bloc.stream.listen((_) => notifyListeners());
@@ -24,6 +25,8 @@ class AppRouterDelegate extends RouterDelegate<Object>
     ];
 
     switch (state.stage) {
+      case NavigationStage.devices:
+        pages.add(const MaterialPage(child: DeviceManagementScreen()));
       case NavigationStage.settings:
         pages.add(const MaterialPage(child: SettingsScreen()));
         break;

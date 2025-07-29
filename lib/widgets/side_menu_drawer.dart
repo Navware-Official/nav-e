@@ -30,6 +30,13 @@ class SideMenuDrawerWidget extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.devices_other),
+            title: const Text('Devices'),
+            onTap: () {
+              context.read<AppStateBloc>().add(GoToDevices());
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('App Settings'),
             onTap: () {

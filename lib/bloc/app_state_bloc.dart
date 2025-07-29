@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 enum NavigationStage {
   home,
+  devices,
   settings,
   previewing,
   navigating,
@@ -28,7 +29,9 @@ class AppStateBloc extends Bloc<AppEvent, AppState> {
     on<GoToHome>((event, emit) {
       emit(const AppState(stage: NavigationStage.home));
     });
-
+    on<GoToDevices>((event, emit) {
+      emit(const AppState(stage: NavigationStage.devices));
+    });
     on<GoToSettings>((event, emit) {
       emit(const AppState(stage: NavigationStage.settings));
     });
