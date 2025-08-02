@@ -4,6 +4,8 @@ import 'package:nav_e/bloc/app_state_bloc.dart';
 import 'package:nav_e/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/screens/device_management/widgets/device_card_widget.dart';
 
+final List<DeviceCard> devices = <DeviceCard>[DeviceCard(deviceName: "Navigation Companion"), DeviceCard(deviceName: "Gasoline measurerer"), DeviceCard(deviceName: "Mesh Device Communicator")];
+
 class DeviceManagementScreen extends StatefulWidget {
   const DeviceManagementScreen({super.key});
 
