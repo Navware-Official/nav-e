@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/bloc/app_state_bloc.dart';
 import 'package:nav_e/bloc/bluetooth/bluetooth_bloc.dart';
+import 'package:nav_e/screens/device_management/widgets/device_card_widget.dart';
 
 class DeviceManagementScreen extends StatefulWidget {
   const DeviceManagementScreen({super.key});
@@ -35,16 +36,42 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
               );
             }
           },
-          child: Row(
-            children: [
-              FloatingActionButton(
-                onPressed: () {
-                  context.read<BluetoothBloc>().add(StartScanning());
-                },
-                child: Text("Start Scanning"),
-              )
-            ],
-          ),
+          child: Container(
+            padding: EdgeInsets.all(8),
+            child: Column(
+              children: [
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: ListView.builder(
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          itemCount: devices.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return devices[index];
+                          }
+                        )
+                      )
+                    ],
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: FloatingActionButton(
+                        onPressed: () {
+                          context.read<BluetoothBloc>().add(StartScanning());
+                        },
+                        child: Text("Add a new device +"),
+                      )
+                    )
+                  ],
+                ),
+              ],
+            ),
+          )
         ),
     );
   }
