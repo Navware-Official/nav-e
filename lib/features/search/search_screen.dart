@@ -10,9 +10,8 @@ class SearchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-    
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Container(
           margin: const EdgeInsets.only(top: 32.0),
           child: Column(
@@ -23,7 +22,7 @@ class SearchScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: TextField(
                     autofocus: true,
-                      decoration: InputDecoration(
+                    decoration: InputDecoration(
                       hintText: 'Enter an address or place',
                       prefixIcon: IconButton(
                         icon: const Icon(Icons.arrow_back),
@@ -32,7 +31,10 @@ class SearchScreen extends StatelessWidget {
                         },
                       ),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 14,
+                      ),
                     ),
                     onChanged: (query) {
                       context.read<SearchBloc>().add(SearchQueryChanged(query));
@@ -54,7 +56,8 @@ class SearchScreen extends StatelessWidget {
 
                     return ListView.separated(
                       itemCount: state.results.length,
-                      separatorBuilder: (context, index) => const Divider(height: 1),
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final result = state.results[index];
                         return ListTile(

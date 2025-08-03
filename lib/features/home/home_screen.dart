@@ -94,6 +94,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   route: selectedRoute,
                   onClose: closeLocationPreview,
                 ),
+                // TODO: Remove map marker.
             ],
           ),
         ),
