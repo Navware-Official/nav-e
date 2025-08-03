@@ -35,6 +35,7 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   }
 
   void _onResultSelected(SearchResultSelected event, Emitter<SearchState> emit) {
+    // TODO: Save selected route in sqllite for saving search history
     emit(state.copyWith(selected: event.result));
   }
 

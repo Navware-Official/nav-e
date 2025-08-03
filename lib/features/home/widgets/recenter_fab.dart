@@ -15,19 +15,26 @@ class RecenterFAB extends StatelessWidget {
     final location = context.read<LocationBloc>().state.position;
     final heading = context.read<LocationBloc>().state.heading;
 
-    return DraggableFAB(
-      key: const Key('recenter_fab'),
-      icon: Icons.my_location,
-      tooltip: 'Recenter map to user location',
-      onPressed: () {
-        context.read<MapBloc>().add(ToggleFollowUser(true));
+    return BlocBuilder<MapBloc, MapState>(
+      builder: (context, mapState) {
+        final isFollowing = mapState.followUser;
 
-        if (location != null) {
-          mapController.move(location, 16.0);
-          if (heading != null && heading.isFinite) {
-            mapController.rotate(heading);
-          }
-        }
+        return DraggableFAB(
+          key: const Key('recenter_fab'),
+          icon: Icons.my_location,
+          tooltip: 'Recenter map to user location',
+          iconColor: isFollowing ? Colors.white : Colors.lightBlue,
+          onPressed: () {
+            context.read<MapBloc>().add(ToggleFollowUser(true));
+
+            if (location != null) {
+              mapController.move(location, 16.0);
+              if (heading != null && heading.isFinite) {
+                mapController.rotate(heading);
+              }
+            }
+          },
+        );
       },
     );
   }
