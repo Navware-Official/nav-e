@@ -1,4 +1,4 @@
-import 'package:nav_e/models/geocoding_result.dart';
+import 'package:nav_e/core/models/geocoding_result.dart';
 
 class SearchState {
   final bool loading;

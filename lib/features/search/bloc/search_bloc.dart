@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:stream_transform/stream_transform.dart';
-import 'package:nav_e/screens/search/bloc/search_event.dart';
-import 'package:nav_e/screens/search/bloc/search_state.dart';
-import 'package:nav_e/services/geocoding_service.dart';
+import 'package:nav_e/features/search/bloc/search_event.dart';
+import 'package:nav_e/features/search/bloc/search_state.dart';
+import 'package:nav_e/core/services/geocoding_service.dart';
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   final GeocodingService _geocoder;

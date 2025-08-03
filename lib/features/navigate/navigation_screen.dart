@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nav_e/bloc/app_state_bloc.dart';
+import 'package:nav_e/core/bloc/app_state_bloc.dart';
 
 class ActiveRouteScreen extends StatelessWidget {
   const ActiveRouteScreen({super.key});

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:nav_e/models/geocoding_result.dart';
+import 'package:nav_e/core/models/geocoding_result.dart';
 
 class GeocodingService {
   Future<List<GeocodingResult>> search(String query) async {

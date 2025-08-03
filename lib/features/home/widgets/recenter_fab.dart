@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:nav_e/bloc/map_bloc.dart';
-import 'package:nav_e/bloc/location_bloc.dart';
+import 'package:nav_e/core/bloc/map_bloc.dart';
+import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/widgets/draggable_fab_widget.dart';
 
 class RecenterFAB extends StatelessWidget {

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nav_e/bloc/location_bloc.dart';
-import 'package:nav_e/bloc/map_bloc.dart';
+import 'package:nav_e/core/bloc/location_bloc.dart';
+import 'package:nav_e/core/bloc/map_bloc.dart';
 import 'package:nav_e/core/theme/colors.dart';
-import 'package:nav_e/screens/home/widgets/bottom_navigation_bar.dart';
-import 'package:nav_e/screens/home/widgets/location_preview_widget.dart';
-import 'package:nav_e/screens/home/widgets/map_section.dart';
-import 'package:nav_e/screens/home/widgets/recenter_fab.dart';
-import 'package:nav_e/screens/home/widgets/rotate_north_fab.dart';
-import 'package:nav_e/screens/home/widgets/search_overlay_widget.dart';
+import 'package:nav_e/features/home/widgets/bottom_navigation_bar.dart';
+import 'package:nav_e/features/home/widgets/location_preview_widget.dart';
+import 'package:nav_e/features/home/widgets/map_section.dart';
+import 'package:nav_e/features/home/widgets/recenter_fab.dart';
+import 'package:nav_e/features/home/widgets/rotate_north_fab.dart';
+import 'package:nav_e/features/home/widgets/search_overlay_widget.dart';
 import 'package:nav_e/widgets/side_menu_drawer.dart';
 import 'package:flutter_map/flutter_map.dart';
 
