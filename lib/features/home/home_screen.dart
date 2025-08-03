@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
       point: result.position,
       width: 45,
       height: 45,
-      child: const Icon(Icons.place, color: AppColors.redDark, size: 50),
+      child: const Icon(Icons.place, color: Color.fromARGB(255, 202, 11, 11), size: 52),
     );
 
     setState(() {
@@ -46,6 +46,8 @@ class _HomeScreenState extends State<HomeScreen> {
       _markers.clear();
       _markers.add(marker);
     });
+
+    context.read<MapBloc>().add(ToggleFollowUser(false));
 
     _mapController.move(result.position, 16.0);
   }
@@ -94,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   route: selectedRoute,
                   onClose: closeLocationPreview,
                 ),
-                // TODO: Remove map marker.
+                // TODO: Remove map marker
             ],
           ),
         ),
