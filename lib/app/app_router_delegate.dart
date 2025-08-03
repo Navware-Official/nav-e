@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/bloc/app_state_bloc.dart';
+import 'package:nav_e/core/bloc/app_state_bloc.dart';
 import 'package:nav_e/core/theme/colors.dart';
-import 'package:nav_e/screens/home/home_screen.dart';
-import 'package:nav_e/screens/settings/settings_screen.dart';
-import 'package:nav_e/screens/navigate/navigation_screen.dart';
+import 'package:nav_e/features/home/home_screen.dart';
+import 'package:nav_e/features/settings/settings_screen.dart';
+import 'package:nav_e/features/navigate/navigation_screen.dart';
 
 class AppRouterDelegate extends RouterDelegate<Object>
     with ChangeNotifier, PopNavigatorRouterDelegateMixin<Object> {

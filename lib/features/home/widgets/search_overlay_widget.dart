@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/screens/search/search_screen.dart';
+import 'package:nav_e/features/search/search_screen.dart';
 import 'package:nav_e/widgets/search_bar_widget.dart';
 
 class SearchOverlayWidget extends StatelessWidget {

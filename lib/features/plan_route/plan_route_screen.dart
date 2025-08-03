@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/models/geocoding_result.dart';
+import 'package:nav_e/core/models/geocoding_result.dart';
 
 class PlanRouteScreen extends StatelessWidget {
   final GeocodingResult destination;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nav_e/screens/search/bloc/search_bloc.dart';
-import 'package:nav_e/screens/search/bloc/search_event.dart';
-import 'package:nav_e/screens/search/bloc/search_state.dart';
+import 'package:nav_e/features/search/bloc/search_bloc.dart';
+import 'package:nav_e/features/search/bloc/search_event.dart';
+import 'package:nav_e/features/search/bloc/search_state.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});

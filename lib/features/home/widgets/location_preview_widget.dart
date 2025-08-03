@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nav_e/core/theme/colors.dart';
-import 'package:nav_e/models/geocoding_result.dart';
+import 'package:nav_e/core/models/geocoding_result.dart';
 
 class LocationPreviewWidget extends StatefulWidget {
   final VoidCallback onClose;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nav_e/bloc/app_state_bloc.dart';
-import 'package:nav_e/screens/home/home_screen.dart';
+import 'package:nav_e/core/bloc/app_state_bloc.dart';
+import 'package:nav_e/features/home/home_screen.dart';
 
 void main() {
   testWidgets('Navigation app shows home and navigates to active route screen', (WidgetTester tester) async {
