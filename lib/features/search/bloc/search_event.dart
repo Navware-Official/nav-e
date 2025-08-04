@@ -11,3 +11,5 @@ class SearchResultSelected extends SearchEvent {
   final GeocodingResult result;
   SearchResultSelected(this.result);
 }
+
+class LoadSearchHistory extends SearchEvent {}

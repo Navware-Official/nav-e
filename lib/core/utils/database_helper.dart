@@ -2,17 +2,30 @@ import 'dart:ffi';
 
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class DatabaseHelper {
-  final databaseName = "nav-e.db";
+  final dbName = "nav-e.db";
 
   Future<Database> initDB() async {
-    final databasePath = await getDatabasesPath();
-    final path = join(databasePath, databaseName);
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, dbName);
 
-    return openDatabase(path, version: 1, onCreate: (db, version) async {
-      await db.execute("CREATE TABLE devices (id INTEGER PRIMARY KEY, name TEXT, model TEXT, remote_id)");
-    });
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: (db, version) async {
+        final initSql = await rootBundle.loadString('assets/sql/init.sql');
+        final statements = initSql.split(';');
+
+        for (var stmt in statements) {
+          final trimmed = stmt.trim();
+          if (trimmed.isNotEmpty) {
+            await db.execute(trimmed);
+          }
+        }
+      },
+    );
   }
 
   Future<void> insertRow(String tableName, Map<String, Object?> data) async {
