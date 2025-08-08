@@ -9,6 +9,7 @@ class DraggableFAB extends StatefulWidget {
   final double? initialX;
   final double? initialY;
   final ShapeBorder shape;
+  final Color iconColor;
 
   const DraggableFAB({
     super.key,
@@ -20,7 +21,8 @@ class DraggableFAB extends StatefulWidget {
     this.initialY = 600.0,
     this.shape = const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(30)),
-    ),
+    ), 
+    this.iconColor = Colors.white
   });
 
   @override
@@ -108,6 +110,7 @@ class _DraggableFABState extends State<DraggableFAB> {
           child: Icon(
             widget.icon,
             size: widget.size,
+            color: widget.iconColor,
           ),
         ),
       ),
