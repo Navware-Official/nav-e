@@ -69,14 +69,12 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
         heading: position.heading,
       ),
     );
-    print('Location tracking started');
   }
 
   Future<void> _stopTracking(
       StopLocationTracking event, Emitter<LocationState> emit) async {
     await _subscription?.cancel();
     emit(state.copyWith(tracking: false));
-    print('Location tracking stopped');
   }
 
   @override
