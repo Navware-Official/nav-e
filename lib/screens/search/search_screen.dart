@@ -77,18 +77,3 @@ class SearchScreen extends StatelessWidget {
     );
   }
 }
-
-String _formatAddress(Map<String, dynamic>? address) {
-  if (address == null) return '';
-  final road = address['road'];
-  final suburb = address['suburb'];
-  final city = address['city'];
-  final country = address['country'];
-
-  return [
-    if (road != null) road,
-    if (suburb != null) suburb,
-    if (city != null) city,
-    if (country != null) country,
-  ].join(', ');
-}
