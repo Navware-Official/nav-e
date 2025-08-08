@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/core/utils/database_helper.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:nav_e/features/search/bloc/search_event.dart';
 import 'package:nav_e/features/search/bloc/search_state.dart';
@@ -8,9 +7,8 @@ import 'package:nav_e/core/services/geocoding_service.dart';
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
   final GeocodingService _geocoder;
-  final DatabaseHelper _db;
 
-  SearchBloc(this._geocoder, this._db) : super(SearchState()) {
+  SearchBloc(this._geocoder) : super(SearchState()) {
     on<SearchQueryChanged>(
       _onQueryChanged,
       transformer: _debounceTransformer(const Duration(seconds: 1)),
@@ -40,14 +38,6 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
   Future<void> _onResultSelected(SearchResultSelected event, Emitter<SearchState> emit) async {
     final result = event.result;
 
-    try {
-      await _db.insertRow("search_history", {
-        "address": result.address,
-        "timestamp": DateTime.now().millisecondsSinceEpoch,
-      });
-    } catch (e) {
-      print("Failed to save search: $e");
-    }
 
     emit(state.copyWith(selected: result));
   }
