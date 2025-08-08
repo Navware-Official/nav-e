@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/bloc/map_bloc.dart';
-import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/home/widgets/bottom_navigation_bar.dart';
 import 'package:nav_e/features/home/widgets/location_preview_widget.dart';
 import 'package:nav_e/features/home/widgets/map_section.dart';
