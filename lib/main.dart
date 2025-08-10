@@ -8,6 +8,7 @@ import 'package:nav_e/core/bloc/map_bloc.dart';
 import 'package:nav_e/core/theme/app_theme.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/core/services/geocoding_service.dart';
+import 'package:nav_e/core/theme/theme_cubit.dart';
 
 void main() {
   final appStateBloc = AppStateBloc();
@@ -15,25 +16,23 @@ void main() {
   runApp(
     MultiBlocProvider(
       providers: [
-        BlocProvider<AppStateBloc>(
-          create: (_) => appStateBloc,
-        ),
-        BlocProvider<MapBloc>(
-          create: (_) => MapBloc()..add(MapInitialized()),
-        ),
-        BlocProvider<LocationBloc>(
-          create: (_) => LocationBloc(),
-        ),
-        BlocProvider<SearchBloc>(
-          create: (_) => SearchBloc(GeocodingService()),
-        ),
+        BlocProvider(create: (_) => ThemeCubit()),
+        BlocProvider(create: (_) => appStateBloc),
+        BlocProvider(create: (_) => MapBloc()..add(MapInitialized())),
+        BlocProvider(create: (_) => LocationBloc()),
+        BlocProvider(create: (_) => SearchBloc(GeocodingService())),
       ],
-      child: MaterialApp.router(
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        themeMode: ThemeMode.system,
-        routerDelegate: AppRouterDelegate(appStateBloc),
-        routeInformationParser: const RouteParser(),
+      child: BlocBuilder<ThemeCubit, AppThemeMode>(
+        builder: (context, mode) {
+          final themeMode = context.read<ThemeCubit>().toFlutterMode(mode);
+          return MaterialApp.router(
+            theme: AppTheme.light(),
+            darkTheme: AppTheme.dark(),
+            themeMode: themeMode,
+            routerDelegate: AppRouterDelegate(appStateBloc),
+            routeInformationParser: const RouteParser(),
+          );
+        },
       ),
     ),
   );
