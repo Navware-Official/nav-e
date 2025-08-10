@@ -100,7 +100,7 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                                 const SnackBar(content: Text('Start Navigation feature not implemented yet')),
                               );
                             },
-                            child: const Text('Start Navigation'),
+                            child: const Text('Plan Navigation'),
                           ),
                           SizedBox(width: 8),
                           ElevatedButton(

@@ -64,6 +64,23 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  fonts:
+  - family: NeueHaasUnica
+    fonts:
+      - asset: assets/fonts/NeueHaasUnica-Black.ttf
+        weight: 400
+      - asset: assets/fonts/NeueHaasUnica-Bold.ttf
+        weight: 700
+      - asset: assets/fonts/NeueHaasUnica-BoldItalic.ttf
+        weight: 700
+        style: italic
+
+  - family: BitcountGridSingle
+    fonts:
+      - asset: assets/fonts/BitcountGridSingle-Regular.ttf
+        weight: 400
+
+
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/img/house_cat.jpeg
