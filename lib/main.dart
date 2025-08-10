@@ -29,9 +29,9 @@ void main() {
         ),
       ],
       child: MaterialApp.router(
-        theme: AppTheme.lightTheme,
-        // darkTheme: AppTheme.darkTheme,
-        // themeMode: ThemeMode.system,  // Uncomment to use system theme again.
+        theme: AppTheme.light(),
+        darkTheme: AppTheme.dark(),
+        themeMode: ThemeMode.system,
         routerDelegate: AppRouterDelegate(appStateBloc),
         routeInformationParser: const RouteParser(),
       ),
