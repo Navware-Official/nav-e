@@ -1,17 +1,25 @@
 part of 'bluetooth_bloc.dart';
 
-class BluetoothState {
-  final bool isScanning;
+sealed class BluetoothState {
+  const BluetoothState();
 
-  BluetoothState({
-    this.isScanning = false,
-  });
+  List<Object> get props => [];
+}
 
-  BluetoothState copyWith({
-    bool? isScanning,
-  }) {
-    return BluetoothState(
-      isScanning: isScanning ?? this.isScanning,
-    );
-  }
+final class BluetoothInitial extends BluetoothState {}
+
+class BluetoothSupported extends BluetoothState {}
+
+class BluetoothNotSupported extends BluetoothState {
+  final String message = "Bluetooth is not supported on this please try again on a bluetooth supported device.";
+}
+
+class BluetoothAdapterEnabled extends BluetoothState {}
+
+class BluetoothScanInProgress extends BluetoothState {}
+
+class BluetoothOperationFailure extends BluetoothState {
+  final String message;
+
+  const BluetoothOperationFailure(this.message);
 }

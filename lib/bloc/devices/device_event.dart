@@ -3,7 +3,6 @@ part of 'devices_bloc.dart';
 sealed class DevicesEvent {
   const DevicesEvent();
 
-  @override
   List<Object> get props => [];
 }
 
