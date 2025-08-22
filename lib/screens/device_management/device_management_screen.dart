@@ -46,17 +46,26 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                           child: CircularProgressIndicator(),
                         );
                       } else if (state is DeviceLoadSuccess) {
-                        return Expanded(
-                          child: ListView.builder(
-                            scrollDirection: Axis.vertical,
-                            shrinkWrap: true,
-                            itemCount: state.devices.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              final device = state.devices[index];
-                              return DeviceCard(deviceName: device['name']);
-                            }
-                          )
-                        );
+                          if (state.devices.isNotEmpty) {
+                            return Expanded(
+                              child: ListView.builder(
+                                scrollDirection: Axis.vertical,
+                                shrinkWrap: true,
+                                itemCount: state.devices.length,
+                                itemBuilder: (BuildContext context, int index) {
+                                  final device = state.devices[index];
+                                  return DeviceCard(deviceName: device['name']);
+                                }
+                              )
+                            );
+                          } else {
+                            // TODO: Gray out and make it a subtext
+                            return Expanded(child: Text(
+                              "No devices registerd! Add a device using the button below.", 
+                              textAlign: TextAlign.center, 
+                              style: TextStyle(fontSize: 24, color: Colors.redAccent))
+                            );
+                          }
                       }
                       return Expanded(child: Text(
                         "Error: Something went wrong. Unable to load devices!", 
