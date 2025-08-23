@@ -42,6 +42,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                         context.read<BluetoothBloc>().add(CheckBluetoothAdapter());
                       } else if (state is BluetoothAdapterEnabled) {
                         context.read<BluetoothBloc>().add(StartScanning());
+                          // TODO: You left of here on the screen part
                       }
 
                       // check for operation failure and shows toast
@@ -49,7 +50,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(state.message),
-                            duration: Duration(milliseconds: 300),
+                            duration: Duration(milliseconds: 3000),
                           ),
                         );
                       }
@@ -57,7 +58,6 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     builder: (context, state) {
                       if (state is BluetoothOperationFailure) {
                         return ElevatedButton(
-                          // TODO: You left of here on the screen part
                           onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothSupport());}, 
                           child: Text("Try again")
                         );
