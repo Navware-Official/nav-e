@@ -11,7 +11,6 @@ import 'package:nav_e/features/home/widgets/search_overlay_widget.dart';
 import 'package:nav_e/widgets/side_menu_drawer.dart';
 import 'package:flutter_map/flutter_map.dart';
 
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -36,7 +35,11 @@ class _HomeScreenState extends State<HomeScreen> {
       point: result.position,
       width: 45,
       height: 45,
-      child: const Icon(Icons.place, color: Color.fromARGB(255, 202, 11, 11), size: 52),
+      child: const Icon(
+        Icons.place,
+        color: Color.fromARGB(255, 202, 11, 11),
+        size: 52,
+      ),
     );
 
     setState(() {
@@ -66,40 +69,35 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-        BlocListener<LocationBloc, LocationState>(
-          listenWhen: (prev, curr) => curr.position != prev.position,
-          listener: (context, state) {
-            final followUser = context.read<MapBloc>().state.followUser;
-            if (followUser && state.position != null) {
-              _mapController.move(state.position!, 16.0);
-              if (state.heading != null && state.heading!.isFinite) {
-                _mapController.rotate(state.heading!);
-              }
+      body: BlocListener<LocationBloc, LocationState>(
+        listenWhen: (prev, curr) => curr.position != prev.position,
+        listener: (context, state) {
+          final followUser = context.read<MapBloc>().state.followUser;
+          if (followUser && state.position != null) {
+            _mapController.move(state.position!, 16.0);
+            if (state.heading != null && state.heading!.isFinite) {
+              _mapController.rotate(state.heading!);
             }
-          },
-          child: Stack(
-            children: [
-              MapSection(
-                mapController: _mapController,
-                extraMarkers: _markers,
+          }
+        },
+        child: Stack(
+          children: [
+            MapSection(mapController: _mapController, extraMarkers: _markers),
+            SearchOverlayWidget(onResultSelected: onSearchResultSelected),
+            RecenterFAB(mapController: _mapController),
+            RotateNorthFAB(mapController: _mapController),
+            if (showRoutePreview && selectedRoute != null)
+              LocationPreviewWidget(
+                route: selectedRoute,
+                onClose: closeLocationPreview,
               ),
-              SearchOverlayWidget(onResultSelected: onSearchResultSelected),
-              RecenterFAB(mapController: _mapController),
-              RotateNorthFAB(mapController: _mapController),
-              if (showRoutePreview && selectedRoute != null)
-                LocationPreviewWidget(
-                  route: selectedRoute,
-                  onClose: closeLocationPreview,
-                ),
-                // TODO: Remove map marker
-            ],
-          ),
+            // TODO: Remove map marker
+          ],
         ),
-        
+      ),
+
       drawer: SideMenuDrawerWidget(),
       bottomNavigationBar: BottomNavigationBarWidget(),
     );
   }
-
 }
