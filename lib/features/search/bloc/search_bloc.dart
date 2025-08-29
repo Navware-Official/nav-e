@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nav_e/core/utils/database_helper.dart';
 import 'package:stream_transform/stream_transform.dart';
 import 'package:nav_e/features/search/bloc/search_event.dart';
 import 'package:nav_e/features/search/bloc/search_state.dart';
@@ -16,7 +15,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     on<SearchResultSelected>(_onResultSelected);
   }
 
-  Future<void> _onQueryChanged(SearchQueryChanged event, Emitter<SearchState> emit) async {
+  Future<void> _onQueryChanged(
+    SearchQueryChanged event,
+    Emitter<SearchState> emit,
+  ) async {
     final query = event.query.trim();
 
     if (query.isEmpty || query.length < 3) {
@@ -35,9 +37,11 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     }
   }
 
-  Future<void> _onResultSelected(SearchResultSelected event, Emitter<SearchState> emit) async {
+  Future<void> _onResultSelected(
+    SearchResultSelected event,
+    Emitter<SearchState> emit,
+  ) async {
     final result = event.result;
-
 
     emit(state.copyWith(selected: result));
   }
