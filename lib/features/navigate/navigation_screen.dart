@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nav_e/core/bloc/app_state_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class ActiveRouteScreen extends StatelessWidget {
   const ActiveRouteScreen({super.key});
@@ -13,9 +12,9 @@ class ActiveRouteScreen extends StatelessWidget {
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () {
-            context.read<AppStateBloc>().add(GoToHome());
+            context.push('/home');
           },
-        )
+        ),
       ),
       body: Column(
         children: [

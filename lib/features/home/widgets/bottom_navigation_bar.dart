@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nav_e/core/bloc/app_state_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/theme/colors.dart';
 
 class BottomNavigationBarWidget extends StatelessWidget {
@@ -10,12 +9,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: AppColors.lightGray,
-            width: 3,
-          ),
-        ),
+        border: Border(top: BorderSide(color: AppColors.lightGray, width: 3)),
       ),
       child: BottomAppBar(
         height: 60,
@@ -33,7 +27,7 @@ class BottomNavigationBarWidget extends StatelessWidget {
               tooltip: 'Start Navigation',
               icon: const Icon(Icons.assistant_navigation, size: 30),
               onPressed: () {
-                context.read<AppStateBloc>().add(StartNavigation());
+                context.go('start-navigation');
               },
             ),
           ],
