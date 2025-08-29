@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nav_e/features/settings/widgets/theme_settings_section.dart';
 
-class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+class SavedPlacesScreen extends StatelessWidget {
+  const SavedPlacesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +14,13 @@ class SettingsScreen extends StatelessWidget {
             context.pop();
           },
         ),
-        title: Text('Settings'),
+        title: Text('Saved places'),
       ),
 
       body: Column(
         children: [
-          Expanded(child: ListView(children: [ThemeSettingsSection()])),
+          Expanded(child: ListView(children: [Text('Saved Places Screen')])),
+          // TODO Implement list builder from database source using database_helper.dart
         ],
       ),
     );
