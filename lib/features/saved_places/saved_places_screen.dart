@@ -19,7 +19,9 @@ class SavedPlacesScreen extends StatelessWidget {
 
       body: Column(
         children: [
-          Expanded(child: ListView(children: [Text('Saved Places Screen')])),
+          const SizedBox(height: 16),
+          // List builder from database source using database_helper.dart
+
           // TODO Implement list builder from database source using database_helper.dart
         ],
       ),

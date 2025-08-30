@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
-import 'package:nav_e/core/bloc/map_bloc.dart';
 import 'package:nav_e/features/home/widgets/bottom_navigation_bar.dart'
     show BottomNavigationBarWidget;
 import 'package:nav_e/features/home/widgets/location_preview_widget.dart';
-import 'package:nav_e/features/home/widgets/map_section.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart';
 import 'package:nav_e/features/home/widgets/recenter_fab.dart';
 import 'package:nav_e/features/home/widgets/rotate_north_fab.dart';
 import 'package:nav_e/features/home/widgets/search_overlay_widget.dart'
     show SearchOverlayWidget;
+import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
+import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/widgets/side_menu_drawer.dart';
 
 class HomeView extends StatefulWidget {

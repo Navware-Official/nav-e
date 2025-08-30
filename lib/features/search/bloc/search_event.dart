@@ -1,4 +1,4 @@
-import 'package:nav_e/core/models/geocoding_result.dart';
+import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 
 abstract class SearchEvent {}
 

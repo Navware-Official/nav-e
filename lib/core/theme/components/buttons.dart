@@ -17,7 +17,7 @@ class AppButtonThemes {
 
   static ElevatedButtonThemeData elevatedDark = ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: AppColors.capeCodDark01,
+      backgroundColor: AppColors.lightGray,
       foregroundColor: AppColors.blueRibbon,
       textStyle: const TextStyle(fontWeight: FontWeight.w700),
       shape: const CornerBlockBorder(
