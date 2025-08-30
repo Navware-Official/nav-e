@@ -27,9 +27,12 @@ class ThemeCubit extends Cubit<AppThemeMode> {
 
   ThemeMode toFlutterMode(AppThemeMode m) {
     switch (m) {
-      case AppThemeMode.light: return ThemeMode.light;
-      case AppThemeMode.dark:  return ThemeMode.dark;
-      default:                 return ThemeMode.system;
+      case AppThemeMode.light:
+        return ThemeMode.light;
+      case AppThemeMode.dark:
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
     }
   }
 }

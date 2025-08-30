@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:nav_e/core/theme/colors.dart';
 
 class CornerBlockBorder extends OutlinedBorder {
   const CornerBlockBorder({
     this.borderRadius = BorderRadius.zero,
     this.blockOvershoot = 2.0,
-    super.side = const BorderSide(width: 1.2, color: Colors.black),
+    super.side = const BorderSide(width: 1.2, color: AppColors.lightGray),
   });
 
   final BorderRadius borderRadius;
@@ -50,10 +51,30 @@ class CornerBlockBorder extends OutlinedBorder {
       ..color = side.color
       ..style = PaintingStyle.fill;
 
-    final tl = Rect.fromLTWH(rect.left - blockOvershoot - half,  rect.top - blockOvershoot - half,  s, s);
-    final tr = Rect.fromLTWH(rect.right - s + blockOvershoot + half, rect.top - blockOvershoot - half,  s, s);
-    final bl = Rect.fromLTWH(rect.left - blockOvershoot - half,  rect.bottom - s + blockOvershoot + half, s, s);
-    final br = Rect.fromLTWH(rect.right - s + blockOvershoot + half, rect.bottom - s + blockOvershoot + half, s, s);
+    final tl = Rect.fromLTWH(
+      rect.left - blockOvershoot - half,
+      rect.top - blockOvershoot - half,
+      s,
+      s,
+    );
+    final tr = Rect.fromLTWH(
+      rect.right - s + blockOvershoot + half,
+      rect.top - blockOvershoot - half,
+      s,
+      s,
+    );
+    final bl = Rect.fromLTWH(
+      rect.left - blockOvershoot - half,
+      rect.bottom - s + blockOvershoot + half,
+      s,
+      s,
+    );
+    final br = Rect.fromLTWH(
+      rect.right - s + blockOvershoot + half,
+      rect.bottom - s + blockOvershoot + half,
+      s,
+      s,
+    );
 
     canvas.drawRect(tl, fill);
     canvas.drawRect(tr, fill);
@@ -66,8 +87,8 @@ class CornerBlockBorder extends OutlinedBorder {
 
   @override
   CornerBlockBorder scale(double t) => CornerBlockBorder(
-        side: side.scale(t),
-        borderRadius: borderRadius * t,
-        blockOvershoot: blockOvershoot * t,
-      );
+    side: side.scale(t),
+    borderRadius: borderRadius * t,
+    blockOvershoot: blockOvershoot * t,
+  );
 }

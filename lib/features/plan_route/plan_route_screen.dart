@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/core/models/geocoding_result.dart';
+import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 
 class PlanRouteScreen extends StatelessWidget {
   final GeocodingResult destination;
 
-  const PlanRouteScreen({
-    super.key,
-    required this.destination,
-  });
+  const PlanRouteScreen({super.key, required this.destination});
 
   @override
   Widget build(BuildContext context) {

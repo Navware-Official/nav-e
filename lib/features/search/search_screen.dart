@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/features/search/bloc/search_event.dart';
 import 'package:nav_e/features/search/bloc/search_state.dart';
-import 'package:nav_e/features/settings/widgets/search_result_tile.dart';
+import 'package:nav_e/features/search/widgets/search_result_tile.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});

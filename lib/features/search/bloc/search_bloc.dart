@@ -1,16 +1,18 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:nav_e/core/domain/repositories/geocoding_respository.dart';
 import 'package:stream_transform/stream_transform.dart';
+
 import 'package:nav_e/features/search/bloc/search_event.dart';
 import 'package:nav_e/features/search/bloc/search_state.dart';
-import 'package:nav_e/core/services/geocoding_service.dart';
 
 class SearchBloc extends Bloc<SearchEvent, SearchState> {
-  final GeocodingService _geocoder;
+  final IGeocodingRepository _geocoder;
 
   SearchBloc(this._geocoder) : super(SearchState()) {
     on<SearchQueryChanged>(
       _onQueryChanged,
-      transformer: _debounceTransformer(const Duration(seconds: 1)),
+      transformer: _debounceRestartable(const Duration(milliseconds: 350)),
     );
     on<SearchResultSelected>(_onResultSelected);
   }
@@ -29,11 +31,10 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     emit(state.copyWith(loading: true, error: null));
 
     try {
-      final results = await _geocoder.search(query);
+      final results = await _geocoder.search(query, limit: 10);
       emit(state.copyWith(loading: false, results: results));
     } catch (e) {
-      final errorMsg = mapExceptionToMessage(e);
-      emit(state.copyWith(loading: false, error: errorMsg));
+      emit(state.copyWith(loading: false, error: _mapExceptionToMessage(e)));
     }
   }
 
@@ -41,19 +42,23 @@ class SearchBloc extends Bloc<SearchEvent, SearchState> {
     SearchResultSelected event,
     Emitter<SearchState> emit,
   ) async {
-    final result = event.result;
-
-    emit(state.copyWith(selected: result));
+    emit(state.copyWith(selected: event.result));
   }
 
-  EventTransformer<T> _debounceTransformer<T>(Duration duration) {
-    return (events, mapper) => events.debounce(duration).switchMap(mapper);
+  // Debounce + cancel in-flight when a new event arrives
+  EventTransformer<T> _debounceRestartable<T>(Duration d) {
+    return (events, mapper) =>
+        restartable<T>().call(events.debounce(d), mapper);
   }
 
-  String mapExceptionToMessage(Object e) {
-    if (e.toString().contains('403')) {
+  String _mapExceptionToMessage(Object e) {
+    final s = e.toString();
+    if (s.contains('429') || s.contains('Too Many Requests')) {
       return 'Too many requests. Please wait a moment.';
-    } else if (e.toString().contains('Failed host lookup')) {
+    } else if (s.contains('403')) {
+      return 'Request blocked. Try again shortly.';
+    } else if (s.contains('Failed host lookup') ||
+        s.contains('SocketException')) {
       return 'No internet connection.';
     } else {
       return 'Something went wrong. Please try again.';

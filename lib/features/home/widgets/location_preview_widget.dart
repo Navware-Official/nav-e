@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/core/theme/colors.dart';
-import 'package:nav_e/core/models/geocoding_result.dart';
 
 class LocationPreviewWidget extends StatefulWidget {
   final VoidCallback onClose;
   final GeocodingResult route;
 
-  const LocationPreviewWidget({super.key, required this.onClose, required this.route});
+  const LocationPreviewWidget({
+    super.key,
+    required this.onClose,
+    required this.route,
+  });
 
   @override
   State<LocationPreviewWidget> createState() => _RoutePreviewWidgetState();
 }
 
 class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
- 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -33,10 +36,7 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
               ),
             ],
             border: Border(
-              top: BorderSide(
-                color: AppColors.lightGray,
-                width: 3
-              ),
+              top: BorderSide(color: AppColors.lightGray, width: 3),
             ),
           ),
           child: Column(
@@ -57,8 +57,8 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                       children: [
                         SizedBox(width: 10),
                         Expanded(
-                          child: 
-                          Text(widget.route.displayName,
+                          child: Text(
+                            widget.route.displayName,
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -70,7 +70,11 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                           icon: const Icon(Icons.share),
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Share feature not implemented yet')),
+                              const SnackBar(
+                                content: Text(
+                                  'Share feature not implemented yet',
+                                ),
+                              ),
                             );
                           },
                         ),
@@ -88,7 +92,7 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                 child: ListView(
                   controller: scrollController,
                   children: [
-                  const Divider(),
+                    const Divider(),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
@@ -97,7 +101,11 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                           ElevatedButton(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Start Navigation feature not implemented yet')),
+                                const SnackBar(
+                                  content: Text(
+                                    'Start Navigation feature not implemented yet',
+                                  ),
+                                ),
                               );
                             },
                             child: const Text('Plan Navigation'),
@@ -106,7 +114,11 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                           ElevatedButton(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Save Location feature not implemented yet')),
+                                const SnackBar(
+                                  content: Text(
+                                    'Save Location feature not implemented yet',
+                                  ),
+                                ),
                               );
                             },
                             child: const Text('Save Location'),
@@ -120,7 +132,9 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                     ),
                     ListTile(
                       leading: const Icon(Icons.location_on),
-                      title: Text('Latitude: ${widget.route.position.latitude}, Longitude: ${widget.route.position.longitude}'),
+                      title: Text(
+                        'Latitude: ${widget.route.position.latitude}, Longitude: ${widget.route.position.longitude}',
+                      ),
                     ),
                     ListTile(
                       leading: const Icon(Icons.place),
