@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nav_e/utils/database_helper.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 part 'bluetooth_event.dart';
 part 'bluetooth_state.dart';
@@ -8,27 +9,37 @@ part 'bluetooth_state.dart';
 class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
   final DatabaseHelper databaseHelper;
   BluetoothBloc(this.databaseHelper) : super(BluetoothInitial()) {
-    // TODO: Change tha NavigationStage to route to the "scanning" screen
-    on<CheckBluetoothSupport>(_checkBluetoothSupport);
-    on<CheckBluetoothAdapter>(_checkBluetoothAdapter);
+    on<CheckBluetoothRequirements>(_checkBluetoothSupport);
     on<StartScanning>(_startScanning);
   }
 
-  void _checkBluetoothSupport(CheckBluetoothSupport event, Emitter<BluetoothState> emit) async {
+  void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<BluetoothState> emit) async {
+    // Check if bluetooth is supported by the device
     if (await FlutterBluePlus.isSupported == false) {
-      emit(BluetoothNotSupported());
-    } else {
-      emit(BluetoothSupported());
+      emit(BluetoothOperationFailure("Bluetooth is not supported on this please try again on a bluetooth supported device."));
     }
-  }
 
-  void _checkBluetoothAdapter(CheckBluetoothAdapter event, Emitter<BluetoothState> emit) async {
+    // Check if Bluetooth permissions are given or and prompt if not
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.location,
+      Permission.bluetoothScan,
+      Permission.bluetoothAdvertise,
+      Permission.bluetoothConnect
+    ].request();
+
+    if (statuses[Permission.location]!.isGranted &&
+        statuses[Permission.bluetoothScan]!.isGranted &&
+        statuses[Permission.bluetoothAdvertise]!.isGranted &&
+        statuses[Permission.bluetoothConnect]!.isGranted) {
+      // Check if the adapter is enabled
     BluetoothAdapterState state = FlutterBluePlus.adapterStateNow;
       if (state == BluetoothAdapterState.on) {
-          // usually start scanning, connecting, etc
-          emit(BluetoothAdapterEnabled());
+          emit(BluetoothRequirementsMet());
       } else {
           emit(BluetoothOperationFailure("Please turn on bluetooth first"));
+      }
+    } else {
+      emit(BluetoothOperationFailure("Please allow 'Nearby Devices' Permissions"));
       }
   }
 
