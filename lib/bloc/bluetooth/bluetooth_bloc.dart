@@ -31,15 +31,22 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
         statuses[Permission.bluetoothScan]!.isGranted &&
         statuses[Permission.bluetoothAdvertise]!.isGranted &&
         statuses[Permission.bluetoothConnect]!.isGranted) {
-      // Check if the adapter is enabled
+
+      // Check if location Service is enabled
+      bool locationServiceEnabled = await Permission.location.serviceStatus.isEnabled;
+      if (!locationServiceEnabled) {
+        emit(BluetoothOperationFailure("Please turn on location first as it's required for bluetooth scanning."));
+      }
+
+      // Check if the Bluetooth adapter is enabled
       BluetoothAdapterState state = await FlutterBluePlus.adapterState.map((s){return s;}).first;
       if (state == BluetoothAdapterState.on) {
           emit(BluetoothRequirementsMet());
       } else {
-          emit(BluetoothOperationFailure("Please turn on bluetooth first"));
+          emit(BluetoothOperationFailure("Please turn on bluetooth first."));
       }
     } else {
-      emit(BluetoothOperationFailure("Please allow 'Nearby Devices' Permissions"));
+      emit(BluetoothOperationFailure("Please allow 'Nearby Devices' Permissions."));
       }
   }
 
