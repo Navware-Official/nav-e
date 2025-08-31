@@ -8,13 +8,7 @@ sealed class BluetoothState {
 
 final class BluetoothInitial extends BluetoothState {}
 
-class BluetoothSupported extends BluetoothState {}
-
-class BluetoothNotSupported extends BluetoothState {
-  final String message = "Bluetooth is not supported on this please try again on a bluetooth supported device.";
-}
-
-class BluetoothAdapterEnabled extends BluetoothState {}
+class BluetoothRequirementsMet extends BluetoothState {}
 
 class BluetoothScanInProgress extends BluetoothState {}
 

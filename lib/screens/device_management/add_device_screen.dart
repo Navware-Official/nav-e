@@ -13,8 +13,8 @@ class AddDeviceScreen extends StatefulWidget {
 class _AddDeviceScreenState extends State<AddDeviceScreen> {
   @override
   Widget build(BuildContext context) {
-    // Check if bluetooth/support is enabled on page build
-    context.read<BluetoothBloc>().add(CheckBluetoothSupport());
+    // Check for required bluetooth support, adapter status and permissions
+    context.read<BluetoothBloc>().add(CheckBluetoothRequirements());
 
     return Scaffold(
       appBar: AppBar(
@@ -37,12 +37,9 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                 children: [
                   BlocConsumer<BluetoothBloc, BluetoothState>(
                     listener: (context, state) {
-                      // receives checks and calls next action
-                      if (state is BluetoothSupported) {
-                        context.read<BluetoothBloc>().add(CheckBluetoothAdapter());
-                      } else if (state is BluetoothAdapterEnabled) {
-                        context.read<BluetoothBloc>().add(StartScanning());
-                          // TODO: You left of here on the screen part
+                      if (state is BluetoothRequirementsMet) {
+                        print("Googinga");
+                        // context.read<BluetoothBloc>().add(StartScanning());
                       }
 
                       // check for operation failure and shows toast
@@ -58,15 +55,11 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                     builder: (context, state) {
                       if (state is BluetoothOperationFailure) {
                         return ElevatedButton(
-                          onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothSupport());}, 
+                          onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothRequirements());}, 
                           child: Text("Try again")
                         );
-                      } else if (state is BluetoothNotSupported) {
-                        return Expanded(child: Text(
-                          state.message, 
-                          textAlign: TextAlign.center, 
-                          style: TextStyle(fontSize: 24, color: Colors.redAccent))
-                        );
+                      } else if (state is BluetoothScanInProgress) {
+                        
                       }
 
                       // if something unexpected goed wrong
