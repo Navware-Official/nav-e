@@ -1,5 +1,6 @@
 import 'package:nav_e/core/domain/entities/map_source.dart';
 import 'package:nav_e/core/domain/repositories/map_source_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MapSourceRepositoryImpl implements IMapSourceRepository {
   static const List<MapSource> _registry = [
@@ -8,7 +9,6 @@ class MapSourceRepositoryImpl implements IMapSourceRepository {
       name: 'OpenStreetMap',
       urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       maxZoom: 19,
-      attribution: 'OpenStreetMap contributors',
       headers: {'User-Agent': 'nav-e/1.0 (info@navware.org)'},
     ),
     MapSource(
@@ -23,9 +23,25 @@ class MapSourceRepositoryImpl implements IMapSourceRepository {
     ),
   ];
 
-  // TODO: Make option selectable and persist using shared_preferences or sqlflite.
-  // For now, just keep in memory.
-  String _currentId = 'osm';
+  static const _prefsKey = 'selected_map_source_id';
+  Object _currentId = 'osm';
+
+  MapSourceRepositoryImpl() {
+    _loadCurrentId();
+  }
+
+  Future<void> _loadCurrentId() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedId = prefs.getString(_prefsKey);
+    if (savedId != null && _registry.any((s) => s.id == savedId)) {
+      _currentId = savedId;
+    }
+  }
+
+  Future<void> _saveCurrentId(String id) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefsKey, id);
+  }
 
   @override
   Future<MapSource> getCurrent() async =>
@@ -36,6 +52,9 @@ class MapSourceRepositoryImpl implements IMapSourceRepository {
 
   @override
   Future<void> setCurrent(String id) async {
-    if (_registry.any((s) => s.id == id)) _currentId = id;
+    if (_registry.any((s) => s.id == id)) {
+      _currentId = id;
+      await _saveCurrentId(id);
+    }
   }
 }
