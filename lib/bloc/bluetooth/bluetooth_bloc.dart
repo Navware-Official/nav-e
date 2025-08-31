@@ -32,7 +32,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
         statuses[Permission.bluetoothAdvertise]!.isGranted &&
         statuses[Permission.bluetoothConnect]!.isGranted) {
       // Check if the adapter is enabled
-    BluetoothAdapterState state = FlutterBluePlus.adapterStateNow;
+      BluetoothAdapterState state = await FlutterBluePlus.adapterState.map((s){return s;}).first;
       if (state == BluetoothAdapterState.on) {
           emit(BluetoothRequirementsMet());
       } else {
