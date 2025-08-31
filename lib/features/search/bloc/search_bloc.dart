@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
-import 'package:nav_e/core/domain/repositories/geocoding_respository.dart';
+import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import 'package:nav_e/features/search/bloc/search_event.dart';

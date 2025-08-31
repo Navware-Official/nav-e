@@ -1,6 +1,6 @@
 import 'package:nav_e/core/data/remote/geocoding_api_client.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
-import 'package:nav_e/core/domain/repositories/geocoding_respository.dart';
+import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 
 class GeocodingRepositoryImpl implements IGeocodingRepository {
   final GeocodingApiClient api;

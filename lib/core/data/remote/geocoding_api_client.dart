@@ -9,6 +9,7 @@ class GeocodingApiClient {
     String query, {
     int limit = 10,
   }) async {
+    // TODO: Update to use our own Nominatim instance or geocoding service.
     final url = Uri.parse(
       'https://nominatim.openstreetmap.org/search?q=$query&format=json&limit=$limit',
     );

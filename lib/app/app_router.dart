@@ -41,7 +41,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
       GoRoute(
         path: '/search',
         name: 'search',
-        builder: (ctx, __) => BlocProvider.value(
+        builder: (ctx, _) => BlocProvider.value(
           value: ctx.read<SearchBloc>(),
           child: const SearchScreen(),
         ),
