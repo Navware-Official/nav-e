@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
+import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/features/home/widgets/bottom_navigation_bar.dart'
     show BottomNavigationBarWidget;
 import 'package:nav_e/features/home/widgets/location_preview_widget.dart';
+import 'package:nav_e/features/map_layers/data/geocoding_result_mapper.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart';
 import 'package:nav_e/features/home/widgets/recenter_fab.dart';
 import 'package:nav_e/features/home/widgets/rotate_north_fab.dart';
@@ -12,6 +14,7 @@ import 'package:nav_e/features/home/widgets/search_overlay_widget.dart'
     show SearchOverlayWidget;
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
+import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/widgets/side_menu_drawer.dart';
 
 class HomeView extends StatefulWidget {
@@ -26,7 +29,7 @@ class _HomeViewState extends State<HomeView> {
   final List<Marker> _markers = [];
 
   bool showRoutePreview = false;
-  dynamic selectedRoute;
+  GeocodingResult? selectedRoute;
 
   void onSearchResultSelected(dynamic result) {
     final marker = Marker(
@@ -46,6 +49,17 @@ class _HomeViewState extends State<HomeView> {
 
     context.read<MapBloc>().add(ToggleFollowUser(false));
     _mapController.move(result.position, 16.0);
+  }
+
+  Future<void> _saveSelected() async {
+    if (selectedRoute == null) return;
+    final saved = selectedRoute!.toSavedPlace();
+    await context.read<SavedPlacesCubit>().addPlace(saved);
+    if (!mounted) return;
+    setState(() => showRoutePreview = false);
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Location saved')));
   }
 
   @override
@@ -72,8 +86,9 @@ class _HomeViewState extends State<HomeView> {
             RotateNorthFAB(mapController: _mapController),
             if (showRoutePreview && selectedRoute != null)
               LocationPreviewWidget(
-                route: selectedRoute,
+                route: selectedRoute!,
                 onClose: () => setState(() => showRoutePreview = false),
+                onSave: _saveSelected,
               ),
           ],
         ),

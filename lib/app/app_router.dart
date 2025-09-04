@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
 
 import 'package:nav_e/features/home/home_screen.dart';
+import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/saved_place_detail_screen.dart';
 import 'package:nav_e/features/saved_places/saved_places_screen.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
@@ -28,16 +30,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
     refreshListenable: refreshListenable,
     routes: [
       GoRoute(path: '/', name: 'home', builder: (_, _) => const HomeScreen()),
-      GoRoute(
-        path: '/settings',
-        name: 'settings',
-        builder: (_, _) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: '/navigate',
-        name: 'navigate',
-        builder: (_, _) => const SettingsScreen(),
-      ),
+
       GoRoute(
         path: '/search',
         name: 'search',
@@ -50,15 +43,31 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
       GoRoute(
         path: '/saved-places',
         name: 'savedPlaces',
-        builder: (_, _) => const SavedPlacesScreen(),
+        builder: (ctx, _) => BlocProvider(
+          create: (c) =>
+              SavedPlacesCubit(c.read<ISavedPlacesRepository>())..loadPlaces(),
+          child: const SavedPlacesScreen(),
+        ),
       ),
+
       GoRoute(
         path: '/saved-places/:id',
         name: 'savedPlaceDetail',
         builder: (_, state) =>
             SavedPlaceDetailScreen(id: state.pathParameters['id']!),
       ),
+
+      GoRoute(
+        path: '/settings',
+        name: 'settings',
+        builder: (_, _) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/navigate',
+        name: 'navigate',
+        builder: (_, _) => const SettingsScreen(),
+      ),
     ],
-    errorBuilder: (_, state) => const HomeScreen(),
+    errorBuilder: (_, _) => const HomeScreen(),
   );
 }

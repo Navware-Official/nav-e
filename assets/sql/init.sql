@@ -13,36 +13,27 @@ CREATE TABLE IF NOT EXISTS search_history (
   timestamp INTEGER
 );
 
-CREATE TABLE IF NOT EXISTS saved_places (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  type TEXT, 
-  address TEXT NOT NULL,
-  lat REAL,
-  lon REAL
-);
-
-CREATE TABLE IF NOT EXISTS saved_places_tags (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  place_id INTEGER,
-  tag TEXT,
-  FOREIGN KEY (place_id) REFERENCES saved_places(id) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS places_types (
+CREATE TABLE places_types (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   type TEXT UNIQUE
 );
 
-INSERT OR IGNORE INTO places_types (type) VALUES 
-('Home'),
-('Work'),
-('Gym'),
-('School'),
-('Favorite'),
-('Other');
+CREATE TABLE saved_places (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type_id INTEGER,               -- FK to places_types (Home, Work, etc.)
+  source TEXT NOT NULL,          -- "osm", "google", "custom"
+  remote_id TEXT,                -- provider’s place_id / osm_id / etc.
+  name TEXT NOT NULL,
+  address TEXT,
+  lat REAL NOT NULL,
+  lon REAL NOT NULL,
+  created_at INTEGER NOT NULL,
+  FOREIGN KEY (type_id) REFERENCES places_types(id)
+);
 
-INSERT INTO saved_places_tags (place_id, tag) VALUES
-(1, 'Favorite'),
-(1, 'Gym'),
-(2, 'Work');
+CREATE TABLE saved_places_tags (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  place_id INTEGER NOT NULL,
+  tag TEXT NOT NULL,
+  FOREIGN KEY (place_id) REFERENCES saved_places(id) ON DELETE CASCADE
+);

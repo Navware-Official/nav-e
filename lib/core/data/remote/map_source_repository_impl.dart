@@ -3,6 +3,7 @@ import 'package:nav_e/core/domain/repositories/map_source_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MapSourceRepositoryImpl implements IMapSourceRepository {
+  // TODO: Load from sqlite, and manage adding and removing sources from the app.
   static const List<MapSource> _registry = [
     MapSource(
       id: 'osm',

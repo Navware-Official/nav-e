@@ -11,7 +11,7 @@ class MapSourceSettingsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<MapBloc, MapState>(
       builder: (context, state) {
-        final sources = state.available ?? [];
+        final sources = state.available;
         final current = state.source;
 
         return Column(
