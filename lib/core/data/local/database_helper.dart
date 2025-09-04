@@ -39,8 +39,7 @@ class DatabaseHelper {
       },
       // Add migrations when you bump _dbVersion
       onUpgrade: (db, oldV, newV) async {
-        // Example:
-        // if (oldV < 2) await db.execute('ALTER TABLE saved_places ADD COLUMN last_used_at INTEGER');
+        // TODO: Add logic to handle data migrations.
       },
     );
   }

@@ -35,6 +35,7 @@ class GeocodingResult {
     required this.displayName,
     required this.boundingbox,
     this.address,
+    required String id,
   });
 
   LatLng get position => LatLng(lat, lon);
@@ -59,6 +60,7 @@ class GeocodingResult {
       displayName: json['display_name'],
       boundingbox: List<String>.from(json['boundingbox']),
       address: json['address'],
+      id: '',
     );
   }
 }

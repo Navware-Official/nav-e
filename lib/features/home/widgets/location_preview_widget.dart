@@ -4,11 +4,13 @@ import 'package:nav_e/core/theme/colors.dart';
 
 class LocationPreviewWidget extends StatefulWidget {
   final VoidCallback onClose;
+  final VoidCallback onSave;
   final GeocodingResult route;
 
   const LocationPreviewWidget({
     super.key,
     required this.onClose,
+    required this.onSave,
     required this.route,
   });
 
@@ -98,31 +100,29 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
+                          // TODO: Hide save button if already saved
                           ElevatedButton(
                             onPressed: () {
+                              widget.onSave();
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Start Navigation feature not implemented yet',
-                                  ),
-                                ),
-                              );
-                            },
-                            child: const Text('Plan Navigation'),
-                          ),
-                          SizedBox(width: 8),
-                          ElevatedButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Save Location feature not implemented yet',
-                                  ),
-                                ),
+                                const SnackBar(content: Text('Location saved')),
                               );
                             },
                             child: const Text('Save Location'),
                           ),
+                          ElevatedButton(
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Navigate feature not implemented yet',
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text('Navigate'),
+                          ),
+                          SizedBox(width: 8),
                         ],
                       ),
                     ),
