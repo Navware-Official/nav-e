@@ -59,7 +59,7 @@ class SearchScreen extends StatelessWidget {
                       itemCount: state.results.length,
                       separatorBuilder: (context, index) =>
                           const Divider(height: 1),
-                      itemBuilder: (context, index) {
+                      itemBuilder: (contexIt, index) {
                         final result = state.results[index];
                         return SearchResultTile(result: result);
                       },
