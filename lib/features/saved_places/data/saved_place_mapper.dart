@@ -6,7 +6,7 @@ extension SavedPlaceToGeocoding on SavedPlace {
     return GeocodingResult(
       placeId: int.tryParse(remoteId ?? '') ?? id ?? 0,
       licence: '',
-      osmType: source, // e.g. "osm" / "google" / "custom"
+      osmType: source,
       osmId: int.tryParse(remoteId ?? '') ?? 0,
       lat: lat,
       lon: lon,

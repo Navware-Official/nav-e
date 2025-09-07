@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/domain/entities/saved_place.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_state.dart';
-import 'package:nav_e/features/home/widgets/location_preview_widget.dart';
-import 'package:nav_e/features/saved_places/data/saved_place_mapper.dart';
 
 class SavedPlacesScreen extends StatefulWidget {
   const SavedPlacesScreen({super.key});
@@ -140,18 +139,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
   }
 
   void _showPreview(BuildContext context, SavedPlace place) {
-    final route = place.toGeocodingResult();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => LocationPreviewWidget(
-        onClose: () => Navigator.of(context).pop(),
-        route: route,
-        onSave: () {},
-      ),
-    );
+    context.pop(place);
   }
 }
 

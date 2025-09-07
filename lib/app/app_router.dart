@@ -2,11 +2,11 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
 
 import 'package:nav_e/features/home/home_screen.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
-import 'package:nav_e/features/saved_places/saved_place_detail_screen.dart';
 import 'package:nav_e/features/saved_places/saved_places_screen.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/features/search/search_screen.dart';
@@ -24,18 +24,31 @@ class GoRouterRefreshStream extends ChangeNotifier {
   }
 }
 
+final _rootNavKey = GlobalKey<NavigatorState>();
+
 GoRouter buildRouter({Listenable? refreshListenable}) {
   return GoRouter(
+    navigatorKey: _rootNavKey,
     initialLocation: '/',
     refreshListenable: refreshListenable,
     routes: [
-      GoRoute(path: '/', name: 'home', builder: (_, _) => const HomeScreen()),
+      GoRoute(
+        path: '/',
+        name: 'home',
+        builder: (ctx, state) => HomeScreen(
+          placeId: state.uri.queryParameters['placeId'],
+          latParam: state.uri.queryParameters['lat'],
+          lonParam: state.uri.queryParameters['lon'],
+          labelParam: state.uri.queryParameters['label'],
+          zoomParam: state.uri.queryParameters['zoom'],
+        ),
+      ),
 
       GoRoute(
         path: '/search',
         name: 'search',
-        builder: (ctx, _) => BlocProvider.value(
-          value: ctx.read<SearchBloc>(),
+        builder: (ctx, _) => BlocProvider(
+          create: (ctx) => SearchBloc(ctx.read<IGeocodingRepository>()),
           child: const SearchScreen(),
         ),
       ),
@@ -48,13 +61,6 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
               SavedPlacesCubit(c.read<ISavedPlacesRepository>())..loadPlaces(),
           child: const SavedPlacesScreen(),
         ),
-      ),
-
-      GoRoute(
-        path: '/saved-places/:id',
-        name: 'savedPlaceDetail',
-        builder: (_, state) =>
-            SavedPlaceDetailScreen(id: state.pathParameters['id']!),
       ),
 
       GoRoute(

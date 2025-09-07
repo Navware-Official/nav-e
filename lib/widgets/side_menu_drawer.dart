@@ -3,7 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/theme/styles/corner_block_border.dart';
 
 class SideMenuDrawerWidget extends StatelessWidget {
-  const SideMenuDrawerWidget({super.key});
+  const SideMenuDrawerWidget({super.key, this.onOpenSavedPlaces});
+  final VoidCallback? onOpenSavedPlaces;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +38,10 @@ class SideMenuDrawerWidget extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.featured_play_list),
             title: const Text('Saved Places'),
-            onTap: () => context.push('/saved-places'),
+            onTap: () {
+              Navigator.of(context).pop(); // close drawer
+              onOpenSavedPlaces?.call(); // delegate to Home
+            },
           ),
           ListTile(
             leading: const Icon(Icons.settings),
