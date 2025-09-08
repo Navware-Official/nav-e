@@ -1,0 +1,35 @@
+area:map:
+  - "lib/features/map_layers/**"
+area:search:
+  - "lib/features/search/**"
+area:settings:
+  - "lib/features/settings/**"
+area:core:
+  - "lib/core/**"
+  - "lib/shared/**"
+area:ci:
+  - ".github/workflows/**"
+  - ".github/labeler.yml"
+  - ".github/PULL_REQUEST_TEMPLATE.md"
+  - "analysis_options.yaml"
+  - "pubspec.yaml"
+  - "pubspec.lock"
+area:docs:
+  - "README.md"
+  - "SECURITY.MD"
+  - "CONTRIBUTING.MD"
+  - "CHANGELOG.MD"
+  - "docs/**"
+area:tests:
+  - "test/**"
+  - "integration_test/**"
+area:examples:
+  - "example/**"
+area:navigation:
+  - "lib/features/navigation/**"
+  - "lib/data/repositories/navigation/**"
+  - "lib/data/services/navigation/**"
+platform:android:
+  - "android/**"
+platform:ios:
+  - "ios/**"
