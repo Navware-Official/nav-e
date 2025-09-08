@@ -38,23 +38,6 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<MapSourceChanged>(_onSourceChanged, transformer: restartable());
   }
 
-  Future<void> _onInit(MapInitialized event, Emitter<MapState> emit) async {
-    try {
-      final current = await sources.getCurrent();
-      final all = await sources.getAll();
-      emit(
-        state.copyWith(
-          isReady: true,
-          source: current,
-          available: all,
-          error: null,
-        ),
-      );
-    } catch (e) {
-      emit(state.copyWith(isReady: true, error: e));
-    }
-  }
-
   void _onMoved(MapMoved event, Emitter<MapState> emit) {
     emit(state.copyWith(center: event.center, zoom: event.zoom));
   }

@@ -5,7 +5,8 @@ import 'package:go_router/go_router.dart';
 
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
-import 'package:nav_e/core/domain/entities/saved_place.dart';
+import 'package:nav_e/core/domain/extensions/query_params.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
 
 import 'package:nav_e/features/home/widgets/bottom_navigation_bar.dart'
@@ -20,7 +21,6 @@ import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
-import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/widgets/side_menu_drawer.dart';
 
 class HomeView extends StatefulWidget {
@@ -33,7 +33,6 @@ class HomeView extends StatefulWidget {
     this.zoomParam,
   });
 
-  // Hybrid URL params (coords-first; placeId is placeholder for a future resolver)
   final String? placeId;
   final String? latParam;
   final String? lonParam;
@@ -52,9 +51,8 @@ class _HomeViewState extends State<HomeView> {
   bool showRoutePreview = false;
   GeocodingResult? selectedRoute;
 
-  String? _lastHandledKey; // prevents re-triggering on rebuilds
+  String? _lastHandledKey;
 
-  // Apply current preview to map + UI
   void _setPreview(GeocodingResult result) {
     selectedRoute = result;
     _applyPreviewIfAny();
@@ -86,26 +84,28 @@ class _HomeViewState extends State<HomeView> {
     _mapController.move(route.position, 16.0);
   }
 
-  // Optional: honor &zoom= param (if provided)
   void _setZoomIfProvided() {
     final z = double.tryParse(widget.zoomParam ?? '');
     if (z == null || !_mapReady) return;
     _mapController.move(_mapController.camera.center, z);
   }
 
-  // When SearchOverlay on Home yields a result (this path doesn't use URL)
   void onSearchResultSelected(GeocodingResult result) => _setPreview(result);
 
-  // Parse URL params and ask the cubit to emit a preview
   Future<void> _handleRouteParams() async {
-    final lat = double.tryParse(widget.latParam ?? '');
-    final lon = double.tryParse(widget.lonParam ?? '');
-    final label = widget.labelParam;
+    final router = GoRouter.of(context);
+    final current = Uri.parse(
+      router.routerDelegate.currentConfiguration.fullPath,
+    );
+    final qp = current.queryParameters;
+
+    final lat = double.tryParse(qp['lat'] ?? '');
+    final lon = double.tryParse(qp['lon'] ?? '');
+    final label = qp['label'];
 
     if (lat == null || lon == null || label == null) return;
 
-    final key =
-        'pt:${widget.latParam},${widget.lonParam},${widget.labelParam},${widget.zoomParam}';
+    final key = 'pt:${qp['lat']},${qp['lon']},${qp['label']},${qp['zoom']}';
     if (_lastHandledKey == key) return;
     _lastHandledKey = key;
 
@@ -118,21 +118,18 @@ class _HomeViewState extends State<HomeView> {
       lat: lat,
       lon: lon,
       label: label,
-      placeId: widget.placeId,
+      placeId: qp['placeId'],
     );
   }
 
-  // Clear the preview-related URL params after showing
   void _clearPreviewParams() {
-    final router = GoRouter.of(context);
-    final uri = router.locationUri;
-    final qp = Map.of(uri.queryParameters)
-      ..remove('lat')
-      ..remove('lon')
-      ..remove('label')
-      ..remove('placeId')
-      ..remove('zoom');
-    router.goUri(uri.replace(queryParameters: qp));
+    context.clearPreviewParams();
+    context.read<MapBloc>().add(ToggleFollowUser(true));
+    selectedRoute = null;
+    setState(() {
+      showRoutePreview = false;
+      _markers.clear();
+    });
   }
 
   @override
@@ -140,12 +137,10 @@ class _HomeViewState extends State<HomeView> {
     return Scaffold(
         body: MultiBlocListener(
           listeners: [
-            // Map readiness watcher
             BlocListener<MapBloc, MapState>(
               listenWhen: (prev, curr) => prev.isReady != curr.isReady,
               listener: (_, state) {
                 _mapReady = state.isReady;
-                // If a zoom was provided, apply when map flips to ready
                 if (_mapReady) _setZoomIfProvided();
               },
             ),
@@ -195,14 +190,13 @@ class _HomeViewState extends State<HomeView> {
               RecenterFAB(mapController: _mapController),
               RotateNorthFAB(mapController: _mapController),
 
-              // Back button when preview is shown
               if (showRoutePreview)
                 Positioned(
                   top: 12,
                   left: 12,
                   child: SafeArea(
                     child: Material(
-                      color: Colors.blue,
+                      color: AppColors.blueRibbonDark02,
                       shape: const CircleBorder(),
                       elevation: 2,
                       child: IconButton(

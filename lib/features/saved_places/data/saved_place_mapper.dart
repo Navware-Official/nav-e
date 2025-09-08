@@ -15,7 +15,6 @@ extension SavedPlaceToGeocoding on SavedPlace {
       addressType: '',
       placeRank: 0,
       importance: 0.0,
-      addresstype: '',
       name: name,
       displayName: address ?? name,
       boundingbox: const [],
