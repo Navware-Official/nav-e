@@ -23,10 +23,19 @@ class PreviewCubit extends Cubit<PreviewState> {
     required String label,
     String? placeId,
   }) {
-    emit(PreviewShowing(GeocodingResult.toPathParams()));
+    emit(
+      PreviewShowing(
+        GeocodingResult.minimal(lat: lat, lon: lon, label: label, id: placeId),
+      ),
+    );
   }
 
   void showResolved(GeocodingResult r) => emit(PreviewShowing(r));
+
+  void showFromParams(Map<String, String> params) {
+    final r = GeocodingResult.fromPathParams(params);
+    if (r != null) emit(PreviewShowing(r));
+  }
 
   void clear() => emit(const PreviewIdle());
 }

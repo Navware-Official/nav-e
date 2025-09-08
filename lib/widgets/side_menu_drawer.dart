@@ -39,10 +39,11 @@ class SideMenuDrawerWidget extends StatelessWidget {
             leading: const Icon(Icons.featured_play_list),
             title: const Text('Saved Places'),
             onTap: () {
-              Navigator.of(context).pop(); // close drawer
-              onOpenSavedPlaces?.call(); // delegate to Home
+              Navigator.of(context).pop();
+              context.pushNamed('savedPlaces');
             },
           ),
+
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('App Settings'),
