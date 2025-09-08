@@ -1,0 +1,3 @@
+- Questions: use GitHub Discussions (Q&A category).
+- Bugs: open an issue with steps to reproduce and logs.
+- Features: open a Discussion (Ideas) first; if it makes sense, we’ll create an issue.
