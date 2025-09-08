@@ -1,3 +1,69 @@
-*  @a-navware @s-navware
-lib/features/map_layers/**  @a-navware
-android/**                  @a-navware, @s-navware
+# CODEOWNERS for: Nav-e
+# Defines the users, teams, or apps that are responsible for code in a repository.
+# ------------------------------------------------------------------------------
+# 1) Default catch-all: if nothing else matches, these folks own it.
+#    Add both devs here so nothing slips through the cracks.
+# ------------------------------------------------------------------------------
+*                       @navware/ @a-navware @s-navware
+
+# ------------------------------------------------------------------------------
+# 2) App code by platform / domain
+# ------------------------------------------------------------------------------
+
+# Core Dart code
+/lib/**                 @a-navware @s-navware
+/bin/**                 @a-navware @s-navware
+
+# UI assets
+/assets/**              @a-navware @s-navware
+
+# Flutter platform folders
+/android/**             @a-navware @s-navware
+/ios/**                 
+/web/**                 
+/macos/**               
+/windows/**             
+/linux/**               
+
+# Packages / modules (if you use a mono-repo layout later)
+# /packages/**          @your-org/mobile-core
+
+# ------------------------------------------------------------------------------
+# 3) Tests, QA, and tooling
+# ------------------------------------------------------------------------------
+/test/**                @a-navware @s-navware
+/integration_test/**    @a-navware @s-navware
+
+# CI/CD, release, and repo plumbing
+/.github/**             @a-navware
+/.github/workflows/**   @a-navware
+
+# Linting and config
+
+
+# ------------------------------------------------------------------------------
+# 4) Docs, community, licenses
+# ------------------------------------------------------------------------------
+/README.md              @a-navware @s-navware
+/CONTRIBUTING.md        @a-navware @s-navware
+/CODE_OF_CONDUCT.md     @a-navware @s-navware
+/SECURITY.md            @s-navware @s-navware
+/LICENSE                @a-navware @s-navware
+
+# ------------------------------------------------------------------------------
+# 5) Sensitive or “please don’t touch without us” areas
+# ------------------------------------------------------------------------------
+/pubspec.yaml           @a-navware @s-navware
+/.gitignore             @s-navware @s-navware
+/.gitattributes         @s-navware @s-navware
+
+# ------------------------------------------------------------------------------
+# Feature specific areas
+# ------------------------------------------------------------------------------
+/lib/core/data/**            @a-navware
+/lib/core/domain/**        @a-navware
+/lib/features/map_layers/**  @a-navware
+/lib/features/settings/**    @a-navware
+/lib/features/saved_places/** @a-navware
+/lib/features/device_management/** @s-navware
+/lib/features/navigation/** @a-navware @s-navware
