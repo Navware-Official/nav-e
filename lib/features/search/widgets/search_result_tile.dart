@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:nav_e/core/domain/extensions/query_params.dart';
+import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 
 class SearchResultTile extends StatelessWidget {
-  final dynamic result;
+  final GeocodingResult result;
 
   const SearchResultTile({super.key, required this.result});
 
@@ -12,7 +14,13 @@ class SearchResultTile extends StatelessWidget {
       title: Text(result.displayName),
       subtitle: Text(result.type),
       onTap: () {
-        Navigator.pop(context, result);
+        context.goHomeWithCoords(
+          lat: result.lat,
+          lon: result.lon,
+          label: result.displayName,
+          placeId: result.id,
+          zoom: 14,
+        );
       },
     );
   }

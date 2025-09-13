@@ -1,5 +1,12 @@
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 
+/// Extension methods on GeocodingResult to map it to path parameters for navigation.
+/// parameters:
+/// - [lat]: Latitude of the location.
+/// - [lon]: Longitude of the location.
+/// - [label]: Display name or label for the location.
+/// - [placeId]: Optional place ID for the location.
+/// returns `GeocodingResult`
 extension PreviewParamsMapper on GeocodingResult {
   static GeocodingResult toPathParams({
     required double lat,
@@ -19,7 +26,6 @@ extension PreviewParamsMapper on GeocodingResult {
       addressType: '',
       placeRank: 0,
       importance: 0.0,
-      addresstype: '',
       name: label,
       displayName: label,
       boundingbox: [],

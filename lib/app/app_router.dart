@@ -47,6 +47,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
       GoRoute(
         path: '/search',
         name: 'search',
+        parentNavigatorKey: _rootNavKey,
         builder: (ctx, _) => BlocProvider(
           create: (ctx) => SearchBloc(ctx.read<IGeocodingRepository>()),
           child: const SearchScreen(),
@@ -56,6 +57,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
       GoRoute(
         path: '/saved-places',
         name: 'savedPlaces',
+        parentNavigatorKey: _rootNavKey,
         builder: (ctx, _) => BlocProvider(
           create: (c) =>
               SavedPlacesCubit(c.read<ISavedPlacesRepository>())..loadPlaces(),

@@ -144,7 +144,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
       lon: p.lon,
       label: p.name,
       placeId: p.id?.toString(),
-      zoom: 15,
+      zoom: 14,
     );
   }
 }
