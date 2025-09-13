@@ -13,4 +13,4 @@ What does this change?
 - [ ] PR title follows Conventional Commits
 - [ ] `dart analyze` passes
 - [ ] Tests added/updated
-- [ ] Builds locally (`flutter build apk --debug`)`
+- [ ] Builds locally (`flutter build apk --debug`)

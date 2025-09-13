@@ -1,0 +1,23 @@
+name: CI
+on:
+  pull_request:
+    branches: [ main, 'release/*' ]
+  push:
+    branches: [ main ]
+jobs:
+  lint-test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable }
+      - name: Flutter deps
+        run: flutter pub get
+      - name: Format check
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Analyze
+        run: dart analyze
+      - name: Tests
+        run: flutter test --coverage
+      - name: Build sanity (debug APK)
+        run: flutter build apk --debug
