@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/core/domain/extensions/query_params.dart';
+import 'package:nav_e/app/app_nav.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 
 class SearchResultTile extends StatelessWidget {
@@ -14,7 +14,8 @@ class SearchResultTile extends StatelessWidget {
       title: Text(result.displayName),
       subtitle: Text(result.type),
       onTap: () {
-        context.goHomeWithCoords(
+        FocusScope.of(context).unfocus();
+        AppNav.homeWithCoords(
           lat: result.lat,
           lon: result.lon,
           label: result.displayName,

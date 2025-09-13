@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nav_e/app/app_nav.dart';
 import 'package:nav_e/core/domain/entities/saved_place.dart';
 import 'package:nav_e/core/domain/extensions/query_params.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
@@ -138,12 +139,12 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
     );
   }
 
-  void _showPreview(BuildContext context, SavedPlace p) {
-    context.goHomeWithCoords(
-      lat: p.lat,
-      lon: p.lon,
-      label: p.name,
-      placeId: p.id?.toString(),
+  void _showPreview(BuildContext context, SavedPlace place) {
+    AppNav.homeWithCoords(
+      lat: place.lat,
+      lon: place.lon,
+      label: place.name,
+      placeId: place.id?.toString(),
       zoom: 14,
     );
   }
