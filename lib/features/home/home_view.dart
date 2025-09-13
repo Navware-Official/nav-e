@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nav_e/app/app_nav.dart';
 
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/extensions/geocoding_to_saved.dart';
-import 'package:nav_e/core/domain/extensions/query_params.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
 
 import 'package:nav_e/features/home/widgets/bottom_navigation_bar.dart'
@@ -154,12 +154,15 @@ class _HomeViewState extends State<HomeView> {
             listener: (context, state) {
               if (state is! LocationPreviewShowing) return;
 
-              context.read<MapBloc>().add(ToggleFollowUser(false));
+              final mapState = context.read<MapBloc>().state;
 
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                setZoomIfProvided(_mapController, widget.zoomParam, _mapReady);
-                focusMapOnPreview(context, _mapController, state);
-              });
+              focusMapOnPreview(
+                context,
+                _mapController,
+                state,
+                mapState,
+                desiredZoom: 14,
+              );
 
               _clearPreviewParams(context);
             },
@@ -178,11 +181,13 @@ class _HomeViewState extends State<HomeView> {
 
                 SearchOverlayWidget(
                   onResultSelected: (r) {
-                    context.goHomeWithCoords(
+                    FocusScope.of(context).unfocus();
+                    AppNav.homeWithCoords(
                       lat: r.lat,
                       lon: r.lon,
                       label: r.displayName,
                       placeId: r.id,
+                      zoom: 14,
                     );
                   },
                 ),

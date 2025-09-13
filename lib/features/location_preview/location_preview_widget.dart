@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -64,7 +66,7 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                         width: 44,
                         height: 5,
                         decoration: BoxDecoration(
-                          color: scheme.outlineVariant.withOpacity(0.6),
+                          color: Colors.grey[100],
                           borderRadius: BorderRadius.circular(99),
                         ),
                       ),

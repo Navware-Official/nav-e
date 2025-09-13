@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/app/app_nav.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 
 class SearchResultTile extends StatelessWidget {
   final GeocodingResult result;
+  final ValueChanged<GeocodingResult>? onSelected;
 
-  const SearchResultTile({super.key, required this.result});
+  const SearchResultTile({super.key, required this.result, this.onSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -15,13 +15,7 @@ class SearchResultTile extends StatelessWidget {
       subtitle: Text(result.type),
       onTap: () {
         FocusScope.of(context).unfocus();
-        AppNav.homeWithCoords(
-          lat: result.lat,
-          lon: result.lon,
-          label: result.displayName,
-          placeId: result.id,
-          zoom: 14,
-        );
+        onSelected?.call(result);
       },
     );
   }

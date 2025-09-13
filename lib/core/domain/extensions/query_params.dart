@@ -36,21 +36,20 @@ extension GoNavX on BuildContext {
     debugPrint(
       '[GoNavX] Navigating to home with lat=$lat lon=$lon label=$label',
     );
+
+    if (currentUri().path == '/' &&
+        currentUri ==
+            qp.entries.where((e) => e.value != null).toSet().toString()) {
+      return;
+    }
+
     goNamed('home', queryParameters: qp.cast<String, String>());
   }
 
   Uri currentUri() {
     final router = GoRouter.of(this);
-    try {
-      final loc = (router as dynamic).location as String;
-      return Uri.parse(loc);
-    } catch (_) {
-      // Fallbacks for older versions
-      final loc =
-          router.routeInformationProvider.value.location ??
-          router.routerDelegate.currentConfiguration.fullPath;
-      return Uri.tryParse(loc) ?? Uri(path: '/');
-    }
+    final loc = (router as dynamic).location as String;
+    return Uri.parse(loc);
   }
 
   /// Get the current query parameters from the URI.

@@ -9,7 +9,7 @@ class MapSourcePreviewGrid extends StatelessWidget {
   final bool closeOnSelect;
   final double minTileWidth;
   final int maxColumns;
-  final int previewZoom; // higher = more detail, but slower
+  final int previewZoom;
 
   const MapSourcePreviewGrid({
     super.key,
@@ -30,8 +30,9 @@ class MapSourcePreviewGrid extends StatelessWidget {
           return const Text('No map sources available.');
         }
 
-        final double centerLat = 52.1;
-        final double centerLon = 5.2;
+        final latLng = state.center;
+        final centerLat = latLng.latitude;
+        final centerLon = latLng.longitude;
         final z = previewZoom.clamp(1, 8);
         final xy = tileXY(centerLat, centerLon, z);
 
@@ -47,7 +48,7 @@ class MapSourcePreviewGrid extends StatelessWidget {
                 crossAxisCount: cols,
                 mainAxisSpacing: 10,
                 crossAxisSpacing: 10,
-                childAspectRatio: 1.6, // tweak per taste
+                childAspectRatio: 1.3,
               ),
               itemCount: sources.length,
               itemBuilder: (ctx, i) {
@@ -163,7 +164,7 @@ class _HeaderAwareImage extends StatelessWidget {
       url,
       headers: headers,
       fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
+      errorBuilder: (_, _, _) => Container(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         alignment: Alignment.center,
         child: const Icon(Icons.image_not_supported_outlined, size: 20),

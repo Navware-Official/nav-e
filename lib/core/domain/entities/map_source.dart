@@ -1,3 +1,5 @@
+// ignore_for_file: unnecessary_null_comparison
+
 import 'dart:math';
 
 class MapSource {
@@ -44,8 +46,8 @@ String previewUrlFor(
   int subdomainIndex = 0,
 }) {
   var url = s.urlTemplate;
-  if (s.subdomains != null && s.subdomains!.isNotEmpty) {
-    final sd = s.subdomains![subdomainIndex % s.subdomains!.length];
+  if (s.subdomains != null && s.subdomains.isNotEmpty) {
+    final sd = s.subdomains[subdomainIndex % s.subdomains.length];
     url = url.replaceAll('{s}', sd);
   }
   return url
