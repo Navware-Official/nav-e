@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nav_e/app/app_nav.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/features/search/bloc/search_event.dart';
 import 'package:nav_e/features/search/bloc/search_state.dart';
@@ -50,18 +51,31 @@ class SearchScreen extends StatelessWidget {
                     if (state.loading) {
                       return const Center(child: CircularProgressIndicator());
                     }
-
                     if (state.results.isEmpty) {
                       return const Center(child: Text('No results yet.'));
                     }
 
                     return ListView.separated(
                       itemCount: state.results.length,
-                      separatorBuilder: (context, index) =>
-                          const Divider(height: 1),
-                      itemBuilder: (contexIt, index) {
+                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      itemBuilder: (ctx, index) {
                         final result = state.results[index];
-                        return SearchResultTile(result: result);
+                        return SearchResultTile(
+                          result: result,
+                          onSelected: (r) {
+                            Navigator.of(ctx).maybePop();
+
+                            AppNav.homeWithCoords(
+                              lat: r.lat,
+                              lon: r.lon,
+                              label: r.displayName,
+                              placeId: r.id,
+                              zoom: 14,
+                            );
+
+                            // context.read<PreviewCubit>().showLocation(r);
+                          },
+                        );
                       },
                     );
                   },

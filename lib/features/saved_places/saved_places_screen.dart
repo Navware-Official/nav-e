@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/app/app_nav.dart';
 import 'package:nav_e/core/domain/entities/saved_place.dart';
-import 'package:nav_e/core/domain/extensions/query_params.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_state.dart';
 
@@ -64,7 +63,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
               return ListView.separated(
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 itemCount: places.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final place = places[index];
                   return Dismissible(
