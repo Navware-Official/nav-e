@@ -24,11 +24,11 @@ class GoRouterRefreshStream extends ChangeNotifier {
   }
 }
 
-final _rootNavKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 GoRouter buildRouter({Listenable? refreshListenable}) {
   return GoRouter(
-    navigatorKey: _rootNavKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: '/',
     refreshListenable: refreshListenable,
     routes: [
@@ -47,7 +47,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
       GoRoute(
         path: '/search',
         name: 'search',
-        parentNavigatorKey: _rootNavKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (ctx, _) => BlocProvider(
           create: (ctx) => SearchBloc(ctx.read<IGeocodingRepository>()),
           child: const SearchScreen(),
@@ -57,7 +57,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
       GoRoute(
         path: '/saved-places',
         name: 'savedPlaces',
-        parentNavigatorKey: _rootNavKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (ctx, _) => BlocProvider(
           create: (c) =>
               SavedPlacesCubit(c.read<ISavedPlacesRepository>())..loadPlaces(),

@@ -11,8 +11,9 @@ import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
 import 'package:nav_e/features/home/widgets/bottom_navigation_bar.dart'
     show BottomNavigationBarWidget;
 import 'package:nav_e/features/location_preview/location_preview_widget.dart';
-import 'package:nav_e/features/home/widgets/recenter_fab.dart';
-import 'package:nav_e/features/home/widgets/rotate_north_fab.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.dart';
 import 'package:nav_e/features/home/widgets/search_overlay_widget.dart'
     show SearchOverlayWidget;
 import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
@@ -92,10 +93,7 @@ class _HomeViewState extends State<HomeView> {
 
     final key =
         '${lat.toStringAsFixed(6)},${lon.toStringAsFixed(6)}|$label|${qp['placeId'] ?? ''}';
-    if (_lastHandledRouteKey == key) {
-      debugPrint('[HomeView] Same route params, ignore.');
-      return;
-    }
+    if (_lastHandledRouteKey == key) return;
 
     _handlingRoute = true;
     try {
@@ -105,7 +103,6 @@ class _HomeViewState extends State<HomeView> {
       if (!mounted) return;
 
       _lastHandledRouteKey = key;
-
       context.read<PreviewCubit>().showCoords(
         lat: lat,
         lon: lon,
@@ -156,8 +153,14 @@ class _HomeViewState extends State<HomeView> {
             listenWhen: (a, b) => a != b,
             listener: (context, state) {
               if (state is! LocationPreviewShowing) return;
-              setZoomIfProvided(_mapController, widget.zoomParam, _mapReady);
-              focusMapOnPreview(context, _mapController, state);
+
+              context.read<MapBloc>().add(ToggleFollowUser(false));
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                setZoomIfProvided(_mapController, widget.zoomParam, _mapReady);
+                focusMapOnPreview(context, _mapController, state);
+              });
+
               _clearPreviewParams(context);
             },
           ),
@@ -186,6 +189,7 @@ class _HomeViewState extends State<HomeView> {
 
                 RecenterFAB(mapController: _mapController),
                 RotateNorthFAB(mapController: _mapController),
+                MapControlsFAB(),
 
                 if (state is LocationPreviewShowing)
                   LocationPreviewWidget(

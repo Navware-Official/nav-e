@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DraggableFAB extends StatefulWidget {
@@ -22,7 +23,7 @@ class DraggableFAB extends StatefulWidget {
     this.shape = const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(30)),
     ),
-    this.iconColor = Colors.white,
+    this.iconColor = AppColors.blueRibbonDark02,
   });
 
   @override
@@ -98,8 +99,7 @@ class _DraggableFABState extends State<DraggableFAB> {
   }
 
   Widget _buildFab({double opacity = 1.0}) {
-    final double fabBoxSize =
-        (widget.size ?? 40.0) + 16; // 16 for padding around the icon
+    final double fabBoxSize = (widget.size ?? 40.0) + 16;
     return Opacity(
       opacity: opacity,
       child: SizedBox(

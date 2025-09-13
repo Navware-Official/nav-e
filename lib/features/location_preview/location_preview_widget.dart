@@ -116,8 +116,9 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                                     try {
                                       await widget.onSave!.call();
                                     } finally {
-                                      if (mounted)
+                                      if (mounted) {
                                         setState(() => _saving = false);
+                                      }
                                     }
                                   },
                             icon: Icon(
