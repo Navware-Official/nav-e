@@ -1,5 +1,5 @@
 name: nav_e
-description: "A new Flutter project."
+description: "Navware navigation engine."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -32,15 +32,17 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   flutter_bloc: ^9.1.1
+  go_router: ^16.2.1
   flutter_map: ^8.2.1
-  latlong2: ^0.9.0
+  latlong2: ^0.9.1
   geolocator: ^14.0.2
   shared_preferences: ^2.5.3
-  http: ^1.4.0
+  http: ^1.5.0
   bloc_concurrency: ^0.3.0
   stream_transform: ^2.1.1
   flutter_blue_plus: ^1.35.5
   sqflite: ^2.4.2
+  equatable: ^2.0.7
 
 dev_dependencies:
   flutter_test:
@@ -64,9 +66,27 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  fonts:
+  - family: NeueHaasUnica
+    fonts:
+      - asset: assets/fonts/NeueHaasUnica-Black.ttf
+        weight: 400
+      - asset: assets/fonts/NeueHaasUnica-Bold.ttf
+        weight: 700
+      - asset: assets/fonts/NeueHaasUnica-BoldItalic.ttf
+        weight: 700
+        style: italic
+
+  - family: BitcountGridSingle
+    fonts:
+      - asset: assets/fonts/BitcountGridSingle-Regular.ttf
+        weight: 400
+
+
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/img/house_cat.jpeg
+    - assets/sql/init.sql
 
 # The following section specifies the launcher_icons configuration 
 flutter_launcher_icons:

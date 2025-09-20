@@ -1,0 +1,39 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nav_e/core/domain/entities/geocoding_result.dart';
+import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
+import 'package:nav_e/features/search/bloc/search_bloc.dart';
+import 'package:nav_e/features/search/search_screen.dart';
+import 'package:nav_e/widgets/search_bar_widget.dart';
+
+class SearchOverlayWidget extends StatelessWidget {
+  const SearchOverlayWidget({super.key, required this.onResultSelected});
+  final ValueChanged<GeocodingResult> onResultSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 35,
+      left: 16,
+      right: 16,
+      child: Hero(
+        tag: 'searchBarHero',
+        child: SearchBarWidget(
+          onTap: () async {
+            final result = await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => BlocProvider(
+                  create: (ctx) => SearchBloc(ctx.read<IGeocodingRepository>()),
+                  child: const SearchScreen(),
+                ),
+              ),
+            );
+            if (result != null) {
+              onResultSelected(result);
+            }
+          },
+        ),
+      ),
+    );
+  }
+}

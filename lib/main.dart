@@ -1,39 +1,72 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nav_e/app/app_router_delegate.dart';
-import 'package:nav_e/app/route_parser.dart';
-import 'package:nav_e/bloc/app_state_bloc.dart';
-import 'package:nav_e/bloc/location_bloc.dart';
-import 'package:nav_e/bloc/map_bloc.dart';
-import 'package:nav_e/core/theme/app_theme.dart';
-import 'package:nav_e/screens/search/bloc/search_bloc.dart';
-import 'package:nav_e/services/geocoding_service.dart'; // <-- Import your theme
+import 'package:http/http.dart' as http;
 
-void main() {
-  final appStateBloc = AppStateBloc();
+import 'package:nav_e/app/app_router.dart';
+import 'package:nav_e/core/bloc/location_bloc.dart';
+import 'package:nav_e/core/data/local/database_helper.dart';
+
+import 'package:nav_e/core/data/remote/geocoding_api_client.dart';
+import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
+import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
+import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
+import 'package:nav_e/features/saved_places/data/saved_places_repository_impl.dart';
+import 'package:nav_e/features/search/data/geocoding_repository_impl.dart';
+import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
+
+import 'package:nav_e/core/data/remote/map_source_repository_impl.dart';
+import 'package:nav_e/core/domain/repositories/map_source_repository.dart';
+
+import 'package:nav_e/core/theme/app_theme.dart';
+import 'package:nav_e/core/theme/theme_cubit.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final geocodingRepo = GeocodingRepositoryImpl(
+    GeocodingApiClient(http.Client()),
+  );
+  final mapSourceRepo = MapSourceRepositoryImpl();
+  final db = await DatabaseHelper.instance.database;
+  final savedPlacesRepo = SavedPlacesRepositoryImpl(db);
 
   runApp(
-    MultiBlocProvider(
+    MultiRepositoryProvider(
       providers: [
-        BlocProvider<AppStateBloc>(
-          create: (_) => appStateBloc,
+        RepositoryProvider<IGeocodingRepository>.value(value: geocodingRepo),
+        RepositoryProvider<ISavedPlacesRepository>.value(
+          value: savedPlacesRepo,
         ),
-        BlocProvider<MapBloc>(
-          create: (_) => MapBloc()..add(MapInitialized()),
-        ),
-        BlocProvider<LocationBloc>(
-          create: (_) => LocationBloc(),
-        ),
-        BlocProvider<SearchBloc>(
-          create: (_) => SearchBloc(GeocodingService()),
-        ),
+        RepositoryProvider<IMapSourceRepository>.value(value: mapSourceRepo),
       ],
-      child: MaterialApp.router(
-        theme: AppTheme.lightTheme,
-        // darkTheme: AppTheme.darkTheme,
-        // themeMode: ThemeMode.system,  // Uncomment to use system theme again.
-        routerDelegate: AppRouterDelegate(appStateBloc),
-        routeInformationParser: const RouteParser(),
+      child: MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => ThemeCubit()),
+          BlocProvider(
+            create: (_) => LocationBloc()..add(StartLocationTracking()),
+          ),
+          BlocProvider(
+            create: (ctx) =>
+                MapBloc(ctx.read<IMapSourceRepository>())
+                  ..add(MapInitialized()),
+          ),
+        ],
+        child: BlocBuilder<ThemeCubit, AppThemeMode>(
+          builder: (context, mode) {
+            final router = buildRouter(
+              refreshListenable: GoRouterRefreshStream(
+                context.read<ThemeCubit>().stream,
+              ),
+            );
+
+            return MaterialApp.router(
+              debugShowCheckedModeBanner: false,
+              routerConfig: router,
+              theme: AppTheme.light(),
+              darkTheme: AppTheme.dark(),
+              themeMode: context.read<ThemeCubit>().toFlutterMode(mode),
+            );
+          },
+        ),
       ),
     ),
   );

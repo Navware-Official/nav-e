@@ -12,4 +12,7 @@ class AppColors {
 
   // Extra colors
   static const Color capeCodDark02 = Color.fromARGB(255, 24, 24, 24);
+  
+  // Dark red
+  static const Color redDark = Color.fromARGB(255, 155, 0, 0);
 }
