@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DraggableFAB extends StatefulWidget {
@@ -9,6 +10,7 @@ class DraggableFAB extends StatefulWidget {
   final double? initialX;
   final double? initialY;
   final ShapeBorder shape;
+  final Color iconColor;
 
   const DraggableFAB({
     super.key,
@@ -21,6 +23,7 @@ class DraggableFAB extends StatefulWidget {
     this.shape = const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(30)),
     ),
+    this.iconColor = AppColors.blueRibbonDark02,
   });
 
   @override
@@ -73,20 +76,21 @@ class _DraggableFABState extends State<DraggableFAB> {
         feedback: _buildFab(opacity: 0.8),
         childWhenDragging: Container(),
         onDragEnd: (details) {
-          final RenderBox overlayBox = Overlay.of(context).context.findRenderObject() as RenderBox;
+          final RenderBox overlayBox =
+              Overlay.of(context).context.findRenderObject() as RenderBox;
           final Offset localOffset = overlayBox.globalToLocal(details.offset);
-  
+
           final screenSize = overlayBox.size;
-  
+
           final Offset clamped = Offset(
             localOffset.dx.clamp(0.0, screenSize.width - 56),
             localOffset.dy.clamp(0.0, screenSize.height - 56),
           );
-  
+
           setState(() {
             position = clamped;
           });
-  
+
           _savePosition(clamped);
         },
         child: _buildFab(),
@@ -95,20 +99,18 @@ class _DraggableFABState extends State<DraggableFAB> {
   }
 
   Widget _buildFab({double opacity = 1.0}) {
-    final double fabBoxSize = (widget.size ?? 40.0) + 16; // 16 for padding around the icon
+    final double fabBoxSize = (widget.size ?? 40.0) + 16;
     return Opacity(
       opacity: opacity,
       child: SizedBox(
         width: fabBoxSize,
         height: fabBoxSize,
         child: FloatingActionButton(
+          heroTag: null,
           onPressed: widget.onPressed,
           shape: widget.shape,
           tooltip: widget.tooltip,
-          child: Icon(
-            widget.icon,
-            size: widget.size,
-          ),
+          child: Icon(widget.icon, size: widget.size, color: widget.iconColor),
         ),
       ),
     );
