@@ -51,7 +51,26 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
   }
 
   void _startScanning(StartScanning event, Emitter<BluetoothState> emit) async {
-    print("This is where we left off"); // TODO: continue here
+    print("STARTING_SCAN.....");
+
+    // Start scanning
+    await FlutterBluePlus.startScan(
+    androidScanMode: /*AndroidScanMode.lowPower*/AndroidScanMode.lowLatency,
+    // withServices:[Guid("180D")], // match any of the specified services
+    // withNames:["Bluno"], // *or* any of the specified names
+    timeout: Duration(seconds:15));
+
+    // Listen to scan results
+    FlutterBluePlus.scanResults.listen((results) {
+        // do something with scan results
+        for (ScanResult r in results) {
+            print('${r.device} found! Adverstisement data:${r.advertisementData} rssi: ${r.rssi}');
+        }
+
+        // TODO: CONTINUE HERE
+    });
+
+
     // await databaseHelper.insertRow("devices", {"name": "vehicular manslaughter", "model": "First Edition", "remote_id": "0001"});
     // await databaseHelper.insertRow("devices", {"name": "Ford Mustang", "model": "3.35", "remote_id": "foonnga"});
     // await databaseHelper.insertRow("devices", {"name": "Mylyf", "model": "First Edition", "remote_id": "0001"});
