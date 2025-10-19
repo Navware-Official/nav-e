@@ -38,8 +38,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                   BlocConsumer<BluetoothBloc, BluetoothState>(
                     listener: (context, state) {
                       if (state is BluetoothRequirementsMet) {
-                        print("Googinga");
-                        // context.read<BluetoothBloc>().add(StartScanning());
+                        context.read<BluetoothBloc>().add(StartScanning());
                       }
 
                       // check for operation failure and shows toast

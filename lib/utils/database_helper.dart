@@ -11,7 +11,7 @@ class DatabaseHelper {
     final path = join(databasePath, databaseName);
 
     return openDatabase(path, version: 1, onCreate: (db, version) async {
-      await db.execute("CREATE TABLE devices (id INTEGER PRIMARY KEY, name TEXT, model TEXT, remote_id)");
+      await db.execute("CREATE TABLE devices (id INTEGER PRIMARY KEY, name TEXT, remote_id)");
     });
   }
 
