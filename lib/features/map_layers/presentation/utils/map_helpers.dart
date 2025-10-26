@@ -64,6 +64,8 @@ Future<void> focusMapOnPreview(
 
   await SchedulerBinding.instance.endOfFrame;
 
+  if (!context.mounted) return;
+
   final mq = MediaQuery.of(context);
   final pad = EdgeInsets.only(
     left: 16,

@@ -41,8 +41,10 @@ dependencies:
   bloc_concurrency: ^0.3.0
   stream_transform: ^2.1.1
   flutter_blue_plus: ^1.35.5
+  permission_handler: ^12.0.1
   sqflite: ^2.4.2
   equatable: ^2.0.7
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +59,10 @@ dev_dependencies:
 
   # A package which simplifies the task of updating your Flutter app's launcher icon.
   flutter_launcher_icons: "^0.14.4"
+  test: ^1.26.2
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
+  sqflite_common_ffi: ^2.3.3
 
 # The following section is specific to Flutter packages.
 flutter:
