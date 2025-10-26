@@ -18,22 +18,31 @@ class ThemeSettingsSection extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
               child: Text('Theme', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
             ),
+            // ignore: deprecated_member_use
             RadioListTile<AppThemeMode>(
               title: const Text('System default'),
               value: AppThemeMode.system,
+              // ignore: deprecated_member_use
               groupValue: current,
+              // ignore: deprecated_member_use
               onChanged: (m) => set(m!),
             ),
+            // ignore: deprecated_member_use
             RadioListTile<AppThemeMode>(
               title: const Text('Light'),
               value: AppThemeMode.light,
+              // ignore: deprecated_member_use
               groupValue: current,
+              // ignore: deprecated_member_use
               onChanged: (m) => set(m!),
             ),
+            // ignore: deprecated_member_use
             RadioListTile<AppThemeMode>(
               title: const Text('Dark'),
               value: AppThemeMode.dark,
+              // ignore: deprecated_member_use
               groupValue: current,
+              // ignore: deprecated_member_use
               onChanged: (m) => set(m!),
             ),
           ],

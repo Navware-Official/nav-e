@@ -8,6 +8,9 @@ import 'package:nav_e/core/data/local/database_helper.dart';
 
 import 'package:nav_e/core/data/remote/geocoding_api_client.dart';
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
+import 'package:nav_e/core/domain/repositories/device_repository.dart';
+import 'package:nav_e/features/device_management/data/device_repository_impl.dart';
+import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/saved_places/data/saved_places_repository_impl.dart';
@@ -28,6 +31,7 @@ Future<void> main() async {
   final mapSourceRepo = MapSourceRepositoryImpl();
   final db = await DatabaseHelper.instance.database;
   final savedPlacesRepo = SavedPlacesRepositoryImpl(db);
+  final deviceRepo = DeviceRepositoryImpl(db);
 
   runApp(
     MultiRepositoryProvider(
@@ -37,6 +41,7 @@ Future<void> main() async {
           value: savedPlacesRepo,
         ),
         RepositoryProvider<IMapSourceRepository>.value(value: mapSourceRepo),
+        RepositoryProvider<IDeviceRepository>.value(value: deviceRepo),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -48,6 +53,9 @@ Future<void> main() async {
             create: (ctx) =>
                 MapBloc(ctx.read<IMapSourceRepository>())
                   ..add(MapInitialized()),
+          ),
+          BlocProvider(
+            create: (ctx) => DevicesBloc(ctx.read<IDeviceRepository>()),
           ),
         ],
         child: BlocBuilder<ThemeCubit, AppThemeMode>(

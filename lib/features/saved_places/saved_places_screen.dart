@@ -98,12 +98,15 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                     },
                     onDismissed: (_) async {
                       if (place.id != null) {
+                        final messenger = ScaffoldMessenger.of(context);
                         await context.read<SavedPlacesCubit>().deletePlace(
                           place.id!,
                         );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Deleted "${place.name}"')),
-                        );
+                        if (mounted) {
+                          messenger.showSnackBar(
+                            SnackBar(content: Text('Deleted "${place.name}"')),
+                          );
+                        }
                       }
                     },
                     child: ListTile(

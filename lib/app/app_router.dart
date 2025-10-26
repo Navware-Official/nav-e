@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
+import 'package:nav_e/features/device_management/add_device_screen.dart';
+import 'package:nav_e/features/device_management/device_management_screen.dart';
 
 import 'package:nav_e/features/home/home_screen.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
@@ -64,7 +66,16 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
           child: const SavedPlacesScreen(),
         ),
       ),
-
+      GoRoute(
+        path: '/devices',
+        name: 'devices',
+        builder: (_, _) => const DeviceManagementScreen(),
+      ),
+      GoRoute(
+        path: '/add-device',
+        name: 'addDevice',
+        builder: (_, _) => const AddDeviceScreen(),
+      ),
       GoRoute(
         path: '/settings',
         name: 'settings',
