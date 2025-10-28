@@ -4,11 +4,11 @@ import '../colors.dart';
 
 class AppBarThemes {
   static const AppBarTheme light = AppBarTheme(
-    backgroundColor: AppColors.blueRibbonDark02,
+    backgroundColor: AppColors.white,
     foregroundColor: AppColors.white,
     elevation: 0,
     shape: CornerBlockBorder(
-      side: BorderSide(width: 1.4, color: Colors.black),
+      side: BorderSide(width: 2, color: AppColors.lightGray),
       blockOvershoot: 2,
     ),
   );
@@ -18,7 +18,7 @@ class AppBarThemes {
     foregroundColor: AppColors.lightGray,
     elevation: 2,
     shape: CornerBlockBorder(
-      side: BorderSide(width: 1.4, color: Colors.black),
+      side: BorderSide(width: 2, color: AppColors.lightGray),
       blockOvershoot: 2,
     ),
   );

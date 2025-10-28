@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/device_management/widgets/device_card_widget.dart';
 
@@ -18,12 +20,12 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white,),
+          icon: Icon(Icons.arrow_back, color: AppColors.capeCodDark02),
           onPressed: (){
             Navigator.pop(context);
           }, 
         ),
-        title: Text('Devices', style: TextStyle(color: Colors.black)),
+        title: Text('Devices', style: TextStyle(color: AppColors.capeCodDark02)),
       ),
       body: Container(
         padding: EdgeInsets.all(8),
@@ -61,7 +63,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                             return Expanded(child: Text( // TODO: Gray out and make it a subtext
                               "No devices registered! Add a device using the button below.", 
                               textAlign: TextAlign.center, 
-                              style: TextStyle(fontSize: 24, color: Colors.grey))
+                              style: TextStyle(fontSize: 24, color: AppColors.lightGray))
                             );
                           }
                       } else if (state is DeviceOperationFailure) {
@@ -104,7 +106,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                 Expanded(
                   child: FloatingActionButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/add-device');
+                      context.pushNamed('addDevice');
                     },
                     child: Text("Add a new device +"),
                   )
