@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:nav_e/app/app_router.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
+import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/core/data/local/database_helper.dart';
 
 import 'package:nav_e/core/data/remote/geocoding_api_client.dart';
@@ -56,6 +57,9 @@ Future<void> main() async {
           ),
           BlocProvider(
             create: (ctx) => DevicesBloc(ctx.read<IDeviceRepository>()),
+          ),
+          BlocProvider(
+            create: (_) => BluetoothBloc(DatabaseHelper.instance),
           ),
         ],
         child: BlocBuilder<ThemeCubit, AppThemeMode>(
