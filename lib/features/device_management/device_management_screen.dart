@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/device_management/widgets/device_card_widget.dart';
 
@@ -104,7 +105,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                 Expanded(
                   child: FloatingActionButton(
                     onPressed: () {
-                      Navigator.pushNamed(context, '/add-device');
+                      context.push('/add-device');
                     },
                     child: Text("Add a new device +"),
                   )

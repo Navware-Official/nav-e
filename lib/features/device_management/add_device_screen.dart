@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 
 class AddDeviceScreen extends StatefulWidget {
@@ -21,7 +22,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
           icon: Icon(Icons.arrow_back, color: Colors.white,),
           onPressed: (){
             // Navigate to devices list using named route
-            Navigator.pushNamed(context, '/devices');
+            context.push('/devices');
           }, 
         ),
         title: Text('Add a new bluetooth device', style: TextStyle(color: Colors.black)),
