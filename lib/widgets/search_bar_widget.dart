@@ -21,7 +21,7 @@ class SearchBarWidget extends StatelessWidget {
         onTap: onTap,
         onChanged: onChanged,
         decoration: InputDecoration(
-          hintText: hintText ?? 'Search for a location here',
+          hintText: hintText ?? 'Search for a location',
           prefixIcon: const Icon(Icons.search),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 6),

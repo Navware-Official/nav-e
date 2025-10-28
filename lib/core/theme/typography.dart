@@ -3,6 +3,7 @@ import 'colors.dart';
 
 class AppTypography {
   static const family = 'NeueHaasUnica';
+  static const subFamily = 'BitcountGridSingle';
 
   static const TextTheme base = TextTheme(
     // Headings

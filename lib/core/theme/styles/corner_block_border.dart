@@ -5,7 +5,7 @@ class CornerBlockBorder extends OutlinedBorder {
   const CornerBlockBorder({
     this.borderRadius = BorderRadius.zero,
     this.blockOvershoot = 2.0,
-    super.side = const BorderSide(width: 1.2, color: AppColors.lightGray),
+    super.side = const BorderSide(width: 4, color: AppColors.capeCodDark01),
   });
 
   final BorderRadius borderRadius;
@@ -39,18 +39,22 @@ class CornerBlockBorder extends OutlinedBorder {
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
     if (side.style == BorderStyle.none || side.width == 0) return;
 
-    // 1) main outline
-    final rrect = borderRadius.toRRect(rect);
-    final paintBorder = side.toPaint()..style = PaintingStyle.stroke;
-    canvas.drawRRect(rrect, paintBorder);
-
-    // 2) corner caps (filled squares)
+    // Calculate corner block dimensions
     final half = side.width / 2;
     final s = side.width + blockOvershoot * 2;
-    final fill = Paint()
+    
+    // Paint for border lines
+    final borderPaint = Paint()
       ..color = side.color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = side.width;
+    
+    // Paint for corner blocks (light gray fill)
+    final cornerFill = Paint()
+      ..color = AppColors.lightGray
       ..style = PaintingStyle.fill;
 
+    // Define corner block rectangles
     final tl = Rect.fromLTWH(
       rect.left - blockOvershoot - half,
       rect.top - blockOvershoot - half,
@@ -76,10 +80,40 @@ class CornerBlockBorder extends OutlinedBorder {
       s,
     );
 
-    canvas.drawRect(tl, fill);
-    canvas.drawRect(tr, fill);
-    canvas.drawRect(bl, fill);
-    canvas.drawRect(br, fill);
+    // Draw border lines between corners (not overlapping corner blocks)
+    // Top line
+    canvas.drawLine(
+      Offset(tl.right, rect.top),
+      Offset(tr.left, rect.top),
+      borderPaint,
+    );
+    
+    // Bottom line
+    canvas.drawLine(
+      Offset(bl.right, rect.bottom),
+      Offset(br.left, rect.bottom),
+      borderPaint,
+    );
+    
+    // Left line
+    canvas.drawLine(
+      Offset(rect.left, tl.bottom),
+      Offset(rect.left, bl.top),
+      borderPaint,
+    );
+    
+    // Right line
+    canvas.drawLine(
+      Offset(rect.right, tr.bottom),
+      Offset(rect.right, br.top),
+      borderPaint,
+    );
+
+    // Draw corner blocks on top
+    canvas.drawRect(tl, cornerFill);
+    canvas.drawRect(tr, cornerFill);
+    canvas.drawRect(bl, cornerFill);
+    canvas.drawRect(br, cornerFill);
   }
 
   @override

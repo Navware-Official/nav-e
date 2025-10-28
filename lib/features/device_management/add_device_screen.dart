@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
+import 'package:nav_e/core/theme/colors.dart';
 
 class AddDeviceScreen extends StatefulWidget {
   const AddDeviceScreen({super.key});
@@ -18,7 +19,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white,),
+          icon: Icon(Icons.arrow_back, color: AppColors.capeCodDark02,),
           onPressed: (){
             // Navigate to devices list using named route
             Navigator.pushNamed(context, '/devices');
