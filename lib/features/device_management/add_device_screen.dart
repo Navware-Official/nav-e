@@ -36,7 +36,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  BlocConsumer<BluetoothBloc, BluetoothState>(
+                  BlocConsumer<BluetoothBloc, ApplicationBluetoothState>(
                     listener: (context, state) {
                       if (state is BluetoothRequirementsMet) {
                         context.read<BluetoothBloc>().add(StartScanning());
