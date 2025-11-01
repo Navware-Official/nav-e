@@ -7,14 +7,14 @@ import 'package:permission_handler/permission_handler.dart';
 part 'bluetooth_event.dart';
 part 'bluetooth_state.dart';
 
-class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
+class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
   final DatabaseHelper databaseHelper;
   BluetoothBloc(this.databaseHelper) : super(BluetoothInitial()) {
     on<CheckBluetoothRequirements>(_checkBluetoothSupport);
     on<StartScanning>(_startScanning);
   }
 
-  void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<BluetoothState> emit) async {
+  void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<ApplicationBluetoothState> emit) async {
     // Check if bluetooth is supported by the device
     if (await FlutterBluePlus.isSupported == false) {
       emit(BluetoothOperationFailure("Bluetooth is not supported on this please try again on a bluetooth supported device."));
@@ -51,7 +51,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       }
   }
 
-  void _startScanning(StartScanning event, Emitter<BluetoothState> emit) async {
+  void _startScanning(StartScanning event, Emitter<ApplicationBluetoothState> emit) async {
     debugPrint("STARTING_SCAN.....");
 
     // Start scanning
