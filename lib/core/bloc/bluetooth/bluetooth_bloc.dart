@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
@@ -7,11 +9,15 @@ import 'package:permission_handler/permission_handler.dart';
 part 'bluetooth_event.dart';
 part 'bluetooth_state.dart';
 
+// TODO: Move to centralized place and update once registered
+final navwareBluetoothServiceUUIDs = <Guid>[Guid("6e400001-b5a3-f393-e0a9-e50e24dcca9e")];
+
 class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
   final DatabaseHelper databaseHelper;
   BluetoothBloc(this.databaseHelper) : super(BluetoothInitial()) {
     on<CheckBluetoothRequirements>(_checkBluetoothSupport);
     on<StartScanning>(_startScanning);
+    on<UpdateScanResults>(_updateScanResults);
   }
 
   void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<ApplicationBluetoothState> emit) async {
@@ -54,18 +60,33 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
   void _startScanning(StartScanning event, Emitter<ApplicationBluetoothState> emit) async {
     debugPrint("STARTING_SCAN.....");
 
+    emit(BluetoothScanInProgress());
+
     // Start scanning
+    var subscription = FlutterBluePlus.onScanResults.listen((results) {
+        add(UpdateScanResults(results));
+    });
+
+    // cleanup: cancel subscription when scanning stops
+    FlutterBluePlus.cancelWhenScanComplete(subscription);
+
+    // initiate the scan
     await FlutterBluePlus.startScan(
     androidScanMode: /*AndroidScanMode.lowPower*/AndroidScanMode.lowLatency,
-    // withServices:[Guid("180D")], // match any of the specified services
-    // withNames:["Bluno"], // *or* any of the specified names
-    timeout: Duration(seconds:15));
+    // withServices: navwareBluetoothServiceUUIDs, // match any of the specified services
+    );
 
-    // Listen to scan results
-    FlutterBluePlus.scanResults.listen((results) {
-        // do something with scan results
-        for (ScanResult r in results) {
-            debugPrint('${r.device} found! Adverstisement data:${r.advertisementData} rssi: ${r.rssi}');
+    // wait for scanning to stop
+    await Future.delayed(Duration(seconds: 10)).then((value) async {
+      await FlutterBluePlus.stopScan();
+      debugPrint("Scanning completed");
+      emit(BluetoothScanComplete());
+    });
+  }
+
+  void _updateScanResults(UpdateScanResults event, Emitter<ApplicationBluetoothState> emit) {
+    emit(BluetoothScanResultsFetched(event.results));
+  }
         }
 
         // TODO: CONTINUE HERE
