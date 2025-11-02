@@ -51,6 +51,15 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                           ),
                         );
                       }
+
+                      if (state is BluetoothScanComplete) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text("Scanning complete!"),
+                            duration: Duration(milliseconds: 3000),
+                          )
+                        );
+                      }
                     },
                     builder: (context, state) {
                       if (state is BluetoothOperationFailure) {
@@ -59,7 +68,10 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                           child: Text("Try again")
                         );
                       } else if (state is BluetoothScanInProgress) {
-                        
+                          return CircularProgressIndicator(); // TODO: Fix ProgressIndicator not loading
+                      } else if (state is BluetoothScanResultsFetched) {
+                          debugPrint(state.results.toString());
+                          return CircularProgressIndicator();
                       }
 
                       // if something unexpected goed wrong

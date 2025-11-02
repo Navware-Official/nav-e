@@ -9,3 +9,9 @@ sealed class BluetoothEvent {
 class CheckBluetoothRequirements extends BluetoothEvent {}
 
 class StartScanning extends BluetoothEvent {}
+
+class UpdateScanResults extends BluetoothEvent {
+  final List<ScanResult> results;
+
+  UpdateScanResults(this.results);
+}
