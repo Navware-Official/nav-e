@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 
@@ -77,18 +78,45 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                           return CircularProgressIndicator();
                       } else if (state is BluetoothScanComplete) {
                           // debugPrint(state.results.toString());
-                          return Column(
-                            children: [
-                              Text("scan completeeeee")
-                            ],
+
+                          return Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 150,
+                                  child: ElevatedButton(
+                                    onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothRequirements());}, 
+                                    child: Row(children: [Icon(Icons.refresh), Text(" Scan Again")]),
+                                  )
+                                ),
+                                Expanded(
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: state.results.length,
+                                    itemBuilder: (context, index) {
+                                      ScanResult result = state.results[index];
+                                      String title = "Unknown";
+                                      title = result.advertisementData.serviceUuids.isNotEmpty ? result.advertisementData.serviceUuids.first.toString() : title;
+                                      title = result.advertisementData.advName.isNotEmpty ? result.advertisementData.advName : title;
+                                      return ListTile(
+                                        title: Text(title),
+                                        subtitle: Text(result.device.remoteId.toString()),
+                                        trailing: Text("RSSI: ${result.rssi}" ),
+                                      );
+                                    },
+                                  )
+                                )
+                              ],
+                            )
                           );
                       } else {
-                      // if something unexpected goed wrong
-                      return Expanded(child: Text(
-                        "Error: Something went wrong! Unable to add devices.", 
-                        textAlign: TextAlign.center, 
-                        style: TextStyle(fontSize: 24, color: Colors.redAccent))
-                      );
+                        // if something unexpected goed wrong
+                        return Expanded(child: Text(
+                          "Error: Something went wrong! Unable to add devices.", 
+                          textAlign: TextAlign.center, 
+                          style: TextStyle(fontSize: 24, color: Colors.redAccent))
+                        );
                       }
                     }
                   )
