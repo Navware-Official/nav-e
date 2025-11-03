@@ -14,13 +14,17 @@ class BluetoothRequirementsMet extends ApplicationBluetoothState {}
 
 class BluetoothScanInProgress extends ApplicationBluetoothState {}
 
-class BluetoothScanResultsFetched extends ApplicationBluetoothState {
+// class BluetoothScanResultsFetched extends ApplicationBluetoothState {
+//   final List<ScanResult> results;
+
+//   BluetoothScanResultsFetched(this.results);
+// }
+
+class BluetoothScanComplete extends ApplicationBluetoothState {
   final List<ScanResult> results;
 
-  BluetoothScanResultsFetched(this.results);
+  BluetoothScanComplete(this.results);
 }
-
-class BluetoothScanComplete extends ApplicationBluetoothState {}
 
 class BluetoothOperationFailure extends ApplicationBluetoothState {
   final String message;

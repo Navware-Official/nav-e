@@ -64,7 +64,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
 
     emit(BluetoothScanInProgress());
 
-    late List<ScanResult>? latestScanResult;
+    late List<ScanResult> latestScanResult;
 
     // Start listening before scanning so we don't miss anything
     var subscription = FlutterBluePlus.scanResults.listen((results) {
@@ -86,7 +86,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     await Future.delayed(Duration(seconds: 5)).then((value) async {
       await FlutterBluePlus.stopScan();
       debugPrint(latestScanResult.toString());
-      emit(BluetoothScanComplete());
+      emit(BluetoothScanComplete(latestScanResult));
     });
   }
 
