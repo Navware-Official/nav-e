@@ -59,7 +59,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                               )
                             );
                           } else {
-                            return Expanded(child: Text( // TODO: Gray out and make it a subtext
+                            return Expanded(child: Text(
                               "No devices registered! Add a device using the button below.", 
                               textAlign: TextAlign.center, 
                               style: TextStyle(fontSize: 24, color: Colors.grey))
