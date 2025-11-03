@@ -8,6 +8,8 @@ sealed class ApplicationBluetoothState {
 
 final class BluetoothInitial extends ApplicationBluetoothState {}
 
+class BluetoothCheckInProgress extends ApplicationBluetoothState {}
+
 class BluetoothRequirementsMet extends ApplicationBluetoothState {}
 
 class BluetoothScanInProgress extends ApplicationBluetoothState {}

@@ -62,24 +62,34 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                       }
                     },
                     builder: (context, state) {
-                      if (state is BluetoothOperationFailure) {
+                      if (state is BluetoothCheckInProgress) {
+                        return Expanded(child: Text(
+                          "Checking bluetooth requirements...", 
+                          textAlign: TextAlign.center, 
+                          style: TextStyle(fontSize: 24, color: Colors.grey))
+                        );
+                      } else if (state is BluetoothOperationFailure) {
                         return ElevatedButton(
                           onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothRequirements());}, 
                           child: Text("Try again")
                         );
                       } else if (state is BluetoothScanInProgress) {
-                          return CircularProgressIndicator(); // TODO: Fix ProgressIndicator not loading
-                      } else if (state is BluetoothScanResultsFetched) {
-                          debugPrint(state.results.toString());
                           return CircularProgressIndicator();
-                      }
-
+                      } else if (state is BluetoothScanComplete) {
+                          // debugPrint(state.results.toString());
+                          return Column(
+                            children: [
+                              Text("scan completeeeee")
+                            ],
+                          );
+                      } else {
                       // if something unexpected goed wrong
                       return Expanded(child: Text(
                         "Error: Something went wrong! Unable to add devices.", 
                         textAlign: TextAlign.center, 
                         style: TextStyle(fontSize: 24, color: Colors.redAccent))
                       );
+                      }
                     }
                   )
                 ],

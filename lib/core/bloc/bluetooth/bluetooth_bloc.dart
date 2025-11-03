@@ -17,10 +17,12 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
   BluetoothBloc(this.databaseHelper) : super(BluetoothInitial()) {
     on<CheckBluetoothRequirements>(_checkBluetoothSupport);
     on<StartScanning>(_startScanning);
-    on<UpdateScanResults>(_updateScanResults);
+    // on<UpdateScanResults>(_updateScanResults); //! don't forget to remove
   }
 
   void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<ApplicationBluetoothState> emit) async {
+    emit(BluetoothCheckInProgress());
+
     // Check if bluetooth is supported by the device
     if (await FlutterBluePlus.isSupported == false) {
       emit(BluetoothOperationFailure("Bluetooth is not supported on this please try again on a bluetooth supported device."));
@@ -62,9 +64,13 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
 
     emit(BluetoothScanInProgress());
 
-    // Start scanning
-    var subscription = FlutterBluePlus.onScanResults.listen((results) {
-        add(UpdateScanResults(results));
+    late List<ScanResult>? latestScanResult;
+
+    // Start listening before scanning so we don't miss anything
+    var subscription = FlutterBluePlus.scanResults.listen((results) {
+        if (results.isNotEmpty) {
+          latestScanResult = results;
+        }
     });
 
     // cleanup: cancel subscription when scanning stops
@@ -77,29 +83,27 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     );
 
     // wait for scanning to stop
-    await Future.delayed(Duration(seconds: 10)).then((value) async {
+    await Future.delayed(Duration(seconds: 5)).then((value) async {
       await FlutterBluePlus.stopScan();
-      debugPrint("Scanning completed");
+      debugPrint(latestScanResult.toString());
       emit(BluetoothScanComplete());
     });
   }
 
-  void _updateScanResults(UpdateScanResults event, Emitter<ApplicationBluetoothState> emit) {
-    emit(BluetoothScanResultsFetched(event.results));
-  }
-        }
-
-        // TODO: CONTINUE HERE
-    });
-
-
-    // await databaseHelper.insertRow("devices", {"name": "vehicular manslaughter", "model": "First Edition", "remote_id": "0001"});
-    // await databaseHelper.insertRow("devices", {"name": "Ford Mustang", "model": "3.35", "remote_id": "foonnga"});
-    // await databaseHelper.insertRow("devices", {"name": "Mylyf", "model": "First Edition", "remote_id": "0001"});
-
-    // final items = await databaseHelper.getAllRowsFrom("devices");
-    // print(items);
-
-    // emit(state.copyWith(isScanning: true));
-  }
+  //! don't forget to remove
+  // void _updateScanResults(UpdateScanResults event, Emitter<ApplicationBluetoothState> emit) {
+  //   emit(BluetoothScanResultsFetched(event.results));
+  // }
 }
+
+/**
+ * * EXAMPLE CODE FOR CONENCT AND ADD DEVICE
+ */
+// await databaseHelper.insertRow("devices", {"name": "vehicular manslaughter", "model": "First Edition", "remote_id": "0001"});
+// await databaseHelper.insertRow("devices", {"name": "Ford Mustang", "model": "3.35", "remote_id": "foonnga"});
+// await databaseHelper.insertRow("devices", {"name": "Mylyf", "model": "First Edition", "remote_id": "0001"});
+
+// final items = await databaseHelper.getAllRowsFrom("devices");
+// print(items);
+
+// emit(state.copyWith(isScanning: true));
