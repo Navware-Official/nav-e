@@ -17,7 +17,6 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
   BluetoothBloc(this.databaseHelper) : super(BluetoothInitial()) {
     on<CheckBluetoothRequirements>(_checkBluetoothSupport);
     on<StartScanning>(_startScanning);
-    // on<UpdateScanResults>(_updateScanResults); //! don't forget to remove
   }
 
   void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<ApplicationBluetoothState> emit) async {
@@ -89,21 +88,4 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
       emit(BluetoothScanComplete(latestScanResult));
     });
   }
-
-  //! don't forget to remove
-  // void _updateScanResults(UpdateScanResults event, Emitter<ApplicationBluetoothState> emit) {
-  //   emit(BluetoothScanResultsFetched(event.results));
-  // }
 }
-
-/**
- * * EXAMPLE CODE FOR CONENCT AND ADD DEVICE
- */
-// await databaseHelper.insertRow("devices", {"name": "vehicular manslaughter", "model": "First Edition", "remote_id": "0001"});
-// await databaseHelper.insertRow("devices", {"name": "Ford Mustang", "model": "3.35", "remote_id": "foonnga"});
-// await databaseHelper.insertRow("devices", {"name": "Mylyf", "model": "First Edition", "remote_id": "0001"});
-
-// final items = await databaseHelper.getAllRowsFrom("devices");
-// print(items);
-
-// emit(state.copyWith(isScanning: true));
