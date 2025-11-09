@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
+import 'package:nav_e/core/domain/entities/device.dart';
+import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 
 class AddDeviceScreen extends StatefulWidget {
   const AddDeviceScreen({super.key});
@@ -99,10 +101,18 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                       String title = "Unknown";
                                       title = result.advertisementData.serviceUuids.isNotEmpty ? result.advertisementData.serviceUuids.first.toString() : title;
                                       title = result.advertisementData.advName.isNotEmpty ? result.advertisementData.advName : title;
+                                      String remoteId = result.device.remoteId.toString();
                                       return ListTile(
+                                        leading: Text("RSSI: ${result.rssi}" ),
                                         title: Text(title),
-                                        subtitle: Text(result.device.remoteId.toString()),
-                                        trailing: Text("RSSI: ${result.rssi}" ),
+                                        subtitle: Text(remoteId),
+                                        trailing: FilledButton(
+                                          onPressed: () {
+                                            Device device = Device(name: title, remoteId: remoteId);
+                                            context.read<DevicesBloc>().add(AddDevice(device));
+                                          }, 
+                                          child: Row(children: [Text("Add device"), Icon(Icons.add)])
+                                        ),
                                       );
                                     },
                                   )
