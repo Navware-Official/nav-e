@@ -35,18 +35,11 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
         child: Column(
           children: [
             Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  BlocConsumer<BluetoothBloc, ApplicationBluetoothState>(
+              child: MultiBlocListener(
+                listeners: [
+                  BlocListener<DevicesBloc, DevicesState>(
                     listener: (context, state) {
-                      if (state is BluetoothRequirementsMet) {
-                        context.read<BluetoothBloc>().add(StartScanning());
-                      }
-
-                      // check for operation failure and shows toast
-                      if (state is BluetoothOperationFailure) {
+                      if (state is DeviceOperationFailure) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(state.message),
@@ -55,82 +48,113 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                         );
                       }
 
-                      if (state is BluetoothScanComplete) {
+                      if (state is DeviceOperationSuccess) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text("Scanning complete!"),
+                            content: Text(state.message),
                             duration: Duration(milliseconds: 3000),
-                          )
+                          ),
                         );
-                      }
-                    },
-                    builder: (context, state) {
-                      if (state is BluetoothCheckInProgress) {
-                        return Expanded(child: Text(
-                          "Checking bluetooth requirements...", 
-                          textAlign: TextAlign.center, 
-                          style: TextStyle(fontSize: 24, color: Colors.grey))
-                        );
-                      } else if (state is BluetoothOperationFailure) {
-                        return ElevatedButton(
-                          onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothRequirements());}, 
-                          child: Text("Try again")
-                        );
-                      } else if (state is BluetoothScanInProgress) {
-                          return CircularProgressIndicator();
-                      } else if (state is BluetoothScanComplete) {
-                          // debugPrint(state.results.toString());
-
-                          return Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 150,
-                                  child: ElevatedButton(
-                                    onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothRequirements());}, 
-                                    child: Row(children: [Icon(Icons.refresh), Text(" Scan Again")]),
-                                  )
-                                ),
-                                Expanded(
-                                  child: ListView.builder(
-                                    shrinkWrap: true,
-                                    itemCount: state.results.length,
-                                    itemBuilder: (context, index) {
-                                      ScanResult result = state.results[index];
-                                      String title = "Unknown";
-                                      title = result.advertisementData.serviceUuids.isNotEmpty ? result.advertisementData.serviceUuids.first.toString() : title;
-                                      title = result.advertisementData.advName.isNotEmpty ? result.advertisementData.advName : title;
-                                      String remoteId = result.device.remoteId.toString();
-                                      return ListTile(
-                                        leading: Text("RSSI: ${result.rssi}" ),
-                                        title: Text(title),
-                                        subtitle: Text(remoteId),
-                                        trailing: FilledButton(
-                                          onPressed: () {
-                                            Device device = Device(name: title, remoteId: remoteId);
-                                            context.read<DevicesBloc>().add(AddDevice(device));
-                                          }, 
-                                          child: Row(children: [Text("Add device"), Icon(Icons.add)])
-                                        ),
-                                      );
-                                    },
-                                  )
-                                )
-                              ],
-                            )
-                          );
-                      } else {
-                        // if something unexpected goed wrong
-                        return Expanded(child: Text(
-                          "Error: Something went wrong! Unable to add devices.", 
-                          textAlign: TextAlign.center, 
-                          style: TextStyle(fontSize: 24, color: Colors.redAccent))
-                        );
+                        context.push('/devices');
                       }
                     }
                   )
                 ],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BlocConsumer<BluetoothBloc, ApplicationBluetoothState>(
+                      listener: (context, state) {
+                        if (state is BluetoothRequirementsMet) {
+                          context.read<BluetoothBloc>().add(StartScanning());
+                        }
+
+                        // check for operation failure and shows toast
+                        if (state is BluetoothOperationFailure) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(state.message),
+                              duration: Duration(milliseconds: 3000),
+                            ),
+                          );
+                        }
+
+                        if (state is BluetoothScanComplete) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Scanning complete!"),
+                              duration: Duration(milliseconds: 3000),
+                            )
+                          );
+                        }
+                      },
+                      builder: (context, state) {
+                        if (state is BluetoothCheckInProgress) {
+                          return Expanded(child: Text(
+                            "Checking bluetooth requirements...", 
+                            textAlign: TextAlign.center, 
+                            style: TextStyle(fontSize: 24, color: Colors.grey))
+                          );
+                        } else if (state is BluetoothOperationFailure) {
+                          return ElevatedButton(
+                            onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothRequirements());}, 
+                            child: Text("Try again")
+                          );
+                        } else if (state is BluetoothScanInProgress) {
+                            return CircularProgressIndicator();
+                        } else if (state is BluetoothScanComplete) {
+                            return Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 150,
+                                    child: ElevatedButton(
+                                      onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothRequirements());}, 
+                                      child: Row(children: [Icon(Icons.refresh), Text(" Scan Again")]),
+                                    )
+                                  ),
+                                  Expanded(
+                                    child: ListView.builder(
+                                      shrinkWrap: true,
+                                      itemCount: state.results.length,
+                                      itemBuilder: (context, index) {
+                                        ScanResult result = state.results[index];
+                                        String title = "Unknown";
+                                        title = result.advertisementData.serviceUuids.isNotEmpty ? result.advertisementData.serviceUuids.first.toString() : title;
+                                        title = result.advertisementData.advName.isNotEmpty ? result.advertisementData.advName : title;
+                                        String remoteId = result.device.remoteId.toString();
+                                        return ListTile(
+                                          leading: Text("RSSI: ${result.rssi}" ),
+                                          title: Text(title),
+                                          subtitle: Text(remoteId),
+                                          trailing: FilledButton(
+                                            onPressed: () {
+                                              Device device = Device(name: title, remoteId: remoteId);
+                                              context.read<DevicesBloc>().add(AddDevice(device));
+                                            },
+                                            child: Text("Add Device")
+                                          )
+                                        );
+                                      },
+                                    )
+                                  )
+                                ],
+                              )
+                            );
+                        } else {
+                          // if something unexpected goed wrong
+                          return Expanded(child: Text(
+                            "Error: Something went wrong! Unable to add devices.", 
+                            textAlign: TextAlign.center, 
+                            style: TextStyle(fontSize: 24, color: Colors.redAccent))
+                          );
+                        }
+                      },
+                    ),
+                  ],
+                )
               )
             )
           ],
