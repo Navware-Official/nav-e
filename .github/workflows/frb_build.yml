@@ -1,0 +1,39 @@
+name: FRB Codegen & Rust Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev build-essential
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+
+      - name: Install flutter_rust_bridge_codegen
+        run: |
+          cargo install flutter_rust_bridge_codegen || true
+
+      - name: Run FRB codegen
+        run: |
+          # Use new codegen invocation (rust-root + crate::)
+          flutter_rust_bridge_codegen generate --rust-root native/nav_engine -r crate:: -d lib/bridge
+
+      - name: Build Rust crate
+        working-directory: native/nav_engine
+        run: cargo build --release
+
+      - name: Show generated file
+        run: sed -n '1,120p' lib/bridge/ffi.dart || true

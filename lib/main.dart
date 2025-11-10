@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:nav_e/app/app_router.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/data/local/database_helper.dart';
 
-import 'package:nav_e/core/data/remote/geocoding_api_client.dart';
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
 import 'package:nav_e/core/domain/repositories/device_repository.dart';
 import 'package:nav_e/features/device_management/data/device_repository_impl.dart';
@@ -14,7 +12,7 @@ import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/saved_places/data/saved_places_repository_impl.dart';
-import 'package:nav_e/features/search/data/geocoding_repository_impl.dart';
+import 'package:nav_e/features/search/data/geocoding_repository_frb_typed_impl.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 
 import 'package:nav_e/core/data/remote/map_source_repository_impl.dart';
@@ -25,9 +23,8 @@ import 'package:nav_e/core/theme/theme_cubit.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final geocodingRepo = GeocodingRepositoryImpl(
-    GeocodingApiClient(http.Client()),
-  );
+  final geocodingRepo = GeocodingRepositoryFrbTypedImpl();
+
   final mapSourceRepo = MapSourceRepositoryImpl();
   final db = await DatabaseHelper.instance.database;
   final savedPlacesRepo = SavedPlacesRepositoryImpl(db);
