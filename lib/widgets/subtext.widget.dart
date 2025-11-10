@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:nav_e/core/theme/typography.dart';
 
 class SubText extends StatelessWidget {
-  const SubText(this.text, {this.style});
+  const SubText(this.text, {super.key, this.style});
 
   final String text;
   final TextStyle? style;

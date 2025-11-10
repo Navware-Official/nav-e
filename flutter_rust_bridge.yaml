@@ -1,0 +1,3 @@
+rust_input: "native/nav_engine/src/lib.rs"
+dart_output: "lib/bridge"
+dart_entrypoint_class_name: "RustBridge"

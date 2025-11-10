@@ -87,6 +87,11 @@ jobs:
             static const bool isPrerelease = ${{ github.event.inputs.prerelease }};
           }
           EOF
+
+      - name: Generate FRB bindings and build Rust code
+        run: |
+          make frb-bindings
+          make build-android-all
           
       - name: Build release artifacts
         run: |

@@ -43,3 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Rust / native build artifacts
+# Ignore compiled artifacts and Cargo target directories for the embedded Rust crate
+native/nav_engine/target/
+native/nav_engine/target/**
+
+# Ignore platform native libraries produced by local builds
+**/native/**/*.so
+**/native/**/*.dylib
+**/native/**/*.dll
+**/native/**/*.a
