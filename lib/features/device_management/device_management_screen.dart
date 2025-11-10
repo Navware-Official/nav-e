@@ -13,21 +13,28 @@ class DeviceManagementScreen extends StatefulWidget {
 
 class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
   @override
+  initState() {
+    // Load devices on page build only once
+    context.read<DevicesBloc>().add(LoadDevices());
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // Load devices on page build
     context.read<DevicesBloc>().add(LoadDevices());
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.white,),
           onPressed: (){
-            Navigator.pop(context);
+            context.pushReplacement('/');
           }, 
         ),
         title: Text('Devices', style: TextStyle(color: Colors.black)),
       ),
       body: Container(
         padding: EdgeInsets.all(8),
+        child: BackButtonListener(
+          onBackButtonPressed: () async {GoRouter.of(context).go('/'); return true;},
         child: Column(
           children: [
             Expanded(
@@ -114,6 +121,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
             ),
           ],
         ),
+        )
       )
     );
   }
