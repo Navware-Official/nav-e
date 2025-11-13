@@ -1,0 +1,66 @@
+name: FRB Codegen & Native Build
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  codegen-and-build:
+    name: Generate FRB bindings and build native crate
+    runs-on: ubuntu-latest
+    environment: ci
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install apt packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev build-essential clang
+
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Cache cargo registry and target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            native/nav_engine/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Run codegen via Makefile
+        working-directory: ${{ github.workspace }}
+        run: |
+          make codegen
+
+      - name: Build native via Makefile
+        working-directory: ${{ github.workspace }}
+        run: |
+          make build-native
+
+      - name: List generated files (for debug)
+        run: |
+          ls -la lib/bridge || true
+          ls -la native/nav_engine/target/release || true
+
+      - name: Upload FRB bindings artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frb-bindings
+          path: lib/bridge
+
+      - name: Upload native libs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-libs
+          path: native/nav_engine/target/release

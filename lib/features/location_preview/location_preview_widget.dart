@@ -7,6 +7,7 @@ import 'package:nav_e/core/domain/entities/geocoding_result.dart'
 import 'package:nav_e/core/theme/typography.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_state.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nav_e/widgets/subtext.widget.dart';
 
 class LocationPreviewWidget extends StatefulWidget {
@@ -138,16 +139,20 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                           const SizedBox(width: 8),
                           OutlinedButton.icon(
                             onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Navigate feature not implemented yet',
-                                  ),
-                                ),
-                              );
+                              // Navigate via the app router so deep links and
+                              // named routes work consistently.
+                                // Navigate via the app router so deep links and
+                                // named routes work consistently. Use a string
+                                // URL because some go_router versions don't
+                                // expose a queryParams parameter on pushNamed.
+                                final uri = Uri(
+                                  path: '/plan-route',
+                                  queryParameters: widget.route.toPathParams(),
+                                ).toString();
+                                context.push(uri);
                             },
                             icon: const Icon(Icons.navigation),
-                            label: const Text('Navigate'),
+                            label: const Text('Plan route'),
                           ),
                           const Spacer(),
                           Container(

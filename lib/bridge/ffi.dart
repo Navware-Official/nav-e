@@ -59,6 +59,46 @@ class RustBridge {
     final parsed = jsonDecode(json) as List;
     return parsed.cast<Map<String, dynamic>>();
   }
+
+  /// Request route computation from the native Rust engine.
+  /// Returns a JSON string (serialized `FrbRoute`).
+  static Future<String> navComputeRoute(
+    double startLat,
+    double startLon,
+    double endLat,
+    double endLon,
+    String? options,
+  ) async {
+    try {
+      final dynClass = gen.RustBridge;
+      try {
+        final res = await (dynClass as dynamic).navComputeRoute(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          options,
+        );
+        if (res != null) return res as String;
+      } catch (_) {}
+
+      try {
+        final inst = (dynClass as dynamic).instance;
+        final res = await (inst as dynamic).navComputeRoute(
+          startLat,
+          startLon,
+          endLat,
+          endLon,
+          options,
+        );
+        if (res != null) return res as String;
+      } catch (_) {}
+    } catch (_) {
+      // fall through to error below
+    }
+
+    throw Exception('navComputeRoute not available in generated bindings');
+  }
 }
 
 Future<String> _httpGet(Uri url) async {

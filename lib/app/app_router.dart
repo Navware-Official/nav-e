@@ -8,6 +8,8 @@ import 'package:nav_e/features/device_management/add_device_screen.dart';
 import 'package:nav_e/features/device_management/device_management_screen.dart';
 
 import 'package:nav_e/features/home/home_screen.dart';
+import 'package:nav_e/core/domain/entities/geocoding_result.dart';
+import 'package:nav_e/features/plan_route/plan_route_screen.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/saved_places_screen.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
@@ -85,6 +87,16 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         path: '/navigate',
         name: 'navigate',
         builder: (_, _) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/plan-route',
+        name: 'planRoute',
+        builder: (ctx, state) {
+          final params = state.uri.queryParameters;
+          final g = GeocodingResult.fromPathParams(params);
+          if (g == null) return const HomeScreen();
+          return PlanRouteScreen(destination: g);
+        },
       ),
     ],
     errorBuilder: (_, _) => const HomeScreen(),
