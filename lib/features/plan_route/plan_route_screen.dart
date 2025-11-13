@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/bridge/ffi.dart';
+import 'package:nav_e/features/nav/ui/active_nav_screen.dart';
 
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/features/map_layers/presentation/map_widget.dart';
@@ -18,11 +19,13 @@ class PlanRouteScreen extends StatefulWidget {
 
 class _PlanRouteScreenState extends State<PlanRouteScreen> {
   final MapController _mapController = MapController();
-  String _startSelection = 'Current location';
+  final String _startSelection = 'Current location';
   LatLng? _manualStart;
   List<LatLng> _routePoints = [];
   double? _distanceM;
   double? _durationS;
+  bool _computing = false;
+  String? _computeError;
 
   @override
   void initState() {
@@ -33,6 +36,10 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
   }
 
   Future<void> _computeRoute() async {
+    setState(() {
+      _computing = true;
+      _computeError = null;
+    });
     try {
       final dest = widget.destination;
       final json = await RustBridge.navComputeRoute(
@@ -54,9 +61,43 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         _distanceM = (obj['distance_m'] as num?)?.toDouble();
         _durationS = (obj['duration_s'] as num?)?.toDouble();
       });
+
+      // Adjust camera to fit the route with reasonable padding so the top
+      // overlay and bottom sheet do not cover the line.
+      if (_routePoints.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          try {
+            final mq = MediaQuery.of(context);
+            final pad = EdgeInsets.only(
+              left: 12,
+              right: 12,
+              top: mq.padding.top + 88, // space for top overlay
+              bottom: mq.padding.bottom + 220, // space for bottom sheet
+            );
+            final fit = CameraFit.coordinates(
+              coordinates: _routePoints,
+              maxZoom: 17,
+              padding: pad,
+            );
+            _mapController.fitCamera(fit);
+          } catch (e) {
+            // Fallback: move to first point with a reasonable zoom.
+            final p = _routePoints.first;
+            _mapController.move(p, 14);
+          }
+        });
+      }
     } catch (e) {
-      // log and ignore; UI will show empty route
+      // log and surface error to UI
       debugPrint('Failed to compute route: $e');
+      setState(() {
+        _computeError = e.toString();
+      });
+    }
+    finally {
+      setState(() {
+        _computing = false;
+      });
     }
   }
 
@@ -149,6 +190,8 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
             ),
           ),
 
+          // Nav banner (handled in ActiveNavScreen during active navigation)
+
           // Bottom sheet with route information
           Align(
             alignment: Alignment.bottomCenter,
@@ -183,27 +226,49 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         child: Row(
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                // TODO: call routing repository / FRB to compute route
-                              },
-                              icon: const Icon(Icons.directions),
-                              label: const Text('Compute Route'),
-                            ),
+                            children: [
+                            // Compute status / retry area (auto-compute on open)
+                            if (_computing) ...[
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                              const SizedBox(width: 8),
+                              const Text('Computing…'),
+                            ] else if (_computeError != null) ...[
+                              const Icon(Icons.error_outline, color: Colors.red),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text('Failed to compute route', style: TextStyle(color: Colors.red))),
+                              IconButton(
+                                icon: const Icon(Icons.refresh),
+                                onPressed: _computeRoute,
+                              ),
+                            ] else if (_routePoints.isNotEmpty) ...[
+                              const Icon(Icons.check_circle, color: Colors.green),
+                              const SizedBox(width: 8),
+                              Expanded(child: Text('Route ready')),
+                            ] else ...[
+                              const Text('No route'),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.refresh),
+                                onPressed: _computeRoute,
+                              ),
+                            ],
                             const SizedBox(width: 8),
                             FilledButton.icon(
-                              onPressed: () {
-                                // TODO: start navigation
-                              },
+                              onPressed: _routePoints.isEmpty || _computing
+                                  ? null
+                                  : () {
+                                      // Open active navigation screen
+                                      final id = DateTime.now().millisecondsSinceEpoch.toString();
+                                      Navigator.of(context).push(MaterialPageRoute(
+                                        builder: (_) => ActiveNavScreen(routeId: id, routePoints: _routePoints),
+                                      ));
+                                    },
                               icon: const Icon(Icons.navigation),
                               label: const Text('Start'),
-                            ),
-                            const Spacer(),
-                            OutlinedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.share),
-                              label: const Text('Share'),
                             ),
                           ],
                         ),
@@ -226,7 +291,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
                               leading: const Icon(Icons.timeline),
                               title: const Text('Route summary'),
                               subtitle: Text(
-                                'Distance: ${_distanceM != null ? (_distanceM! / 1000).toStringAsFixed(2) + " km" : "—"} • ETA: ${_durationS != null ? Duration(seconds: _durationS!.toInt()).inMinutes.toString() + " min" : "—"}',
+                                'Distance: ${_distanceM != null ? "${(_distanceM! / 1000).toStringAsFixed(2)} km" : "—"} • ETA: ${_durationS != null ? "${Duration(seconds: _durationS!.toInt()).inMinutes} min" : "—"}',
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -236,6 +301,38 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
                               subtitle: const Text('The route shown is a preview. Tap Start to begin navigation.'),
                             ),
                             const SizedBox(height: 24),
+
+                            // Dump route points for debugging
+                            ExpansionTile(
+                              leading: const Icon(Icons.code),
+                              title: const Text('Route Points (Debug)'),
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  width: double.infinity,
+                                  color: Colors.grey[100],
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Text(
+                                      _routePoints.map((e) => '[${e.latitude.toStringAsFixed(6)}, ${e.longitude.toStringAsFixed(6)}]').join(', '),
+                                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                                    ),
+                                  ),
+                                ),
+                                // Spacer
+                                const SizedBox(height: 12),
+                                // More debug info could go here
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  width: double.infinity,
+                                  color: Colors.grey[100],
+                                  child: Text(
+                                    'Total Points: ${_routePoints.length}',
+                                    style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ],
                         ),
                       ),

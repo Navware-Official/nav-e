@@ -96,8 +96,46 @@ class RustBridge {
     } catch (_) {
       // fall through to error below
     }
+    // If native binding isn't available, fall back to a public routing API
+    // (OSRM demo server). This gives a quick way to get a route for testing.
+    try {
+      final start = '${startLon.toString()},${startLat.toString()}';
+      final end = '${endLon.toString()},${endLat.toString()}';
+      final url = Uri.parse(
+        'https://router.project-osrm.org/route/v1/driving/$start;$end?overview=full&geometries=geojson&steps=false&alternatives=false',
+      );
+      final body = await _httpGet(url);
+      final Map<String, dynamic> obj = jsonDecode(body) as Map<String, dynamic>;
+      if ((obj['code'] as String?) != 'Ok') throw Exception('OSRM error: ${obj['code']}');
+      final routes = obj['routes'] as List?;
+      if (routes == null || routes.isEmpty) throw Exception('No routes from OSRM');
+      final r = routes.first as Map<String, dynamic>;
+      final distance = (r['distance'] as num?)?.toDouble() ?? 0.0;
+      final duration = (r['duration'] as num?)?.toDouble() ?? 0.0;
+      final geometry = r['geometry'] as Map<String, dynamic>?;
+      final coords = <List<double>>[];
+      if (geometry != null && geometry['coordinates'] is List) {
+        for (final c in (geometry['coordinates'] as List)) {
+          if (c is List && c.length >= 2) {
+            final lon = (c[0] as num).toDouble();
+            final lat = (c[1] as num).toDouble();
+            coords.add([lat, lon]);
+          }
+        }
+      }
 
-    throw Exception('navComputeRoute not available in generated bindings');
+      final resObj = <String, dynamic>{
+        'id': 'osrm-${DateTime.now().millisecondsSinceEpoch}',
+        'polyline': null,
+        'distance_m': distance,
+        'duration_s': duration,
+        'name': 'OSRM route',
+        'waypoints': coords,
+      };
+      return jsonEncode(resObj);
+    } catch (e) {
+      throw Exception('navComputeRoute not available in generated bindings and OSRM fallback failed: $e');
+    }
   }
 }
 

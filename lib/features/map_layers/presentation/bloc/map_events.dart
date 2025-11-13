@@ -1,4 +1,5 @@
 import 'package:latlong2/latlong.dart';
+import '../../models/polyline_model.dart';
 
 abstract class MapEvent {}
 
@@ -19,3 +20,11 @@ class MapSourceChanged extends MapEvent {
   final String sourceId;
   MapSourceChanged(this.sourceId);
 }
+
+class ReplacePolylines extends MapEvent {
+  final List<PolylineModel> polylines;
+  final bool fit;
+  ReplacePolylines(this.polylines, {this.fit = false});
+}
+
+class MapAutoFitDone extends MapEvent {}

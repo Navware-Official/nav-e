@@ -34,6 +34,8 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       _onMoved,
       transformer: _throttle(const Duration(milliseconds: 120)),
     );
+    on<ReplacePolylines>(_onReplacePolylines);
+    on<MapAutoFitDone>(_onAutoFitDone);
     on<ToggleFollowUser>(_onToggleFollow);
     on<MapSourceChanged>(_onSourceChanged, transformer: restartable());
   }
@@ -58,6 +60,15 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     } catch (e) {
       emit(state.copyWith(loadingSource: false, error: e));
     }
+  }
+
+  void _onReplacePolylines(ReplacePolylines event, Emitter<MapState> emit) {
+    emit(state.copyWith(polylines: event.polylines, autoFit: event.fit));
+  }
+
+  void _onAutoFitDone(MapAutoFitDone event, Emitter<MapState> emit) {
+    // clear the autoFit flag after the widget performed the fit
+    if (state.autoFit) emit(state.copyWith(autoFit: false));
   }
 
   EventTransformer<T> _throttle<T>(Duration d) {

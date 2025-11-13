@@ -25,13 +25,42 @@ class MapWidget extends StatelessWidget {
     final mapBloc = context.read<MapBloc>();
 
     return BlocConsumer<MapBloc, MapState>(
-      listenWhen: (prev, curr) =>
-          curr.isReady &&
-          (prev.center != curr.center || prev.zoom != curr.zoom),
+      listenWhen: (prev, curr) => curr.isReady && (prev.center != curr.center || prev.zoom != curr.zoom || prev.polylines != curr.polylines || curr.autoFit),
       listener: (context, state) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!context.mounted) return;
-          mapController.move(state.center, state.zoom);
+          // Only move the camera automatically when the map is in follow-user
+          // mode, or when an explicit auto-fit was requested. This prevents
+          // overriding user gestures (panning/zooming) which caused jitter.
+          if (state.autoFit && state.polylines.isNotEmpty) {
+            try {
+              final coords = state.polylines.expand((p) => p.points).toList();
+              final mq = MediaQuery.of(context);
+              final pad = EdgeInsets.only(
+                left: 12,
+                right: 12,
+                top: mq.padding.top + 88,
+                bottom: mq.padding.bottom + 220,
+              );
+              final fit = CameraFit.coordinates(coordinates: coords, maxZoom: 17, padding: pad);
+              mapController.fitCamera(fit);
+            } catch (e) {
+              // ignore
+            } finally {
+              // inform bloc that autoFit has been handled
+              context.read<MapBloc>().add(MapAutoFitDone());
+            }
+          } else if (state.followUser) {
+            // Only move the camera to follow the user when followUser flag is true.
+            try {
+              final cam = mapController.camera;
+              if (cam.center != state.center || cam.zoom != state.zoom) {
+                mapController.move(state.center, state.zoom);
+              }
+            } catch (_) {
+              mapController.move(state.center, state.zoom);
+            }
+          }
         });
       },
       builder: (context, state) {
@@ -80,7 +109,19 @@ class MapWidget extends StatelessWidget {
                   ),
                 ),
 
-              if (polylines.isNotEmpty) PolylineLayer(polylines: polylines),
+              // Render polylines from both the widget and the MapBloc state
+              if ((polylines.isNotEmpty || state.polylines.isNotEmpty))
+                PolylineLayer(
+                  polylines: [
+                    ...polylines,
+                    // convert lightweight PolylineModel to widget Polyline
+                    ...state.polylines.map((m) => Polyline(
+                          points: m.points,
+                          color: Color(m.colorArgb),
+                          strokeWidth: m.strokeWidth,
+                        )),
+                  ],
+                ),
 
               MarkerLayer(markers: markers),
 
