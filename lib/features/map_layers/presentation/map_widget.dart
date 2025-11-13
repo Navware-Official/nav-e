@@ -9,6 +9,7 @@ import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
 class MapWidget extends StatelessWidget {
   final MapController mapController;
   final List<Marker> markers;
+  final List<Polyline> polylines;
   final void Function(dynamic position, bool hasGesture)? onMapInteraction;
 
   const MapWidget({
@@ -16,6 +17,7 @@ class MapWidget extends StatelessWidget {
     required this.mapController,
     required this.markers,
     this.onMapInteraction,
+    this.polylines = const [],
   });
 
   @override
@@ -59,7 +61,7 @@ class MapWidget extends StatelessWidget {
                 onMapInteraction?.call(pos, hasGesture);
               },
             ),
-            children: [
+              children: [
               if (src != null)
                 TileLayer(
                   urlTemplate: _withQueryParams(
@@ -77,6 +79,8 @@ class MapWidget extends StatelessWidget {
                     headers: Map<String, String>.from(src.headers ?? const {}),
                   ),
                 ),
+
+              if (polylines.isNotEmpty) PolylineLayer(polylines: polylines),
 
               MarkerLayer(markers: markers),
 
