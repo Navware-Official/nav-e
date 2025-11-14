@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nav_e/core/data/local/database_helper.dart';
+import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 part 'bluetooth_event.dart';
@@ -17,6 +18,8 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
   BluetoothBloc(this.databaseHelper) : super(BluetoothInitial()) {
     on<CheckBluetoothRequirements>(_checkBluetoothSupport);
     on<StartScanning>(_startScanning);
+    on<InitiateConnectionCheck>(_awaitConnectionCheck);
+    on<CheckConnectionStatus>(_checkConnectionStatus);
   }
 
   void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<ApplicationBluetoothState> emit) async {
@@ -87,5 +90,33 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
       debugPrint(latestScanResult.toString());
       emit(BluetoothScanComplete(latestScanResult));
     });
+  }
+
+  void _awaitConnectionCheck(InitiateConnectionCheck event, Emitter<ApplicationBluetoothState> emit) {
+    emit(AquiringBluetoothConnetionStatus());
+  }
+
+  void _checkConnectionStatus(CheckConnectionStatus event, Emitter<ApplicationBluetoothState> emit) async {
+    var bluetoothConnectionStatus = _getConnectionStatus(event.device);
+
+    if (bluetoothConnectionStatus == BluetoothConnectionState.disconnected) {
+      emit(BluetoothConnetionStatusAquired("Disconnected"));
+    } else if (bluetoothConnectionStatus == BluetoothConnectionState.connected) {
+      emit(BluetoothConnetionStatusAquired("Connected"));
+    } else {
+      emit(BluetoothConnetionStatusAquired("Unknown"));
+    }
+  }
+
+  BluetoothConnectionState _getConnectionStatus(Device device) {
+    var bluetoothDevice = BluetoothDevice.fromId(device.remoteId);
+    var bluetoothConnectionState = BluetoothConnectionState.disconnected;
+    var subscription = bluetoothDevice.connectionState.listen((BluetoothConnectionState connectionState) {
+      bluetoothConnectionState = connectionState;
+    });
+
+    subscription.cancel();
+
+    return bluetoothConnectionState;
   }
 }

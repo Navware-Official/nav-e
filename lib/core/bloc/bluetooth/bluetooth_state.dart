@@ -25,3 +25,11 @@ class BluetoothOperationFailure extends ApplicationBluetoothState {
 
   const BluetoothOperationFailure(this.message);
 }
+
+class AquiringBluetoothConnetionStatus extends ApplicationBluetoothState {}
+
+class BluetoothConnetionStatusAquired extends ApplicationBluetoothState {
+  final String status;
+
+  const BluetoothConnetionStatusAquired(this.status);
+}

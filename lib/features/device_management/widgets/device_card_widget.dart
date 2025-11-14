@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
 
 class DeviceCard extends StatelessWidget {
@@ -11,6 +15,11 @@ class DeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Check for bluetooth connection periodically
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      BlocProvider.of<BluetoothBloc>(context).add(CheckConnectionStatus(device));
+    });
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Container(
@@ -24,10 +33,22 @@ class DeviceCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(
+                      BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
+                        builder: (context, state) {
+                          if (state is BluetoothConnetionStatusAquired) {
+                            return Icon(
+                              _getDeviceIcon(),
+                              size: 35,
+                              color: _getConnectionColor(state.status.toString()),
+                            );
+                          } else {
+                            return Icon(
                         _getDeviceIcon(),
                         size: 35,
-                        color: _getConnectionColor(),
+                              color: Colors.grey,
+                            );
+                          }
+                        }
                       )
                     ],
                   )
@@ -106,15 +127,56 @@ class DeviceCard extends StatelessWidget {
                 SizedBox(height: 50),
                 Expanded(
                   flex: 60,
+                  child: BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
+                    builder: (context, state) {
+                      if (state is AquiringBluetoothConnetionStatus) {
+                        var awaitingColor = Colors.grey;
+
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container( // TODO: Add onclick
+                              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: awaitingColor.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: awaitingColor.withValues(alpha: 0.3)),
+                              ),
                   child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 10,
+                                    height: 10,
+                                    child: Center(child: CircularProgressIndicator()),
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    "Checking connection...",
+                                    style: TextStyle(
+                                      color: awaitingColor,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      } else if (state is BluetoothConnetionStatusAquired) {
+                        var connectionStatus = state.status.toString();
+                        var connectionColor = _getConnectionColor(connectionStatus);
+
+                        return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: _getConnectionColor().withValues(alpha: 0.1),
+                                color: connectionColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: _getConnectionColor().withValues(alpha: 0.3)),
+                                border: Border.all(color: connectionColor.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -123,15 +185,15 @@ class DeviceCard extends StatelessWidget {
                               width: 8,
                               height: 8,
                               decoration: BoxDecoration(
-                                color: _getConnectionColor(),
+                                      color: connectionColor,
                                 shape: BoxShape.circle,
                               ),
                             ),
                             SizedBox(width: 6),
                             Text(
-                              _getConnectionStatus(),
+                                    connectionStatus,
                               style: TextStyle(
-                                color: _getConnectionColor(),
+                                      color: connectionColor,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -140,12 +202,22 @@ class DeviceCard extends StatelessWidget {
                         ),
                       ),
                     ],
+                        );
+                      }
+                      
+
+                    return Expanded(child: Text(
+                        "Error: Something went wrong. Unable to load Device!", 
+                        textAlign: TextAlign.center, 
+                        style: TextStyle(fontSize: 24, color: Colors.redAccent))
+                      );
+                    }
                   )
                 ),
               ],
             )
           ],
-        )
+        ),
       )
     );
   }
@@ -169,16 +241,14 @@ class DeviceCard extends StatelessWidget {
     return Icons.device_unknown;
   }
 
-  Color _getConnectionColor() {
-    // For now, we'll simulate connection status
-    // In a real app, you'd check actual device connection status
-    return device.remoteId != null ? Colors.green : Colors.grey;
-  }
-
-  String _getConnectionStatus() {
-    // For now, we'll simulate connection status
-    // In a real app, you'd check actual device connection status
-    return device.remoteId != null ? "Connected" : "Not Connected";
+  Color _getConnectionColor(String connectionStatus) {
+    if (connectionStatus == "Connected") {
+      return Colors.green;
+    } else if (connectionStatus == "Disconnected") {
+      return Colors.red;
+    } else {
+      return Colors.grey;
+    }
   }
 
   void _handleMenuAction(BuildContext context, String action) {
