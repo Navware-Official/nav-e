@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/device_management/widgets/device_card_widget.dart';
 
@@ -16,6 +17,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
   initState() {
     // Load devices on page build only once
     context.read<DevicesBloc>().add(LoadDevices());
+    BlocProvider.of<BluetoothBloc>(context).add(InitiateConnectionCheck());
   }
 
   @override
