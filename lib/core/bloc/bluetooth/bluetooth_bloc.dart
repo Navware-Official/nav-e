@@ -100,19 +100,14 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
 
   void _checkConnectionStatus(CheckConnectionStatus event, Emitter<ApplicationBluetoothState> emit) async {
     var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
-    emit(BluetoothConnetionStatusAquired("Disconnected"));
 
-    var subscription = bluetoothDevice.connectionState.listen((BluetoothConnectionState connectionState) {
-      if (connectionState == BluetoothConnectionState.disconnected) {
+    if (bluetoothDevice.isDisconnected) {
         emit(BluetoothConnetionStatusAquired("Disconnected"));
-      } else if (connectionState == BluetoothConnectionState.connected){
+    } else if (bluetoothDevice.isConnected) {
         emit(BluetoothConnetionStatusAquired("Connected"));
       } else {
         emit(BluetoothConnetionStatusAquired("Unknown"));
       }
-    });
-
-    subscription.cancel();
   }
 
   void _toggleConnection(ToggleConnection event, Emitter<ApplicationBluetoothState> emit) async {
@@ -125,14 +120,16 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
           emit(BluetoothConnetionStatusAquired("Connected"));
         });
       } else if (bluetoothDevice.isConnected){
+        await bluetoothDevice.connectionState.where((val) => val == BluetoothConnectionState.disconnected).first.then((val) async {
         emit(BluetoothConnetionStatusAquired("Disconnected"));
+        });
       } else {
         emit(BluetoothConnetionStatusAquired("Unknown"));
       }
     });
 
     if (bluetoothDevice.isDisconnected) {
-      await bluetoothDevice.connect();
+      await bluetoothDevice.connect(timeout: Duration(seconds: 35), autoConnect: false);
     } else {
       await bluetoothDevice.disconnect();
     }
