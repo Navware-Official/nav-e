@@ -15,10 +15,7 @@ class DeviceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Check for bluetooth connection periodically
-    Timer.periodic(Duration(seconds: 5), (timer) {
       BlocProvider.of<BluetoothBloc>(context).add(CheckConnectionStatus(device));
-    });
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -171,7 +168,11 @@ class DeviceCard extends StatelessWidget {
                         return Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Container(
+                            GestureDetector(
+                              onTap: () {
+                                BlocProvider.of<BluetoothBloc>(context).add(ToggleConnection(device));
+                              },
+                              child: Container(
                         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                                 color: connectionColor.withValues(alpha: 0.1),
@@ -201,6 +202,7 @@ class DeviceCard extends StatelessWidget {
                           ],
                         ),
                       ),
+                            )
                     ],
                         );
                       }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +21,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     on<StartScanning>(_startScanning);
     on<InitiateConnectionCheck>(_awaitConnectionCheck);
     on<CheckConnectionStatus>(_checkConnectionStatus);
+    on<ToggleConnection>(_toggleConnection);
   }
 
   void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<ApplicationBluetoothState> emit) async {
@@ -58,7 +60,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
       }
     } else {
       emit(BluetoothOperationFailure("Please allow 'Nearby Devices' Permissions."));
-      }
+    }
   }
 
   void _startScanning(StartScanning event, Emitter<ApplicationBluetoothState> emit) async {
@@ -97,26 +99,44 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
   }
 
   void _checkConnectionStatus(CheckConnectionStatus event, Emitter<ApplicationBluetoothState> emit) async {
-    var bluetoothConnectionStatus = _getConnectionStatus(event.device);
+    var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
+    emit(BluetoothConnetionStatusAquired("Disconnected"));
 
-    if (bluetoothConnectionStatus == BluetoothConnectionState.disconnected) {
-      emit(BluetoothConnetionStatusAquired("Disconnected"));
-    } else if (bluetoothConnectionStatus == BluetoothConnectionState.connected) {
-      emit(BluetoothConnetionStatusAquired("Connected"));
-    } else {
-      emit(BluetoothConnetionStatusAquired("Unknown"));
-    }
-  }
-
-  BluetoothConnectionState _getConnectionStatus(Device device) {
-    var bluetoothDevice = BluetoothDevice.fromId(device.remoteId);
-    var bluetoothConnectionState = BluetoothConnectionState.disconnected;
     var subscription = bluetoothDevice.connectionState.listen((BluetoothConnectionState connectionState) {
-      bluetoothConnectionState = connectionState;
+      if (connectionState == BluetoothConnectionState.disconnected) {
+        emit(BluetoothConnetionStatusAquired("Disconnected"));
+      } else if (connectionState == BluetoothConnectionState.connected){
+        emit(BluetoothConnetionStatusAquired("Connected"));
+      } else {
+        emit(BluetoothConnetionStatusAquired("Unknown"));
+      }
     });
 
     subscription.cancel();
+  }
 
-    return bluetoothConnectionState;
+  void _toggleConnection(ToggleConnection event, Emitter<ApplicationBluetoothState> emit) async {
+    emit(AquiringBluetoothConnetionStatus());
+    var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
+
+    var subscription = bluetoothDevice.connectionState.listen((BluetoothConnectionState connectionState) async {
+      if (bluetoothDevice.isDisconnected) {
+        await bluetoothDevice.connectionState.where((val) => val == BluetoothConnectionState.connected).first.then((val) async {
+          emit(BluetoothConnetionStatusAquired("Connected"));
+        });
+      } else if (bluetoothDevice.isConnected){
+        emit(BluetoothConnetionStatusAquired("Disconnected"));
+      } else {
+        emit(BluetoothConnetionStatusAquired("Unknown"));
+      }
+    });
+
+    if (bluetoothDevice.isDisconnected) {
+      await bluetoothDevice.connect();
+    } else {
+      await bluetoothDevice.disconnect();
+    }
+
+    subscription.cancel();
   }
 }
