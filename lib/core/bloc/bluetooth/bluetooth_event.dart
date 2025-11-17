@@ -20,3 +20,12 @@ class CheckConnectionStatus extends BluetoothEvent {
   @override
   List<Object> get props => [device];
 }
+
+class ToggleConnection extends BluetoothEvent {
+  final Device device;
+
+  const ToggleConnection(this.device);
+
+  @override
+  List<Object> get props => [device];
+}
