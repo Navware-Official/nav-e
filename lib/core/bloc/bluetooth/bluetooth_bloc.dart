@@ -87,7 +87,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     );
 
     // wait for scanning to stop
-    await Future.delayed(Duration(seconds: 5)).then((value) async {
+    await Future.delayed(Duration(seconds: 2)).then((value) async { //! DONT COMMIT THIS LINE
       await FlutterBluePlus.stopScan();
       debugPrint(latestScanResult.toString());
       emit(BluetoothScanComplete(latestScanResult));
@@ -102,12 +102,12 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
 
     if (bluetoothDevice.isDisconnected) {
-        emit(BluetoothConnetionStatusAquired("Disconnected"));
+      emit(BluetoothConnetionStatusAquired("Disconnected"));
     } else if (bluetoothDevice.isConnected) {
-        emit(BluetoothConnetionStatusAquired("Connected"));
-      } else {
-        emit(BluetoothConnetionStatusAquired("Unknown"));
-      }
+      emit(BluetoothConnetionStatusAquired("Connected"));
+    } else {
+      emit(BluetoothConnetionStatusAquired("Unknown"));
+    }
   }
 
   void _toggleConnection(ToggleConnection event, Emitter<ApplicationBluetoothState> emit) async {
@@ -121,7 +121,7 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
         });
       } else if (bluetoothDevice.isConnected){
         await bluetoothDevice.connectionState.where((val) => val == BluetoothConnectionState.disconnected).first.then((val) async {
-        emit(BluetoothConnetionStatusAquired("Disconnected"));
+          emit(BluetoothConnetionStatusAquired("Disconnected"));
         });
       } else {
         emit(BluetoothConnetionStatusAquired("Unknown"));
