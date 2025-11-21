@@ -1,9 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
+import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 
 class DeviceCard extends StatelessWidget {
   final Device device;
@@ -265,9 +264,36 @@ class DeviceCard extends StatelessWidget {
   }
 
   void _showEditDialog(BuildContext context) {
-    // TODO: Implement edit device dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Edit device: ${device.name}')),
+    TextEditingController textFieldController = TextEditingController(text: device.name);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Change device name'),
+        content: TextField(
+          controller: textFieldController,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+            hintText: device.name
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: Text('CANCEL'),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
+          ElevatedButton(
+            onPressed: () {
+              var renamedDevice = device.copyWith(name: textFieldController.text);
+              BlocProvider.of<DevicesBloc>(context).add(UpdateDevice(renamedDevice));
+              Navigator.pop(context);
+            },
+            child: Text('Rename')
+          )
+        ],
+      )
     );
   }
 
@@ -277,22 +303,21 @@ class DeviceCard extends StatelessWidget {
       builder: (context) => AlertDialog(
         title: Text('Delete Device'),
         content: Text('Are you sure you want to delete "${device.name}"?'),
-        actions: [
+        actions: <Widget>[
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text('Cancel'),
-          ),
-          TextButton(
+            child: Text('CANCEL'),
             onPressed: () {
-              Navigator.of(context).pop();
-              // TODO: Implement device deletion
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Device "${device.name}" would be deleted')),
-              );
+              Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text('Delete'),
           ),
+          ElevatedButton(
+            onPressed: () {
+              var deletedDevice = device.id;
+              BlocProvider.of<DevicesBloc>(context).add(DeleteDevice(deletedDevice!));
+              Navigator.pop(context);
+            },
+            child: Text('Delete')
+          )
         ],
       ),
     );
