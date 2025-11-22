@@ -10,7 +10,7 @@ class PolylineModel {
   const PolylineModel({
     required this.id,
     required this.points,
-    this.colorArgb = 0xFF2196F3,
+    this.colorArgb = 0xFF375AF9,
     this.strokeWidth = 4.0,
   });
 }

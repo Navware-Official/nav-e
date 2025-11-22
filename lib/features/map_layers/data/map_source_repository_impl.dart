@@ -18,6 +18,16 @@ class MapSourceRepositoryImpl implements IMapSourceRepository {
       maxZoom: 19,
       headers: {'User-Agent': 'nav-e/1.0 (info@navware.org)'},
     ),
+    // A minimal, low-contrast basemap useful for overlays and a clean UI.
+    MapSource(
+      id: 'carto_positron',
+      name: 'Carto Positron (minimal)',
+      urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+      attribution: '© OpenStreetMap contributors, © CARTO',
+      maxZoom: 19,
+      subdomains: ['a', 'b', 'c', 'd'],
+      headers: {'User-Agent': 'nav-e/1.0 (info@navware.org)'},
+    ),
     // Add other sources below using the MapSourceObject.
   ];
 

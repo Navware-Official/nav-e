@@ -1,8 +1,13 @@
 mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be accurate, and you can change it according to your needs. */
 
 mod geocode;
+mod types;
+mod osrm;
+mod route;
+mod api;
 
-pub use geocode::{FrbGeocodingResult};
+pub use geocode::FrbGeocodingResult;
+pub use types::FrbRoute;
 
 use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
@@ -10,12 +15,25 @@ use serde::{Deserialize, Serialize};
 // Return raw JSON string (existing helper)
 #[frb]
 pub fn geocode_search(query: String, limit: Option<u32>) -> anyhow::Result<String> {
-    // Delegate to async runtime
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?;
+    // Temporary inline implementation for codegen probing: return empty
+    // result. This avoids delegating into other modules which may affect
+    // codegen discovery.
+    let _ = query;
+    let _ = limit;
+    Ok("[]".to_string())
+}
 
-    rt.block_on(async move { geocode::search_raw_json(&query, limit).await })
+// Small diagnostic function to verify FRB codegen picks up exported
+// functions. Returns a simple string.
+#[frb]
+pub fn ping() -> anyhow::Result<String> {
+    Ok("pong".to_string())
+}
+
+// Minimal test export to verify codegen detection.
+#[frb]
+pub fn test_export_inc(x: i32) -> anyhow::Result<i32> {
+    Ok(x + 1)
 }
 
 // Typed result: FRB will generate typed Dart classes for FrbGeocodingResult
@@ -24,11 +42,9 @@ pub fn geocode_search_typed(
     query: String,
     limit: Option<u32>,
 ) -> anyhow::Result<Vec<FrbGeocodingResult>> {
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?;
-
-    rt.block_on(async move { geocode::search_typed(&query, limit).await })
+    let _ = query;
+    let _ = limit;
+    Ok(Vec::new())
 }
 
 // ---------------------------------------------------------------------------
@@ -38,120 +54,56 @@ pub fn geocode_search_typed(
 // - Uses `serde_cbor` for compact binary encoding.
 // ---------------------------------------------------------------------------
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FrbRoute {
-    pub id: String,
-    /// Encoded polyline (polyline6 or polyline5 string). For the stub we use
-    /// a precomputed encoded polyline string.
-    pub polyline: String,
-    pub distance_m: f64,
-    pub duration_s: f64,
-    /// Human-friendly route name
-    pub name: String,
-    /// A small preview of waypoints as [lat, lon] pairs for quick display or
-    /// testing.
-    pub waypoints: Vec<[f64; 2]>,
-}
-
-/// Compute a route between two coordinates and return a CBOR byte buffer
-/// containing an `FrbRoute`. This is a development stub that returns a
-/// hardcoded route blob so the Flutter UI can be exercised without a real
-/// routing engine.
 #[frb]
 pub fn nav_compute_route(
-    _start_lat: f64,
-    _start_lon: f64,
-    _end_lat: f64,
-    _end_lon: f64,
-    _options: Option<String>,
+    start_lat: f64,
+    start_lon: f64,
+    end_lat: f64,
+    end_lon: f64,
+    options: Option<String>,
 ) -> anyhow::Result<String> {
-    // Try to fetch a route from a public routing API (OSRM) as a fallback
-    // when a native routing engine isn't available. If the network call
-    // fails we fall back to the local hardcoded stub so the UI still works.
+    // Inline a simple hardcoded route JSON for codegen probing. This avoids
+    // any async or module delegation which may interfere with discovery.
+    let _ = options;
+    let waypoints = vec![
+        vec![start_lat, start_lon],
+        vec![end_lat, end_lon],
+    ];
+    let s = format!(
+        r#"{{"id":"probe-route","polyline":"","distance_m":100.0,"duration_s":60.0,"name":"Probe route","waypoints":{wp}}}"#,
+        wp = serde_json::to_string(&waypoints)?
+    );
+    Ok(s)
+}
+
+// A deliberately-simple FRB wrapper with a distinct name to test codegen
+// discovery. If the generator picks this up but not `nav_compute_route`, it
+// indicates the issue is likely around name/signature parsing or module
+// traversal rather than the Makefile invocation.
+#[frb]
+pub fn nav_compute_route_simple(
+    start_lat: f64,
+    start_lon: f64,
+    end_lat: f64,
+    end_lon: f64,
+) -> anyhow::Result<String> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()?;
 
-    let res = rt.block_on(async move {
-        // Build OSRM request: note OSRM expects lon,lat pairs
-        let start = format!("{},{}", _start_lon, _start_lat);
-        let end = format!("{},{}", _end_lon, _end_lat);
-        let url = format!("https://router.project-osrm.org/route/v1/driving/{};{}?overview=full&geometries=geojson&steps=false&alternatives=false", start, end);
+    let route = rt.block_on(async move {
+        route::compute_route_async(start_lat, start_lon, end_lat, end_lon, None).await
+    })?;
 
-        match reqwest::get(&url).await {
-            Ok(resp) => match resp.json::<serde_json::Value>().await {
-                Ok(json) => {
-                    // Parse OSRM response and convert to FrbRoute shape
-                    if json.get("code").and_then(|v| v.as_str()) != Some("Ok") {
-                        return Err(anyhow::anyhow!("OSRM returned error: {:?}", json));
-                    }
+    Ok(serde_json::to_string(&route)?)
+}
 
-                    let routes = json.get("routes").and_then(|r| r.as_array()).cloned().unwrap_or_default();
-                    if routes.is_empty() {
-                        return Err(anyhow::anyhow!("No routes from OSRM"));
-                    }
-
-                    let first = &routes[0];
-                    let distance = first.get("distance").and_then(|d| d.as_f64()).unwrap_or(0.0);
-                    let duration = first.get("duration").and_then(|d| d.as_f64()).unwrap_or(0.0);
-
-                    // geometry.coordinates is an array of [lon, lat]
-                    let mut waypoints: Vec<[f64; 2]> = Vec::new();
-                    if let Some(geometry) = first.get("geometry") {
-                        if let Some(coords) = geometry.get("coordinates").and_then(|c| c.as_array()) {
-                            for c in coords {
-                                if let Some(arr) = c.as_array() {
-                                    if arr.len() >= 2 {
-                                        if let (Some(lon), Some(lat)) = (arr[0].as_f64(), arr[1].as_f64()) {
-                                            waypoints.push([lat, lon]);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    let route = FrbRoute {
-                        id: format!("osrm-{}", chrono::Utc::now().timestamp_millis()),
-                        polyline: String::new(),
-                        distance_m: distance,
-                        duration_s: duration,
-                        name: "OSRM route".to_string(),
-                        waypoints,
-                    };
-
-                    let s = serde_json::to_string(&route)?;
-                    Ok(s)
-                }
-                Err(e) => Err(anyhow::anyhow!("Failed to parse OSRM JSON: {}", e)),
-            },
-            Err(e) => Err(anyhow::anyhow!("OSRM request failed: {}", e)),
-        }
-    });
-
-    match res {
-        Ok(s) => Ok(s),
-        Err(err) => {
-            // Log the error and fall back to the local stub route so UI remains usable.
-            eprintln!("nav_compute_route: OSRM fallback failed: {:?}", err);
-
-            let route = FrbRoute {
-                id: "stub-1".to_string(),
-                polyline: "_p~iF~ps|U_ulLnnqC_mqNvxq`@".to_string(),
-                distance_m: 1234.5,
-                duration_s: 456.0,
-                name: "Sample route (stub)".to_string(),
-                waypoints: vec![
-                    [52.5206, 13.3862],
-                    [52.5219, 13.3934],
-                    [52.5235, 13.4001],
-                ],
-            };
-
-            let s = serde_json::to_string(&route)?;
-            Ok(s)
-        }
-    }
+// Super-simple FRB test function: no options, returns a fixed string. This
+// helps verify if the codegen picks up tiny, trivial top-level `#[frb]`
+// functions (useful for narrowing the root cause).
+#[frb]
+pub fn nav_test() -> anyhow::Result<String> {
+    Ok("nav-test-ok".to_string())
 }
 
 
