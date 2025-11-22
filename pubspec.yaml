@@ -47,6 +47,7 @@ dependencies:
   path: ^1.9.0
   flutter_rust_bridge: 2.11.1
 
+  collection: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

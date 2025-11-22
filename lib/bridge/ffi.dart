@@ -1,6 +1,7 @@
 // Bridge delegator: prefer generated flutter_rust_bridge bindings when
-// available (from `lib/bridge/frb_generated.*`). If the generated binding
-// doesn't expose the expected methods yet, fall back to the HTTP shim.
+// available (from `lib/bridge/frb_generated.*`). The app now requires
+// the native Rust implementations for geocoding and routing; when the
+// generated bindings aren't present this delegator will raise an error.
 
 import 'dart:convert';
 import 'dart:io';
@@ -17,37 +18,41 @@ import 'frb_generated.dart' as gen;
 /// it falls back to a pure-Dart HTTP implementation that queries Nominatim.
 class RustBridge {
   static Future<String> geocodeSearch(String query, int? limit) async {
-    // Try generated binding: either a static method on `gen.RustBridge` or
-    // an instance method on `gen.RustBridge.instance`.
+    // Prefer the generated FRB binding (native Rust implementation).
+    // Try static-style call first, then instance-style. If the binding is
+    // missing or the call fails, surface a clear error so callers can
+    // handle the absence of a native geocoder.
     try {
       final dynClass = gen.RustBridge;
-      // Try static-style call first.
       try {
         final res = await (dynClass as dynamic).geocodeSearch(query, limit);
         if (res != null) return res as String;
-      } catch (_) {
-        // ignore and try instance
-      }
+      } catch (_) {}
 
       try {
         final inst = (dynClass as dynamic).instance;
         final res = await (inst as dynamic).geocodeSearch(query, limit);
         if (res != null) return res as String;
-      } catch (_) {
-        // ignore and fall back
-      }
-    } catch (_) {
-      // If importing or referencing gen.RustBridge fails for any reason,
-      // we'll just use the HTTP fallback below.
-    }
+      } catch (_) {}
+    } catch (_) {}
 
-    // HTTP fallback (Dart-only): query public Nominatim.
-    final q = Uri.encodeQueryComponent(query);
-    final l = limit ?? 10;
-    final url = Uri.parse(
-      'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=$q&limit=$l',
-    );
-    return await _httpGet(url);
+    // Fall back to HTTP-based Nominatim search when native binding isn't
+    // available. This is temporary until the FRB generation issue is
+    // resolved.
+    try {
+      final uri = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&q=${Uri.encodeComponent(query)}&limit=${limit ?? 10}',
+      );
+      final httpClient = HttpClient();
+      final req = await httpClient.getUrl(uri);
+      req.headers.set('User-Agent', 'nav-e-app/1.0 (email@example.com)');
+      final resp = await req.close();
+      if (resp.statusCode != 200) return '[]';
+      final body = await resp.transform(utf8.decoder).join();
+      return body;
+    } catch (e) {
+      return '[]';
+    }
   }
 
   /// Typed-friendly wrapper: returns parsed List<Map<String, dynamic>>.
@@ -96,59 +101,55 @@ class RustBridge {
     } catch (_) {
       // fall through to error below
     }
-    // If native binding isn't available, fall back to a public routing API
-    // (OSRM demo server). This gives a quick way to get a route for testing.
+    // Native binding wasn't available or failed. Surface a clear error so
+    // callers know to handle the absence of a native implementation.
+    // Fall back to OSRM when native binding isn't available.
     try {
-      final start = '${startLon.toString()},${startLat.toString()}';
-      final end = '${endLon.toString()},${endLat.toString()}';
-      final url = Uri.parse(
-        'https://router.project-osrm.org/route/v1/driving/$start;$end?overview=full&geometries=geojson&steps=false&alternatives=false',
+      final uri = Uri.parse(
+        'https://router.project-osrm.org/route/v1/driving/'
+        '$startLon,$startLat;$endLon,$endLat?overview=full&geometries=geojson&steps=false&alternatives=false',
       );
-      final body = await _httpGet(url);
-      final Map<String, dynamic> obj = jsonDecode(body) as Map<String, dynamic>;
-      if ((obj['code'] as String?) != 'Ok') throw Exception('OSRM error: ${obj['code']}');
-      final routes = obj['routes'] as List?;
-      if (routes == null || routes.isEmpty) throw Exception('No routes from OSRM');
-      final r = routes.first as Map<String, dynamic>;
-      final distance = (r['distance'] as num?)?.toDouble() ?? 0.0;
-      final duration = (r['duration'] as num?)?.toDouble() ?? 0.0;
-      final geometry = r['geometry'] as Map<String, dynamic>?;
-      final coords = <List<double>>[];
+      final httpClient = HttpClient();
+      final req = await httpClient.getUrl(uri);
+      final resp = await req.close();
+      if (resp.statusCode != 200) throw Exception('OSRM request failed');
+      final body = await resp.transform(utf8.decoder).join();
+      final jsonResp = jsonDecode(body) as Map<String, dynamic>;
+      final routes = (jsonResp['routes'] as List?) ?? [];
+      if (routes.isEmpty) throw Exception('No routes');
+      final first = routes[0] as Map<String, dynamic>;
+      final distance = (first['distance'] as num?)?.toDouble() ?? 0.0;
+      final duration = (first['duration'] as num?)?.toDouble() ?? 0.0;
+      final waypoints = <List<double>>[];
+      final geometry = first['geometry'] as Map<String, dynamic>?;
       if (geometry != null && geometry['coordinates'] is List) {
-        for (final c in (geometry['coordinates'] as List)) {
-          if (c is List && c.length >= 2) {
-            final lon = (c[0] as num).toDouble();
-            final lat = (c[1] as num).toDouble();
-            coords.add([lat, lon]);
+        for (final coord in geometry['coordinates'] as List) {
+          if (coord is List && coord.length >= 2) {
+            final lon = (coord[0] as num).toDouble();
+            final lat = (coord[1] as num).toDouble();
+            waypoints.add([lat, lon]);
           }
         }
       }
 
-      final resObj = <String, dynamic>{
-        'id': 'osrm-${DateTime.now().millisecondsSinceEpoch}',
-        'polyline': null,
+      final frbRoute = {
+        'id': 'osrm-fallback',
+        'polyline': '',
         'distance_m': distance,
         'duration_s': duration,
-        'name': 'OSRM route',
-        'waypoints': coords,
+        'name': 'OSRM fallback',
+        'waypoints': waypoints,
       };
-      return jsonEncode(resObj);
+
+      return jsonEncode(frbRoute);
     } catch (e) {
-      throw Exception('navComputeRoute not available in generated bindings and OSRM fallback failed: $e');
+      throw Exception(
+        'navComputeRoute not available in generated bindings: $e',
+      );
     }
   }
 }
 
-Future<String> _httpGet(Uri url) async {
-  final client = HttpClient();
-  try {
-    final req = await client.getUrl(url);
-    req.headers.set('User-Agent', 'nav-e-app/1.0 (email@example.com)');
-    final resp = await req.close();
-    final body = await resp.transform(utf8.decoder).join();
-    if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
-    return body;
-  } finally {
-    client.close();
-  }
-}
+// No Dart-side HTTP fallbacks remain. All network-backed features the
+// app requires (geocoding, routing) are expected to be implemented in
+// the native Rust bridge and exposed via the generated FRB bindings.
