@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
@@ -7,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:nav_e/bridge/ffi.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
@@ -33,6 +33,10 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
   double? _durationS;
   bool _computing = false;
   String? _computeError;
+  // When true the user wants to pick the route start on the map.
+  bool _pickOnMap = false;
+  // When user picks a start on the map this holds the selected coordinate.
+  LatLng? _pickedStart;
 
   @override
   void initState() {
@@ -49,11 +53,13 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
     });
     try {
       final dest = widget.destination;
-      // Prefer the user's current GPS location (LocationBloc) as the start
-      // of the route. If GPS isn't available yet, fall back to the map
-      // center (which may approximate the user's location) and finally to
-      // the destination to avoid crashes.
+      // Determine start position based on user selection:
+      // - If pick-on-map is active and the user selected a point, use that.
+      // - Otherwise prefer GPS (LocationBloc), then map center, then dest.
       LatLng startPos = LatLng(dest.lat, dest.lon);
+      if (_pickOnMap && _pickedStart != null) {
+        startPos = _pickedStart!;
+      } else {
       try {
         final locState = context.read<LocationBloc>().state;
         if (locState.position != null) {
@@ -75,8 +81,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
           // keep dest
         }
       }
-
-      debugPrint('Computing route from start=${startPos.latitude},${startPos.longitude} to end=${dest.lat},${dest.lon}');
+      }
 
       final json = await RustBridge.navComputeRoute(
         startPos.latitude,
@@ -85,7 +90,6 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         dest.lon,
         null,
       );
-      debugPrint('navComputeRoute raw json: ${json.length > 200 ? json.substring(0, 200) + "..." : json}');
       final Map<String, dynamic> obj = jsonDecode(json);
       final List wp = obj['waypoints'] as List? ?? [];
       final pts = wp.map<LatLng>((e) {
@@ -93,12 +97,10 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         final lon = (e[1] as num).toDouble();
         return LatLng(lat, lon);
       }).toList();
-      debugPrint('Decoded ${pts.length} route points');
-      debugPrint('Raw waypoint payload: $wp');
+      
       if (pts.length < 2) {
         // Not enough points to draw a line — surface this to the UI so the
         // user/developer can see that the computed route is too small.
-        debugPrint('Route contains fewer than 2 waypoints; cannot draw polyline.');
         setState(() {
           _computeError = 'Route contains only ${pts.length} waypoint(s); need at least 2 to display a line.';
         });
@@ -107,12 +109,6 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         setState(() {
           _computeError = null;
         });
-      }
-      if (pts.isNotEmpty) {
-        final first = pts.first;
-        final last = pts.last;
-        debugPrint('First point: ${first.latitude}, ${first.longitude}');
-        debugPrint('Last point: ${last.latitude}, ${last.longitude}');
       }
       setState(() {
         _routePoints = pts;
@@ -133,10 +129,9 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
       if (mounted) {
         try {
           context.read<MapBloc>().add(ReplacePolylines([model], fit: true));
-        } catch (e) {
+        } catch (_) {
           // If MapBloc isn't available in this context for some reason,
           // ignore and continue — the inline polyline remains a fallback.
-          debugPrint('MapBloc ReplacePolylines failed: $e');
         }
       }
 
@@ -166,8 +161,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         });
       }
     } catch (e) {
-      // log and surface error to UI
-      debugPrint('Failed to compute route: $e');
+      // surface error to UI
       setState(() {
         _computeError = e.toString();
       });
@@ -183,10 +177,28 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
   Widget build(BuildContext context) {
     final dest = widget.destination;
 
-    // Build markers: keep only the destination marker here. All debug
-    // markers (start/end/per-point) were useful during development but
-    // clutter the map in normal use. If you want to re-enable them, wrap
-    // their creation in `if (kDebugMode) ...`.
+    // Build markers: destination marker and (when available) the user's
+    // current GPS position marker. We watch `LocationBloc` so the marker
+    // appears/updates as the position becomes available.
+    final userPos = context.watch<LocationBloc>().state.position;
+
+    // Compute a human-friendly label for the start source to show in the
+    // top panel. This updates when the user toggles pick-on-map and when
+    // they tap the map to pick a start location.
+    final String startLabel;
+    if (_pickOnMap) {
+      if (_pickedStart != null) {
+        startLabel = 'Picked: ${_pickedStart!.latitude.toStringAsFixed(5)}, ${_pickedStart!.longitude.toStringAsFixed(5)}';
+      } else {
+        startLabel = 'Tap map to pick start';
+      }
+    } else {
+      if (userPos != null) {
+        startLabel = 'Current: ${userPos.latitude.toStringAsFixed(5)}, ${userPos.longitude.toStringAsFixed(5)}';
+      } else {
+        startLabel = 'Current location';
+      }
+    }
     final markers = <Marker>[
       Marker(
         point: dest.position,
@@ -194,6 +206,35 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         height: 45,
         child: const Icon(Icons.place, color: Color(0xFF3646F4), size: 52),
       ),
+      if (userPos != null)
+        Marker(
+          point: userPos,
+          width: 28,
+          height: 28,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.blueAccent,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: const SizedBox.shrink(),
+          ),
+        ),
+      // If the user picked a custom start on the map, show it as a marker.
+      if (_pickedStart != null)
+        Marker(
+          point: _pickedStart!,
+          width: 30,
+          height: 30,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.orangeAccent,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+            child: const SizedBox.shrink(),
+          ),
+        ),
     ];
 
   // Build the main scaffold composed from smaller widgets in the widgets/
@@ -212,16 +253,40 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
                 ? [
                     Polyline(
                       points: _routePoints,
-                      color: Colors.redAccent,
+                      color: AppColors.blueRibbonDark02,
                       strokeWidth: 6.0,
                     )
                   ]
                 : const [],
+            onMapTap: (latlng) {
+              if (!_pickOnMap) return;
+              // set picked start and compute route immediately
+              setState(() {
+                _pickedStart = latlng;
+              });
+              _computeRoute();
+            },
           ),
         ),
 
   // Top panel
-  RouteTopPanel(destination: dest),
+  RouteTopPanel(
+    destination: dest,
+    pickOnMap: _pickOnMap,
+    onPickOnMapChanged: (v) {
+      setState(() {
+        _pickOnMap = v;
+        if (!v) _pickedStart = null; // clear any picked start when switching back
+      });
+      // When switching back to 'Current location', automatically recompute
+      // the route using the current GPS/map center to give immediate
+      // feedback (button will enter the computing/loading state).
+      if (!v) {
+        _computeRoute();
+      }
+    },
+    startLabel: startLabel,
+  ),
 
   // Reuse the mini map control widgets (same as HomeView) so users
   // can re-center, rotate north, or open map controls while planning

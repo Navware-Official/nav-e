@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
@@ -11,12 +12,15 @@ class MapWidget extends StatelessWidget {
   final List<Marker> markers;
   final List<Polyline> polylines;
   final void Function(dynamic position, bool hasGesture)? onMapInteraction;
+  // Called when the user taps the map. Provides the tapped LatLng.
+  final void Function(LatLng latlng)? onMapTap;
 
   const MapWidget({
     super.key,
     required this.mapController,
     required this.markers,
     this.onMapInteraction,
+    this.onMapTap,
     this.polylines = const [],
   });
 
@@ -72,6 +76,11 @@ class MapWidget extends StatelessWidget {
             options: MapOptions(
               initialCenter: state.center,
               initialZoom: state.zoom,
+              // Forward taps to the optional onMapTap callback so parent
+              // widgets (e.g. PlanRoute) can implement 'pick on map'.
+              onTap: (tapPos, latlng) {
+                onMapTap?.call(latlng);
+              },
               onMapReady: () {
                 if (!state.isReady) {
                   mapBloc.add(MapInitialized());

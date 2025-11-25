@@ -92,6 +92,9 @@ class RouteBottomSheet extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(width: 8),
+                    // Show a loading state on the Start button when computing
+                    // so the user sees immediate feedback after tapping the
+                    // map or toggling start-source.
                     FilledButton.icon(
                       onPressed: routePoints.isEmpty || computing
                           ? null
@@ -101,8 +104,14 @@ class RouteBottomSheet extends StatelessWidget {
                                 builder: (_) => ActiveNavScreen(routeId: id, routePoints: routePoints),
                               ));
                             },
-                      icon: const Icon(Icons.navigation),
-                      label: const Text('Start'),
+                      icon: computing
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.navigation),
+                      label: computing ? const Text('Loading') : const Text('Start'),
                     ),
                     // debug injection removed
                   ]),

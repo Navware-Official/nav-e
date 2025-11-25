@@ -4,8 +4,20 @@ import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 class RouteTopPanel extends StatelessWidget {
   final GeocodingResult destination;
   final VoidCallback? onBack;
+  // When true the user intends to pick the route start on the map.
+  final bool pickOnMap;
+  final ValueChanged<bool>? onPickOnMapChanged;
+  // Optional label describing the selected/active start location.
+  final String? startLabel;
 
-  const RouteTopPanel({super.key, required this.destination, this.onBack});
+  const RouteTopPanel({
+    super.key,
+    required this.destination,
+    this.onBack,
+    this.pickOnMap = false,
+    this.onPickOnMapChanged,
+    this.startLabel,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +44,9 @@ class RouteTopPanel extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Current location',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    Text(
+                      startLabel ?? 'Current location',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                     ),
                     Text(
                       destination.displayName,
@@ -44,6 +56,26 @@ class RouteTopPanel extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(width: 8),
+              // Start source toggle: Current location vs Pick on map
+              ToggleButtons(
+                isSelected: [!pickOnMap, pickOnMap],
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                onPressed: (i) {
+                  final newPick = i == 1;
+                  onPickOnMapChanged?.call(newPick);
+                },
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6),
+                    child: Icon(Icons.my_location, size: 18),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 6),
+                    child: Icon(Icons.edit_location_alt, size: 18),
+                  ),
+                ],
               ),
               const SizedBox(width: 8),
               IconButton(
