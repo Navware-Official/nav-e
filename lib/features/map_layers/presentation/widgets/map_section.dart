@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/widgets/user_location_marker.dart';
@@ -10,11 +11,13 @@ import 'package:nav_e/features/map_layers/presentation/map_widget.dart';
 class MapSection extends StatelessWidget {
   final MapController mapController;
   final List<Marker> extraMarkers;
+  final void Function(LatLng latlng)? onMapTap;
 
   const MapSection({
     super.key,
     required this.mapController,
     required this.extraMarkers,
+    this.onMapTap,
   });
 
   @override
@@ -46,6 +49,8 @@ class MapSection extends StatelessWidget {
           }
           context.read<MapBloc>().add(MapMoved(pos.center, pos.zoom));
         },
+        onMapTap: onMapTap,
+        
       ),
     );
   }

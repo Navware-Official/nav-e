@@ -18,10 +18,10 @@ import 'package:nav_e/features/home/widgets/search_overlay_widget.dart'
     show SearchOverlayWidget;
 import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
 import 'package:nav_e/features/map_layers/presentation/utils/map_helpers.dart';
+import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 
 import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
-import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/saved_places/utils/saved_places_utils.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/widgets/side_menu_drawer.dart';
@@ -72,8 +72,23 @@ class _HomeViewState extends State<HomeView> {
       final uri = GoRouterState.of(context).uri;
       final s = uri.toString();
       if (_lastUriString == s) return;
+      // Preserve previous URI so we can detect where we navigated from.
+      final prevUriString = _lastUriString;
       _lastUriString = s;
       _handleRouteParams(uri);
+
+      // Only clear polylines when returning to the plain home route AND the
+      // previous route was the plan-route screen. This avoids wiping the
+      // map when other navigations occur.
+      if (uri.path == '/' && (uri.queryParameters.isEmpty)) {
+        if (prevUriString != null && prevUriString.contains('/plan-route')) {
+          try {
+            context.read<MapBloc>().add(ReplacePolylines(const [], fit: false));
+          } catch (_) {
+            // If MapBloc isn't available, ignore silently.
+          }
+        }
+      }
     };
     router.routerDelegate.addListener(_routerListener!);
   }
