@@ -82,12 +82,12 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
 
     // initiate the scan
     await FlutterBluePlus.startScan(
-    androidScanMode: /*AndroidScanMode.lowPower*/AndroidScanMode.lowLatency,
+    androidScanMode: AndroidScanMode.lowLatency, // AndroidScanMode.lowPower might be a better fit in the future
     // withServices: navwareBluetoothServiceUUIDs, // match any of the specified services
     );
 
     // wait for scanning to stop
-    await Future.delayed(Duration(seconds: 2)).then((value) async { //! DONT COMMIT THIS LINE
+    await Future.delayed(Duration(seconds: 2)).then((value) async {
       await FlutterBluePlus.stopScan();
       debugPrint(latestScanResult.toString());
       emit(BluetoothScanComplete(latestScanResult));
