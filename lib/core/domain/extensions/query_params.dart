@@ -38,7 +38,7 @@ extension GoNavX on BuildContext {
     );
 
     if (currentUri().path == '/' &&
-        currentUri ==
+        currentUri().queryParameters.toString() ==
             qp.entries.where((e) => e.value != null).toSet().toString()) {
       return;
     }

@@ -57,7 +57,7 @@ class SearchScreen extends StatelessWidget {
 
                     return ListView.separated(
                       itemCount: state.results.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
+                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (ctx, index) {
                         final result = state.results[index];
                         return SearchResultTile(
