@@ -211,19 +211,22 @@ class _HomeViewState extends State<HomeView> {
                         );
                         return;
                       }
+                      final messenger = ScaffoldMessenger.of(context);
                       try {
                         await context.read<SavedPlacesCubit>().addPlace(
                           r.toSavedPlace(),
                         );
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Location saved')),
-                        );
+                        if (mounted) {
+                          messenger.showSnackBar(
+                            const SnackBar(content: Text('Location saved')),
+                          );
+                        }
                       } catch (e) {
-                        if (!mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Failed to save: $e')),
-                        );
+                        if (mounted) {
+                          messenger.showSnackBar(
+                            SnackBar(content: Text('Failed to save: $e')),
+                          );
+                        }
                       }
                     },
                   ),

@@ -36,6 +36,14 @@ class SideMenuDrawerWidget extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.devices),
+            title: const Text('Device Management'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.pushNamed('devices');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.featured_play_list),
             title: const Text('Saved Places'),
             onTap: () {
