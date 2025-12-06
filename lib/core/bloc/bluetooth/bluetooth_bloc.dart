@@ -1,20 +1,32 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nav_e/core/data/local/database_helper.dart';
+import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 part 'bluetooth_event.dart';
 part 'bluetooth_state.dart';
 
-class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
+// TODO: Move to centralized place and update once registered
+final navwareBluetoothServiceUUIDs = <Guid>[Guid("6e400001-b5a3-f393-e0a9-e50e24dcca9e")];
+
+class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
   final DatabaseHelper databaseHelper;
   BluetoothBloc(this.databaseHelper) : super(BluetoothInitial()) {
     on<CheckBluetoothRequirements>(_checkBluetoothSupport);
     on<StartScanning>(_startScanning);
+    on<InitiateConnectionCheck>(_awaitConnectionCheck);
+    on<CheckConnectionStatus>(_checkConnectionStatus);
+    on<ToggleConnection>(_toggleConnection);
   }
 
-  void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<BluetoothState> emit) async {
+  void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<ApplicationBluetoothState> emit) async {
+    emit(BluetoothCheckInProgress());
+
     // Check if bluetooth is supported by the device
     if (await FlutterBluePlus.isSupported == false) {
       emit(BluetoothOperationFailure("Bluetooth is not supported on this please try again on a bluetooth supported device."));
@@ -48,37 +60,80 @@ class BluetoothBloc extends Bloc<BluetoothEvent, BluetoothState> {
       }
     } else {
       emit(BluetoothOperationFailure("Please allow 'Nearby Devices' Permissions."));
-      }
+    }
   }
 
-  void _startScanning(StartScanning event, Emitter<BluetoothState> emit) async {
+  void _startScanning(StartScanning event, Emitter<ApplicationBluetoothState> emit) async {
     debugPrint("STARTING_SCAN.....");
 
-    // Start scanning
-    await FlutterBluePlus.startScan(
-    androidScanMode: /*AndroidScanMode.lowPower*/AndroidScanMode.lowLatency,
-    // withServices:[Guid("180D")], // match any of the specified services
-    // withNames:["Bluno"], // *or* any of the specified names
-    timeout: Duration(seconds:15));
+    emit(BluetoothScanInProgress());
 
-    // Listen to scan results
-    FlutterBluePlus.scanResults.listen((results) {
-        // do something with scan results
-        for (ScanResult r in results) {
-            debugPrint('${r.device} found! Adverstisement data:${r.advertisementData} rssi: ${r.rssi}');
+    late List<ScanResult> latestScanResult;
+
+    // Start listening before scanning so we don't miss anything
+    var subscription = FlutterBluePlus.scanResults.listen((results) {
+        if (results.isNotEmpty) {
+          latestScanResult = results;
         }
-
-        // TODO: CONTINUE HERE
     });
 
+    // cleanup: cancel subscription when scanning stops
+    FlutterBluePlus.cancelWhenScanComplete(subscription);
 
-    // await databaseHelper.insertRow("devices", {"name": "vehicular manslaughter", "model": "First Edition", "remote_id": "0001"});
-    // await databaseHelper.insertRow("devices", {"name": "Ford Mustang", "model": "3.35", "remote_id": "foonnga"});
-    // await databaseHelper.insertRow("devices", {"name": "Mylyf", "model": "First Edition", "remote_id": "0001"});
+    // initiate the scan
+    await FlutterBluePlus.startScan(
+    androidScanMode: AndroidScanMode.lowLatency, // AndroidScanMode.lowPower might be a better fit in the future
+    // withServices: navwareBluetoothServiceUUIDs, // match any of the specified services
+    );
 
-    // final items = await databaseHelper.getAllRowsFrom("devices");
-    // print(items);
+    // wait for scanning to stop
+    await Future.delayed(Duration(seconds: 2)).then((value) async {
+      await FlutterBluePlus.stopScan();
+      debugPrint(latestScanResult.toString());
+      emit(BluetoothScanComplete(latestScanResult));
+    });
+  }
 
-    // emit(state.copyWith(isScanning: true));
+  void _awaitConnectionCheck(InitiateConnectionCheck event, Emitter<ApplicationBluetoothState> emit) {
+    emit(AquiringBluetoothConnetionStatus());
+  }
+
+  void _checkConnectionStatus(CheckConnectionStatus event, Emitter<ApplicationBluetoothState> emit) async {
+    var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
+
+    if (bluetoothDevice.isDisconnected) {
+      emit(BluetoothConnetionStatusAquired("Disconnected"));
+    } else if (bluetoothDevice.isConnected) {
+      emit(BluetoothConnetionStatusAquired("Connected"));
+    } else {
+      emit(BluetoothConnetionStatusAquired("Unknown"));
+    }
+  }
+
+  void _toggleConnection(ToggleConnection event, Emitter<ApplicationBluetoothState> emit) async {
+    emit(AquiringBluetoothConnetionStatus());
+    var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
+
+    var subscription = bluetoothDevice.connectionState.listen((BluetoothConnectionState connectionState) async {
+      if (bluetoothDevice.isDisconnected) {
+        await bluetoothDevice.connectionState.where((val) => val == BluetoothConnectionState.connected).first.then((val) async {
+          emit(BluetoothConnetionStatusAquired("Connected"));
+        });
+      } else if (bluetoothDevice.isConnected){
+        await bluetoothDevice.connectionState.where((val) => val == BluetoothConnectionState.disconnected).first.then((val) async {
+          emit(BluetoothConnetionStatusAquired("Disconnected"));
+        });
+      } else {
+        emit(BluetoothConnetionStatusAquired("Unknown"));
+      }
+    });
+
+    if (bluetoothDevice.isDisconnected) {
+      await bluetoothDevice.connect(timeout: Duration(seconds: 35), autoConnect: false);
+    } else {
+      await bluetoothDevice.disconnect();
+    }
+
+    subscription.cancel();
   }
 }
