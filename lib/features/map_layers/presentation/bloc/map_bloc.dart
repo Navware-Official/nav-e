@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:stream_transform/stream_transform.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:nav_e/core/domain/repositories/map_source_repository.dart';
 import 'map_events.dart';
@@ -9,11 +10,13 @@ import 'map_state.dart';
 
 class MapBloc extends Bloc<MapEvent, MapState> {
   final IMapSourceRepository sources;
+  static const String _prefKeyMapLibre = 'use_map_libre';
 
   MapBloc(this.sources)
     : super(
         MapState(center: LatLng(52.3791, 4.9), zoom: 13.0, isReady: false),
       ) {
+    _loadMapAdapterPreference();
     on<MapInitialized>((event, emit) async {
       try {
         final current = await sources.getCurrent();
@@ -38,6 +41,13 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<MapAutoFitDone>(_onAutoFitDone);
     on<ToggleFollowUser>(_onToggleFollow);
     on<MapSourceChanged>(_onSourceChanged, transformer: restartable());
+    on<ToggleMapAdapter>(_onToggleMapAdapter);
+  }
+
+  Future<void> _loadMapAdapterPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final useMapLibre = prefs.getBool(_prefKeyMapLibre) ?? false;
+    add(ToggleMapAdapter(useMapLibre));
   }
 
   void _onMoved(MapMoved event, Emitter<MapState> emit) {
@@ -69,6 +79,15 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   void _onAutoFitDone(MapAutoFitDone event, Emitter<MapState> emit) {
     // clear the autoFit flag after the widget performed the fit
     if (state.autoFit) emit(state.copyWith(autoFit: false));
+  }
+
+  Future<void> _onToggleMapAdapter(
+    ToggleMapAdapter event,
+    Emitter<MapState> emit,
+  ) async {
+    emit(state.copyWith(useMapLibre: event.useMapLibre));
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_prefKeyMapLibre, event.useMapLibre);
   }
 
   EventTransformer<T> _throttle<T>(Duration d) {

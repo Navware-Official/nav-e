@@ -3,16 +3,16 @@ SHELL := /bin/bash
 .PHONY: help codegen build-native build-android build-android-all clean-native fmt test ci
 
 HELPER := \
-  echo "Usage:\n  make codegen           # Run flutter_rust_bridge_codegen and generate Dart bindings into lib/bridge\n  make build-native      # Build native Rust crate (desktop)\n  make build-android     # Build Android native libs for arm64 and copy to android/app/src/main/jniLibs\n  make build-android-all # Build Android native libs for common ABIs and copy to jniLibs\n  make clean-native      # cargo clean in native/nav_engine\n  make fmt               # cargo fmt in native/nav_engine (rustfmt required)\n  make test              # run flutter test\n  make ci                # run codegen + build-native (for CI)"
+  echo "Usage:\n  make codegen           # Run flutter_rust_bridge_codegen (v2.x) and generate Dart bindings into lib/bridge\n  make build-native      # Build native Rust crate (desktop)\n  make build-android     # Build Android native libs for arm64 and copy to android/app/src/main/jniLibs\n  make build-android-all # Build Android native libs for common ABIs and copy to jniLibs\n  make clean-native      # cargo clean in native/nav_engine\n  make fmt               # cargo fmt in native/nav_engine (rustfmt required)\n  make test              # run flutter test\n  make ci                # run codegen + build-native (for CI)"
 
 help:
 	@$(HELPER)
 
 ## Generate Dart bindings with flutter_rust_bridge_codegen
 codegen:
-	@command -v flutter_rust_bridge_codegen >/dev/null 2>&1 || { echo "flutter_rust_bridge_codegen not found. Install with: cargo install flutter_rust_bridge_codegen"; exit 1; }
+	@command -v flutter_rust_bridge_codegen >/dev/null 2>&1 || { echo "flutter_rust_bridge_codegen not found. Install with: cargo install flutter_rust_bridge_codegen --version 2.11.1 or 'dart pub global activate flutter_rust_bridge_codegen 2.11.1'"; exit 1; }
 	@echo "Running FRB codegen -> lib/bridge"
-	flutter_rust_bridge_codegen generate --rust-root native/nav_engine -r crate:: -d lib/bridge
+	flutter_rust_bridge_codegen generate
 
 ## Build the native Rust crate for desktop (release)
 build-native:

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/settings/widgets/app_version_section.dart';
-import 'package:nav_e/features/settings/widgets/map_source_settings_section.dart';
 import 'package:nav_e/features/settings/widgets/theme_settings_section.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -21,7 +20,7 @@ class SettingsScreen extends StatelessWidget {
         title: Text('Settings'),
       ),
       body: ListView(
-        children: [ThemeSettingsSection(), MapSourceSettingsSection(), AppVersionSection()],
+        children: [ThemeSettingsSection(), AppVersionSection()],
       ),
     );
   }

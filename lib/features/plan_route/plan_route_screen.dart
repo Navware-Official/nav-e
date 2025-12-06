@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:nav_e/bridge/ffi.dart';
+import 'package:nav_e/bridge/lib.dart' as bridge;
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/core/theme/colors.dart';
@@ -16,6 +16,7 @@ import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
 import 'package:nav_e/features/plan_route/widgets/route_top_panel.dart';
 import 'package:nav_e/features/plan_route/widgets/route_bottom_sheet.dart';
+
 
 class PlanRouteScreen extends StatefulWidget {
   final GeocodingResult destination;
@@ -83,12 +84,12 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
       }
       }
 
-      final json = await RustBridge.navComputeRoute(
-        startPos.latitude,
-        startPos.longitude,
-        dest.lat,
-        dest.lon,
-        null,
+      final json = await bridge.navComputeRoute(
+        startLat: startPos.latitude,
+        startLon: startPos.longitude,
+        endLat: dest.lat,
+        endLon: dest.lon,
+        options: null,
       );
       final Map<String, dynamic> obj = jsonDecode(json);
       final List wp = obj['waypoints'] as List? ?? [];

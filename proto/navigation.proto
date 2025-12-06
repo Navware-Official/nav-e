@@ -1,0 +1,226 @@
+syntax = "proto3";
+
+package navigation;
+
+// Common header for all messages
+message Header {
+  uint32 protocol_version = 1;
+  uint32 message_version = 2;
+}
+
+// Small, frequent UI updates
+message RouteSummary {
+  Header header = 1;
+  bytes route_id = 2;  // 16 bytes UUID
+  uint32 distance_m = 3;
+  uint64 eta_unix_ms = 4;
+  string next_turn_text = 5;
+  uint32 next_turn_bearing_deg = 6;
+  uint32 remaining_distance_m = 7;
+  uint32 estimated_duration_s = 8;
+  BoundingBox bounding_box = 9;
+}
+
+message BoundingBox {
+  double min_lat = 1;
+  double min_lon = 2;
+  double max_lat = 3;
+  double max_lon = 4;
+}
+
+// Full route payload
+message RouteBlob {
+  Header header = 1;
+  bytes route_id = 2;  // 16 bytes UUID
+  repeated Waypoint waypoints = 3;
+  repeated RouteLeg legs = 4;
+  oneof polyline_data {
+    string encoded_polyline = 5;
+    RawPoints raw_points = 6;
+  }
+  Metadata metadata = 7;
+  bool compressed = 8;
+  bytes checksum = 9;   // SHA256
+  Signature signature = 10;  // optional HMAC
+}
+
+message Waypoint {
+  double lat = 1;
+  double lon = 2;
+  string name = 3;
+  uint32 index = 4;
+}
+
+message RouteLeg {
+  uint32 distance_m = 1;
+  uint32 duration_s = 2;
+  string summary = 3;
+  repeated Step steps = 4;
+}
+
+message Step {
+  string instruction = 1;
+  uint32 distance_m = 2;
+  uint32 duration_s = 3;
+  double start_lat = 4;
+  double start_lon = 5;
+  uint32 bearing_deg = 6;
+  string maneuver_type = 7;  // turn_left, turn_right, etc.
+}
+
+message RawPoints {
+  repeated Point points = 1;
+}
+
+message Point {
+  // Quantized to 1e-5 degrees
+  sint32 lat_e5 = 1;  // lat * 1e5
+  sint32 lon_e5 = 2;  // lon * 1e5
+}
+
+message Metadata {
+  uint32 zoom_hint = 1;
+  uint32 preferred_zoom = 2;
+  uint32 total_points = 3;
+  string route_name = 4;
+  uint64 created_at_ms = 5;
+}
+
+message Signature {
+  uint32 key_id = 1;
+  bytes hmac = 2;  // HMAC-SHA256
+}
+
+// Optional for streaming large polylines
+message PolylineSegment {
+  Header header = 1;
+  bytes route_id = 2;
+  uint32 seq_no = 3;
+  uint32 total_seqs = 4;
+  bytes payload_bytes = 5;
+  uint32 crc32 = 6;
+}
+
+// Command and ACK/NACK messages
+message Control {
+  Header header = 1;
+  ControlType type = 2;
+  bytes route_id = 3;
+  uint32 status_code = 4;
+  string message_text = 5;
+  uint32 seq_no = 6;  // for NACK to indicate missing sequence
+}
+
+enum ControlType {
+  CONTROL_UNKNOWN = 0;
+  REQUEST_ROUTE = 1;
+  START_NAV = 2;
+  STOP_NAV = 3;
+  ACK = 4;
+  NACK = 5;
+  REQUEST_BLOB = 6;
+  HEARTBEAT = 7;
+  PAUSE_NAV = 8;
+  RESUME_NAV = 9;
+}
+
+// Live location
+message PositionUpdate {
+  Header header = 1;
+  double lat = 2;
+  double lon = 3;
+  float speed_m_s = 4;
+  uint32 bearing_deg = 5;
+  uint64 timestamp_ms = 6;
+  float accuracy_m = 7;
+  float altitude_m = 8;  // optional
+}
+
+// Real-time traffic notifications
+message TrafficAlert {
+  Header header = 1;
+  bytes route_id = 2;
+  string alert_text = 3;           // "Heavy traffic ahead"
+  int32 delay_seconds = 4;         // Additional time added
+  double distance_to_alert_m = 5;  // How far ahead
+  AlertSeverity severity = 6;
+  string alternative_route_id = 7; // optional
+}
+
+enum AlertSeverity {
+  SEVERITY_UNKNOWN = 0;
+  LOW = 1;
+  MEDIUM = 2;
+  HIGH = 3;
+  CRITICAL = 4;
+}
+
+// Multi-stop waypoint updates
+message WaypointUpdate {
+  Header header = 1;
+  bytes route_id = 2;
+  repeated Waypoint remaining_waypoints = 3;
+  int32 current_waypoint_index = 4;
+  uint64 waypoint_eta_ms = 5;  // optional
+}
+
+// Device capability handshake
+message DeviceCapabilities {
+  Header header = 1;
+  string device_id = 2;
+  string firmware_version = 3;
+  bool supports_vibration = 4;
+  bool supports_voice = 5;
+  int32 screen_width_px = 6;
+  int32 screen_height_px = 7;
+  int32 battery_level_pct = 8;
+  bool low_power_mode = 9;
+}
+
+// Battery status for power management
+message BatteryStatus {
+  Header header = 1;
+  string device_id = 2;
+  int32 battery_pct = 3;
+  bool is_charging = 4;
+  int32 estimated_minutes_remaining = 5;  // optional
+}
+
+// Error reporting
+message ErrorReport {
+  Header header = 1;
+  uint32 code = 2;
+  string message = 3;
+  string context = 4;  // optional additional context
+  uint64 timestamp_ms = 5;
+}
+
+// Frame wrapper for chunked transmission over BLE
+message Frame {
+  uint32 magic = 1;  // 0xNAVE
+  uint32 msg_type = 2;
+  uint32 protocol_version = 3;
+  bytes route_id = 4;  // 16 bytes
+  uint32 seq_no = 5;
+  uint32 total_seqs = 6;
+  uint32 payload_len = 7;
+  uint32 flags = 8;
+  bytes payload = 9;
+  uint32 crc32 = 10;
+}
+
+// Wrapper message for any message type
+message Message {
+  oneof payload {
+    RouteSummary route_summary = 1;
+    RouteBlob route_blob = 2;
+    PolylineSegment polyline_segment = 3;
+    Control control = 4;
+    PositionUpdate position_update = 5;
+    ErrorReport error_report = 6;
+    TrafficAlert traffic_alert = 7;
+    WaypointUpdate waypoint_update = 8;
+    DeviceCapabilities device_capabilities = 9;
+    BatteryStatus battery_status = 10;
+  }
+}
