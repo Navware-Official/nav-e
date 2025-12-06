@@ -4,8 +4,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart'
     show GeocodingResult;
+import 'package:nav_e/core/theme/typography.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_state.dart';
+import 'package:nav_e/widgets/subtext.widget.dart';
 
 class LocationPreviewWidget extends StatefulWidget {
   final VoidCallback onClose;
@@ -189,6 +191,9 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                             widget.route.name,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontFamily: AppTypography.subFamily,
+                            ),
                           ),
                         ),
                       ),
@@ -258,7 +263,7 @@ class _InfoTile extends StatelessWidget {
     return ListTile(
       leading: Icon(icon, color: scheme.primary),
       title: Text(title),
-      subtitle: Text(subtitle),
+      subtitle: SubText(subtitle),
       trailing: trailing,
       visualDensity: VisualDensity.compact,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12),

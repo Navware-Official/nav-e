@@ -1,0 +1,148 @@
+name: Create Release
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Semver without v, e.g. 1.2.0'
+        required: true
+      prerelease:
+        description: 'Mark as pre-release'
+        type: boolean
+        default: false
+        
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with: 
+          fetch-depth: 0
+          
+      - name: Validate release conditions
+        run: |
+          # Ensure we're on main and clean
+          git fetch origin main --tags
+          [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || (echo "❌ Not on main branch" && exit 1)
+          test -z "$(git status --porcelain)" || (echo "❌ Workspace not clean" && exit 1)
+          
+          # Validate version format
+          if ! [[ "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format. Use semantic versioning (e.g., 1.2.3)"
+            exit 1
+          fi
+          
+          # Check if tag already exists
+          if git tag | grep -q "^v${{ github.event.inputs.version }}$"; then
+            echo "❌ Tag v${{ github.event.inputs.version }} already exists"
+            exit 1
+          fi
+          
+          # Validate pubspec version matches input
+          PUBSPEC_VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1)
+          if [ "$PUBSPEC_VERSION" != "${{ github.event.inputs.version }}" ]; then
+            echo "❌ pubspec.yaml version ($PUBSPEC_VERSION) doesn't match input (${{ github.event.inputs.version }})"
+            echo "💡 Please update pubspec.yaml first"
+            exit 1
+          fi
+          
+          echo "✅ All validation checks passed"
+          
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with: 
+          channel: stable
+          cache: true
+          
+      - name: Run quality checks
+        run: |
+          flutter pub get
+          dart format --output=none --set-exit-if-changed .
+          dart analyze --fatal-infos
+          flutter test --coverage
+          
+      - name: Inject version information
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          TAG="v$VERSION"
+          
+          # Create directory if it doesn't exist
+          mkdir -p lib/core/constants
+          
+          # Create version constants file
+          cat > lib/core/constants/app_version.dart << EOF
+          // This file is auto-generated. Do not edit manually.
+          // Generated at: $(date -Iseconds)
+          // GitHub Release: $TAG
+          
+          class AppVersion {
+            static const String version = '$VERSION';
+            static const String tag = '$TAG';
+            static const String buildDate = '$(date -Iseconds)';
+            static const String githubSha = '$GITHUB_SHA';
+            static const bool isPrerelease = ${{ github.event.inputs.prerelease }};
+          }
+          EOF
+          
+      - name: Build release artifacts
+        run: |
+          # Build APK
+          flutter build apk --release
+          
+          # Build App Bundle  
+          flutter build appbundle --release
+          
+      - name: Create and push tag
+        run: |
+          TAG="v${{ github.event.inputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+          
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          TAG="v${{ github.event.inputs.version }}"
+          
+          # Get previous tag for changelog
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          
+          if [ -n "$PREV_TAG" ]; then
+            echo "## What's Changed" > release_notes.md
+            echo "" >> release_notes.md
+            git log --pretty=format:"- %s (%h)" "$PREV_TAG..HEAD" >> release_notes.md
+            echo "" >> release_notes.md
+          fi
+          
+          # Add download information
+          cat >> release_notes.md << EOF
+          
+          ## 📱 Download & Install
+          
+          1. Download the APK file below for your device architecture
+          2. Enable "Install from unknown sources" in Android settings
+          3. Install the downloaded APK
+          
+          ## 📋 Build Information
+          - **Version:** $TAG
+          - **Built from:** $GITHUB_SHA
+          - **Build date:** $(date -Iseconds)
+          - **Flutter version:** $(flutter --version | head -n1)
+          EOF
+          
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          name: Release v${{ github.event.inputs.version }}
+          body_path: release_notes.md
+          prerelease: ${{ github.event.inputs.prerelease }}
+          generate_release_notes: true
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab

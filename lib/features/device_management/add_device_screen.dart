@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 
@@ -22,7 +23,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white,),
+          icon: Icon(Icons.arrow_back, color: AppColors.capeCodDark02,),
           onPressed: (){
             // Navigate to devices list using named route
             context.push('/devices');
