@@ -5,13 +5,13 @@ class Device extends Equatable {
   final int? id;
   final String name;
   final String? model;
-  final String? remoteId;
+  final String remoteId;
 
   const Device({
     this.id,
     required this.name,
     this.model,
-    this.remoteId,
+    required this.remoteId,
   });
 
   /// Creates a new Device instance with updated values
@@ -35,7 +35,7 @@ class Device extends Equatable {
       id: map['id'] as int?,
       name: map['name'] as String,
       model: map['model'] as String?,
-      remoteId: map['remote_id'] as String?,
+      remoteId: map['remote_id'] as String,
     );
   }
 

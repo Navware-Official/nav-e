@@ -6,8 +6,6 @@ class AppNav {
 
   static GoRouter get _router => GoRouter.of(rootNavigatorKey.currentContext!);
 
-  static void home() => _router.goNamed('home');
-
   static void homeWithCoords({
     required double lat,
     required double lon,
@@ -26,6 +24,4 @@ class AppNav {
     _router.goNamed('home', queryParameters: qp.cast<String, String>());
   }
 
-  static void openSearch() => _router.goNamed('search');
-  static void openSavedPlaces() => _router.goNamed('savedPlaces');
 }
