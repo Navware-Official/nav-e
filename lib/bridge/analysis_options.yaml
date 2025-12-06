@@ -1,0 +1,17 @@
+# Analysis options for generated bridge code
+# This file suppresses errors in auto-generated Flutter Rust Bridge code
+
+analyzer:
+  errors:
+    # Ignore all errors in generated bridge code
+    implements_non_class: ignore
+    conflicting_field_and_method: ignore
+    conflicting_method_and_field: ignore
+    duplicate_definition: ignore
+    uri_does_not_exist: ignore
+    
+  exclude:
+    # Exclude internal modules that shouldn't be in Dart
+    - "application/**"
+    - "infrastructure/**"
+    - "domain/events.dart"

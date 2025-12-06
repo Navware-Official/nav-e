@@ -14,6 +14,7 @@ class MapState {
   final List<MapSource> available;
   final bool loadingSource;
   final Object? error;
+  final bool useMapLibre;
 
   MapState({
     required this.center,
@@ -26,6 +27,7 @@ class MapState {
     this.available = const [],
     this.loadingSource = false,
     this.error,
+    this.useMapLibre = false,
   });
 
   MapState copyWith({
@@ -39,6 +41,7 @@ class MapState {
     List<MapSource>? available,
     bool? loadingSource,
     Object? error,
+    bool? useMapLibre,
   }) {
     return MapState(
       center: center ?? this.center,
@@ -51,6 +54,7 @@ class MapState {
       available: available ?? this.available,
       loadingSource: loadingSource ?? this.loadingSource,
       error: error,
+      useMapLibre: useMapLibre ?? this.useMapLibre,
     );
   }
 }
