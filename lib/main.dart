@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:nav_e/app/app_router.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
+import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/core/data/local/database_helper.dart';
 
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
@@ -53,6 +54,9 @@ Future<void> main() async {
           ),
           BlocProvider(
             create: (ctx) => DevicesBloc(ctx.read<IDeviceRepository>()),
+          ),
+          BlocProvider(
+            create: (_) => BluetoothBloc(DatabaseHelper.instance),
           ),
         ],
         child: BlocBuilder<ThemeCubit, AppThemeMode>(
