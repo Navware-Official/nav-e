@@ -1,4 +1,4 @@
-package com.example.nav_e
+package com.navware.nav_e
 
 import io.flutter.embedding.android.FlutterActivity
 

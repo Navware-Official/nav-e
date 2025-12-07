@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
@@ -85,6 +86,9 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     ToggleMapAdapter event,
     Emitter<MapState> emit,
   ) async {
+    debugPrint(
+      '[MapBloc] Toggling map adapter: useMapLibre=${event.useMapLibre}',
+    );
     emit(state.copyWith(useMapLibre: event.useMapLibre));
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_prefKeyMapLibre, event.useMapLibre);

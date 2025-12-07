@@ -65,13 +65,11 @@ class DeviceCard extends StatelessWidget {
                           style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                         ),
                       ],
-                      if (device.remoteId != null) ...[
-                        SizedBox(height: 2),
-                        Text(
-                          device.remoteId!,
-                          style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-                        ),
-                      ],
+                      SizedBox(height: 2),
+                      Text(
+                        device.remoteId,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                      ),
                     ],
                   )
                 ),

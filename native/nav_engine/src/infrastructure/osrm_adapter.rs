@@ -2,7 +2,9 @@
 use crate::domain::{entities::Route, ports::RouteService, value_objects::*};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
+use flutter_rust_bridge::frb;
 
+#[frb(ignore)]
 pub struct OsrmRouteService {
     base_url: String,
     client: reqwest::Client,

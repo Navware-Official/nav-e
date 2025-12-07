@@ -4,9 +4,6 @@
 // ignore_for_file: unused_import, unused_element, unnecessary_import, duplicate_ignore, invalid_use_of_internal_member, annotate_overrides, non_constant_identifier_names, curly_braces_in_flow_control_structures, prefer_const_literals_to_create_immutables, unused_field
 
 import 'api_v2.dart';
-import 'application/commands.dart';
-import 'application/handlers.dart';
-import 'application/queries.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'domain/entities.dart';
@@ -15,10 +12,8 @@ import 'domain/value_objects.dart';
 import 'frb_generated.dart';
 import 'frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
-import 'infrastructure/geocoding_adapter.dart';
-import 'infrastructure/in_memory_repo.dart';
-import 'infrastructure/osrm_adapter.dart';
 import 'lib.dart';
+import 'migrations.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 import 'package:uuid/uuid.dart';
 
@@ -76,7 +71,7 @@ class RustBridge
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -743902881;
+  int get rustContentHash => -1169320714;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -115,16 +110,6 @@ abstract class RustBridgeApi extends BaseApi {
   });
 
   Future<AppContext> crateApiV2AppContextNew();
-
-  Future<Route> crateApplicationHandlersCalculateRouteHandlerHandle({
-    required CalculateRouteHandler that,
-    required CalculateRouteQuery query,
-  });
-
-  Future<CalculateRouteHandler>
-  crateApplicationHandlersCalculateRouteHandlerNew({
-    required ArcRouteService routeService,
-  });
 
   String crateDomainEventsDeviceConnectedEventAutoAccessorGetDeviceId({
     required DeviceConnectedEvent that,
@@ -240,55 +225,6 @@ abstract class RustBridgeApi extends BaseApi {
 
   Future<void> crateDomainEntitiesDeviceUpdateLastSeen({required Device that});
 
-  Future<List<Position>> crateApplicationHandlersGeocodeHandlerHandle({
-    required GeocodeHandler that,
-    required GeocodeQuery query,
-  });
-
-  Future<GeocodeHandler> crateApplicationHandlersGeocodeHandlerNew({
-    required ArcGeocodingService geocodingService,
-  });
-
-  Future<NavigationSession?>
-  crateApplicationHandlersGetActiveSessionHandlerHandle({
-    required GetActiveSessionHandler that,
-    required GetActiveSessionQuery query,
-  });
-
-  Future<GetActiveSessionHandler>
-  crateApplicationHandlersGetActiveSessionHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-  });
-
-  UuidValue crateApplicationQueriesGetSessionQueryAutoAccessorGetSessionId({
-    required GetSessionQuery that,
-  });
-
-  void crateApplicationQueriesGetSessionQueryAutoAccessorSetSessionId({
-    required GetSessionQuery that,
-    required UuidValue sessionId,
-  });
-
-  UuidValue
-  crateApplicationQueriesGetTrafficAlertsQueryAutoAccessorGetSessionId({
-    required GetTrafficAlertsQuery that,
-  });
-
-  void crateApplicationQueriesGetTrafficAlertsQueryAutoAccessorSetSessionId({
-    required GetTrafficAlertsQuery that,
-    required UuidValue sessionId,
-  });
-
-  Future<InMemoryNavigationRepository>
-  crateInfrastructureInMemoryRepoInMemoryNavigationRepositoryDefault();
-
-  Future<InMemoryNavigationRepository>
-  crateInfrastructureInMemoryRepoInMemoryNavigationRepositoryNew();
-
-  Future<UuidValue> crateDomainEventsNavigationCompletedEventAggregateId({
-    required NavigationCompletedEvent that,
-  });
-
   UuidValue crateDomainEventsNavigationCompletedEventAutoAccessorGetEventId({
     required NavigationCompletedEvent that,
   });
@@ -338,19 +274,11 @@ abstract class RustBridgeApi extends BaseApi {
     required int totalDurationSeconds,
   });
 
-  Future<UuidValue> crateDomainEventsNavigationCompletedEventEventId({
-    required NavigationCompletedEvent that,
-  });
-
   Future<NavigationCompletedEvent>
   crateDomainEventsNavigationCompletedEventNew({
     required UuidValue sessionId,
     required double totalDistanceMeters,
     required int totalDurationSeconds,
-  });
-
-  Future<DateTime> crateDomainEventsNavigationCompletedEventOccurredAt({
-    required NavigationCompletedEvent that,
   });
 
   Position crateDomainEntitiesNavigationSessionAutoAccessorGetCurrentPosition({
@@ -429,10 +357,6 @@ abstract class RustBridgeApi extends BaseApi {
     required Position position,
   });
 
-  Future<UuidValue> crateDomainEventsNavigationStartedEventAggregateId({
-    required NavigationStartedEvent that,
-  });
-
   UuidValue crateDomainEventsNavigationStartedEventAutoAccessorGetEventId({
     required NavigationStartedEvent that,
   });
@@ -469,50 +393,9 @@ abstract class RustBridgeApi extends BaseApi {
     required UuidValue sessionId,
   });
 
-  Future<UuidValue> crateDomainEventsNavigationStartedEventEventId({
-    required NavigationStartedEvent that,
-  });
-
   Future<NavigationStartedEvent> crateDomainEventsNavigationStartedEventNew({
     required UuidValue sessionId,
     required UuidValue routeId,
-  });
-
-  Future<DateTime> crateDomainEventsNavigationStartedEventOccurredAt({
-    required NavigationStartedEvent that,
-  });
-
-  Future<OsrmRouteService> crateInfrastructureOsrmAdapterOsrmRouteServiceNew({
-    required String baseUrl,
-  });
-
-  UuidValue
-  crateApplicationCommandsPauseNavigationCommandAutoAccessorGetSessionId({
-    required PauseNavigationCommand that,
-  });
-
-  void crateApplicationCommandsPauseNavigationCommandAutoAccessorSetSessionId({
-    required PauseNavigationCommand that,
-    required UuidValue sessionId,
-  });
-
-  Future<void> crateApplicationHandlersPauseNavigationHandlerHandle({
-    required PauseNavigationHandler that,
-    required PauseNavigationCommand command,
-  });
-
-  Future<PauseNavigationHandler>
-  crateApplicationHandlersPauseNavigationHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-  });
-
-  Future<PhotonGeocodingService>
-  crateInfrastructureGeocodingAdapterPhotonGeocodingServiceNew({
-    required String baseUrl,
-  });
-
-  Future<UuidValue> crateDomainEventsPositionUpdatedEventAggregateId({
-    required PositionUpdatedEvent that,
   });
 
   UuidValue crateDomainEventsPositionUpdatedEventAutoAccessorGetEventId({
@@ -551,95 +434,9 @@ abstract class RustBridgeApi extends BaseApi {
     required UuidValue sessionId,
   });
 
-  Future<UuidValue> crateDomainEventsPositionUpdatedEventEventId({
-    required PositionUpdatedEvent that,
-  });
-
   Future<PositionUpdatedEvent> crateDomainEventsPositionUpdatedEventNew({
     required UuidValue sessionId,
     required Position position,
-  });
-
-  Future<DateTime> crateDomainEventsPositionUpdatedEventOccurredAt({
-    required PositionUpdatedEvent that,
-  });
-
-  int crateApplicationCommandsReportTrafficCommandAutoAccessorGetDelaySeconds({
-    required ReportTrafficCommand that,
-  });
-
-  String
-  crateApplicationCommandsReportTrafficCommandAutoAccessorGetDescription({
-    required ReportTrafficCommand that,
-  });
-
-  Position crateApplicationCommandsReportTrafficCommandAutoAccessorGetPosition({
-    required ReportTrafficCommand that,
-  });
-
-  UuidValue
-  crateApplicationCommandsReportTrafficCommandAutoAccessorGetSessionId({
-    required ReportTrafficCommand that,
-  });
-
-  TrafficSeverity
-  crateApplicationCommandsReportTrafficCommandAutoAccessorGetSeverity({
-    required ReportTrafficCommand that,
-  });
-
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetDelaySeconds({
-    required ReportTrafficCommand that,
-    required int delaySeconds,
-  });
-
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetDescription({
-    required ReportTrafficCommand that,
-    required String description,
-  });
-
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetPosition({
-    required ReportTrafficCommand that,
-    required Position position,
-  });
-
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetSessionId({
-    required ReportTrafficCommand that,
-    required UuidValue sessionId,
-  });
-
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetSeverity({
-    required ReportTrafficCommand that,
-    required TrafficSeverity severity,
-  });
-
-  UuidValue
-  crateApplicationCommandsResumeNavigationCommandAutoAccessorGetSessionId({
-    required ResumeNavigationCommand that,
-  });
-
-  void crateApplicationCommandsResumeNavigationCommandAutoAccessorSetSessionId({
-    required ResumeNavigationCommand that,
-    required UuidValue sessionId,
-  });
-
-  Future<void> crateApplicationHandlersResumeNavigationHandlerHandle({
-    required ResumeNavigationHandler that,
-    required ResumeNavigationCommand command,
-  });
-
-  Future<ResumeNavigationHandler>
-  crateApplicationHandlersResumeNavigationHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-  });
-
-  Future<String> crateApplicationHandlersReverseGeocodeHandlerHandle({
-    required ReverseGeocodeHandler that,
-    required ReverseGeocodeQuery query,
-  });
-
-  Future<ReverseGeocodeHandler>
-  crateApplicationHandlersReverseGeocodeHandlerNew({
-    required ArcGeocodingService geocodingService,
   });
 
   DateTime crateDomainEntitiesRouteAutoAccessorGetCreatedAt({
@@ -703,73 +500,6 @@ abstract class RustBridgeApi extends BaseApi {
 
   Future<BigInt> crateDomainEntitiesRouteTotalWaypoints({required Route that});
 
-  String
-  crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetDeviceId({
-    required SendRouteToDeviceCommand that,
-  });
-
-  UuidValue
-  crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetSessionId({
-    required SendRouteToDeviceCommand that,
-  });
-
-  void crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetDeviceId({
-    required SendRouteToDeviceCommand that,
-    required String deviceId,
-  });
-
-  void
-  crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetSessionId({
-    required SendRouteToDeviceCommand that,
-    required UuidValue sessionId,
-  });
-
-  Future<NavigationSession>
-  crateApplicationHandlersStartNavigationHandlerHandle({
-    required StartNavigationHandler that,
-    required StartNavigationCommand command,
-  });
-
-  Future<StartNavigationHandler>
-  crateApplicationHandlersStartNavigationHandlerNew({
-    required ArcRouteService routeService,
-    required ArcNavigationRepository navigationRepo,
-    required ArcDeviceCommunicationPort deviceComm,
-  });
-
-  bool crateApplicationCommandsStopNavigationCommandAutoAccessorGetCompleted({
-    required StopNavigationCommand that,
-  });
-
-  UuidValue
-  crateApplicationCommandsStopNavigationCommandAutoAccessorGetSessionId({
-    required StopNavigationCommand that,
-  });
-
-  void crateApplicationCommandsStopNavigationCommandAutoAccessorSetCompleted({
-    required StopNavigationCommand that,
-    required bool completed,
-  });
-
-  void crateApplicationCommandsStopNavigationCommandAutoAccessorSetSessionId({
-    required StopNavigationCommand that,
-    required UuidValue sessionId,
-  });
-
-  Future<void> crateApplicationHandlersStopNavigationHandlerHandle({
-    required StopNavigationHandler that,
-    required StopNavigationCommand command,
-  });
-
-  Future<StopNavigationHandler>
-  crateApplicationHandlersStopNavigationHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-  });
-
-  Future<UuidValue> crateDomainEventsTrafficAlertDetectedEventAggregateId({
-    required TrafficAlertDetectedEvent that,
-  });
-
   UuidValue crateDomainEventsTrafficAlertDetectedEventAutoAccessorGetEventId({
     required TrafficAlertDetectedEvent that,
   });
@@ -807,18 +537,10 @@ abstract class RustBridgeApi extends BaseApi {
     required TrafficEvent trafficEvent,
   });
 
-  Future<UuidValue> crateDomainEventsTrafficAlertDetectedEventEventId({
-    required TrafficAlertDetectedEvent that,
-  });
-
   Future<TrafficAlertDetectedEvent>
   crateDomainEventsTrafficAlertDetectedEventNew({
     required UuidValue sessionId,
     required TrafficEvent trafficEvent,
-  });
-
-  Future<DateTime> crateDomainEventsTrafficAlertDetectedEventOccurredAt({
-    required TrafficAlertDetectedEvent that,
   });
 
   int crateDomainEntitiesTrafficEventAutoAccessorGetDelaySeconds({
@@ -892,41 +614,6 @@ abstract class RustBridgeApi extends BaseApi {
     required String description,
   });
 
-  Position
-  crateApplicationCommandsUpdatePositionCommandAutoAccessorGetPosition({
-    required UpdatePositionCommand that,
-  });
-
-  UuidValue
-  crateApplicationCommandsUpdatePositionCommandAutoAccessorGetSessionId({
-    required UpdatePositionCommand that,
-  });
-
-  void crateApplicationCommandsUpdatePositionCommandAutoAccessorSetPosition({
-    required UpdatePositionCommand that,
-    required Position position,
-  });
-
-  void crateApplicationCommandsUpdatePositionCommandAutoAccessorSetSessionId({
-    required UpdatePositionCommand that,
-    required UuidValue sessionId,
-  });
-
-  Future<void> crateApplicationHandlersUpdatePositionHandlerHandle({
-    required UpdatePositionHandler that,
-    required UpdatePositionCommand command,
-  });
-
-  Future<UpdatePositionHandler>
-  crateApplicationHandlersUpdatePositionHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-    required ArcDeviceCommunicationPort deviceComm,
-  });
-
-  Future<UuidValue> crateDomainEventsWaypointReachedEventAggregateId({
-    required WaypointReachedEvent that,
-  });
-
   UuidValue crateDomainEventsWaypointReachedEventAutoAccessorGetEventId({
     required WaypointReachedEvent that,
   });
@@ -972,18 +659,10 @@ abstract class RustBridgeApi extends BaseApi {
     required BigInt waypointIndex,
   });
 
-  Future<UuidValue> crateDomainEventsWaypointReachedEventEventId({
-    required WaypointReachedEvent that,
-  });
-
   Future<WaypointReachedEvent> crateDomainEventsWaypointReachedEventNew({
     required UuidValue sessionId,
     required BigInt waypointIndex,
     required Position position,
-  });
-
-  Future<DateTime> crateDomainEventsWaypointReachedEventOccurredAt({
-    required WaypointReachedEvent that,
   });
 
   Future<bool> crateDomainValueObjectsBatteryInfoIsCritical({
@@ -1003,16 +682,32 @@ abstract class RustBridgeApi extends BaseApi {
     required List<(double, double)> waypoints,
   });
 
+  void crateApiV2DeleteDevice({required PlatformInt64 id});
+
+  void crateApiV2DeleteSavedPlace({required PlatformInt64 id});
+
   Future<DeviceCapabilities> crateDomainValueObjectsDeviceCapabilitiesNew({
     required int screenWidth,
     required int screenHeight,
   });
 
+  bool crateApiV2DeviceExistsByRemoteId({required String remoteId});
+
   Future<String> crateApiV2GeocodeSearch({required String query, int? limit});
 
   Future<String?> crateApiV2GetActiveSession();
 
+  String crateApiV2GetAllDevices();
+
+  String crateApiV2GetAllSavedPlaces();
+
   Future<String> crateGetArchitectureInfo();
+
+  String crateApiV2GetDeviceById({required PlatformInt64 id});
+
+  String crateApiV2GetDeviceByRemoteId({required String remoteId});
+
+  String crateApiV2GetSavedPlaceById({required PlatformInt64 id});
 
   Future<void> crateApiV2PauseNavigation({required String sessionId});
 
@@ -1035,6 +730,18 @@ abstract class RustBridgeApi extends BaseApi {
     required double longitude,
   });
 
+  PlatformInt64 crateApiV2SaveDevice({required String deviceJson});
+
+  PlatformInt64 crateApiV2SavePlace({
+    required String name,
+    String? address,
+    required double lat,
+    required double lon,
+    String? source,
+    PlatformInt64? typeId,
+    String? remoteId,
+  });
+
   Future<String> crateApiV2StartNavigationSession({
     required List<(double, double)> waypoints,
     required (double, double) currentPosition,
@@ -1043,6 +750,11 @@ abstract class RustBridgeApi extends BaseApi {
   Future<void> crateApiV2StopNavigation({
     required String sessionId,
     required bool completed,
+  });
+
+  void crateApiV2UpdateDevice({
+    required PlatformInt64 id,
+    required String deviceJson,
   });
 
   Future<void> crateApiV2UpdateNavigationPosition({
@@ -1063,15 +775,6 @@ abstract class RustBridgeApi extends BaseApi {
   get rust_arc_decrement_strong_count_AppContext;
 
   CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_AppContextPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ArcDeviceCommunicationPort;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ArcDeviceCommunicationPort;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ArcDeviceCommunicationPortPtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_ArcGeocodingService;
@@ -1100,15 +803,6 @@ abstract class RustBridgeApi extends BaseApi {
   CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_ArcRouteServicePtr;
 
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_CalculateRouteHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_CalculateRouteHandler;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_CalculateRouteHandlerPtr;
-
   RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Device;
 
   RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Device;
@@ -1123,51 +817,6 @@ abstract class RustBridgeApi extends BaseApi {
 
   CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_DeviceConnectedEventPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_GeocodeHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_GeocodeHandler;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_GeocodeHandlerPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_GetActiveSessionHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_GetActiveSessionHandler;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_GetActiveSessionHandlerPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_GetSessionQuery;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_GetSessionQuery;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_GetSessionQueryPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_GetTrafficAlertsQuery;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_GetTrafficAlertsQuery;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_GetTrafficAlertsQueryPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_InMemoryNavigationRepository;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_InMemoryNavigationRepository;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_InMemoryNavigationRepositoryPtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_NavigationCompletedEvent;
@@ -1197,42 +846,6 @@ abstract class RustBridgeApi extends BaseApi {
   get rust_arc_decrement_strong_count_NavigationStartedEventPtr;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_OsrmRouteService;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_OsrmRouteService;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_OsrmRouteServicePtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_PauseNavigationCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_PauseNavigationCommand;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_PauseNavigationCommandPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_PauseNavigationHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_PauseNavigationHandler;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_PauseNavigationHandlerPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_PhotonGeocodingService;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_PhotonGeocodingService;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_PhotonGeocodingServicePtr;
-
-  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_PositionUpdatedEvent;
 
   RustArcDecrementStrongCountFnType
@@ -1241,83 +854,11 @@ abstract class RustBridgeApi extends BaseApi {
   CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_PositionUpdatedEventPtr;
 
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ReportTrafficCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ReportTrafficCommand;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ReportTrafficCommandPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ResumeNavigationCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ResumeNavigationCommand;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ResumeNavigationCommandPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ResumeNavigationHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ResumeNavigationHandler;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ResumeNavigationHandlerPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ReverseGeocodeHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ReverseGeocodeHandler;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_ReverseGeocodeHandlerPtr;
-
   RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Route;
 
   RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Route;
 
   CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_RoutePtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_SendRouteToDeviceCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_SendRouteToDeviceCommand;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_SendRouteToDeviceCommandPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_StartNavigationHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_StartNavigationHandler;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_StartNavigationHandlerPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_StopNavigationCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_StopNavigationCommand;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_StopNavigationCommandPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_StopNavigationHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_StopNavigationHandler;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_StopNavigationHandlerPtr;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_TrafficAlertDetectedEvent;
@@ -1337,24 +878,6 @@ abstract class RustBridgeApi extends BaseApi {
   CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_TrafficEventPtr;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_UpdatePositionCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_UpdatePositionCommand;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_UpdatePositionCommandPtr;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_UpdatePositionHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_UpdatePositionHandler;
-
-  CrossPlatformFinalizerArg
-  get rust_arc_decrement_strong_count_UpdatePositionHandlerPtr;
-
-  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_WaypointReachedEvent;
 
   RustArcDecrementStrongCountFnType
@@ -1362,6 +885,12 @@ abstract class RustBridgeApi extends BaseApi {
 
   CrossPlatformFinalizerArg
   get rust_arc_decrement_strong_count_WaypointReachedEventPtr;
+
+  RustArcIncrementStrongCountFnType get rust_arc_increment_strong_count_Str;
+
+  RustArcDecrementStrongCountFnType get rust_arc_decrement_strong_count_Str;
+
+  CrossPlatformFinalizerArg get rust_arc_decrement_strong_count_StrPtr;
 }
 
 class RustBridgeApiImpl extends RustBridgeApiImplPlatform
@@ -1612,86 +1141,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       const TaskConstMeta(debugName: "AppContext_new", argNames: []);
 
   @override
-  Future<Route> crateApplicationHandlersCalculateRouteHandlerHandle({
-    required CalculateRouteHandler that,
-    required CalculateRouteQuery query,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_calculate_route_query(query, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 8,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta:
-            kCrateApplicationHandlersCalculateRouteHandlerHandleConstMeta,
-        argValues: [that, query],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersCalculateRouteHandlerHandleConstMeta =>
-      const TaskConstMeta(
-        debugName: "CalculateRouteHandler_handle",
-        argNames: ["that", "query"],
-      );
-
-  @override
-  Future<CalculateRouteHandler>
-  crateApplicationHandlersCalculateRouteHandlerNew({
-    required ArcRouteService routeService,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRouteService(
-            routeService,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 9,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApplicationHandlersCalculateRouteHandlerNewConstMeta,
-        argValues: [routeService],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersCalculateRouteHandlerNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "CalculateRouteHandler_new",
-        argNames: ["routeService"],
-      );
-
-  @override
   String crateDomainEventsDeviceConnectedEventAutoAccessorGetDeviceId({
     required DeviceConnectedEvent that,
   }) {
@@ -1703,7 +1152,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -1736,7 +1185,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_device_type,
@@ -1769,7 +1218,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -1802,7 +1251,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -1837,7 +1286,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_String(deviceId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -1872,7 +1321,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_device_type(deviceType, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -1907,7 +1356,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(eventId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -1942,7 +1391,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(occurredAt, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -1977,7 +1426,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 16,
             port: port_,
           );
         },
@@ -2011,7 +1460,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_opt_box_autoadd_battery_info,
@@ -2044,7 +1493,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_device_capabilities,
@@ -2077,7 +1526,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -2110,7 +1559,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_device_type,
@@ -2140,7 +1589,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -2171,7 +1620,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -2201,7 +1650,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -2234,7 +1683,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_opt_box_autoadd_battery_info(batteryStatus, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -2269,7 +1718,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_device_capabilities(capabilities, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -2304,7 +1753,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(connectedAt, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -2339,7 +1788,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_device_type(deviceType, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 29)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -2373,7 +1822,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_String(id, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 30)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -2406,7 +1855,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(lastSeen, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 31)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 29)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -2440,7 +1889,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_String(name, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 32)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 30)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -2477,7 +1926,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 33,
+            funcId: 31,
             port: port_,
           );
         },
@@ -2516,7 +1965,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 34,
+            funcId: 32,
             port: port_,
           );
         },
@@ -2550,7 +1999,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 35,
+            funcId: 33,
             port: port_,
           );
         },
@@ -2572,405 +2021,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<List<Position>> crateApplicationHandlersGeocodeHandlerHandle({
-    required GeocodeHandler that,
-    required GeocodeQuery query,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_geocode_query(query, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 36,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_list_position,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateApplicationHandlersGeocodeHandlerHandleConstMeta,
-        argValues: [that, query],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApplicationHandlersGeocodeHandlerHandleConstMeta =>
-      const TaskConstMeta(
-        debugName: "GeocodeHandler_handle",
-        argNames: ["that", "query"],
-      );
-
-  @override
-  Future<GeocodeHandler> crateApplicationHandlersGeocodeHandlerNew({
-    required ArcGeocodingService geocodingService,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynGeocodingService(
-            geocodingService,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 37,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApplicationHandlersGeocodeHandlerNewConstMeta,
-        argValues: [geocodingService],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateApplicationHandlersGeocodeHandlerNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "GeocodeHandler_new",
-        argNames: ["geocodingService"],
-      );
-
-  @override
-  Future<NavigationSession?>
-  crateApplicationHandlersGetActiveSessionHandlerHandle({
-    required GetActiveSessionHandler that,
-    required GetActiveSessionQuery query,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_get_active_session_query(query, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 38,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta:
-            kCrateApplicationHandlersGetActiveSessionHandlerHandleConstMeta,
-        argValues: [that, query],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersGetActiveSessionHandlerHandleConstMeta =>
-      const TaskConstMeta(
-        debugName: "GetActiveSessionHandler_handle",
-        argNames: ["that", "query"],
-      );
-
-  @override
-  Future<GetActiveSessionHandler>
-  crateApplicationHandlersGetActiveSessionHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynNavigationRepository(
-            navigationRepo,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 39,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApplicationHandlersGetActiveSessionHandlerNewConstMeta,
-        argValues: [navigationRepo],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersGetActiveSessionHandlerNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "GetActiveSessionHandler_new",
-        argNames: ["navigationRepo"],
-      );
-
-  @override
-  UuidValue crateApplicationQueriesGetSessionQueryAutoAccessorGetSessionId({
-    required GetSessionQuery that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationQueriesGetSessionQueryAutoAccessorGetSessionIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationQueriesGetSessionQueryAutoAccessorGetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "GetSessionQuery_auto_accessor_get_session_id",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApplicationQueriesGetSessionQueryAutoAccessorSetSessionId({
-    required GetSessionQuery that,
-    required UuidValue sessionId,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-            that,
-            serializer,
-          );
-          sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationQueriesGetSessionQueryAutoAccessorSetSessionIdConstMeta,
-        argValues: [that, sessionId],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationQueriesGetSessionQueryAutoAccessorSetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "GetSessionQuery_auto_accessor_set_session_id",
-        argNames: ["that", "sessionId"],
-      );
-
-  @override
-  UuidValue
-  crateApplicationQueriesGetTrafficAlertsQueryAutoAccessorGetSessionId({
-    required GetTrafficAlertsQuery that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationQueriesGetTrafficAlertsQueryAutoAccessorGetSessionIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationQueriesGetTrafficAlertsQueryAutoAccessorGetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "GetTrafficAlertsQuery_auto_accessor_get_session_id",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApplicationQueriesGetTrafficAlertsQueryAutoAccessorSetSessionId({
-    required GetTrafficAlertsQuery that,
-    required UuidValue sessionId,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-            that,
-            serializer,
-          );
-          sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 43)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationQueriesGetTrafficAlertsQueryAutoAccessorSetSessionIdConstMeta,
-        argValues: [that, sessionId],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationQueriesGetTrafficAlertsQueryAutoAccessorSetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "GetTrafficAlertsQuery_auto_accessor_set_session_id",
-        argNames: ["that", "sessionId"],
-      );
-
-  @override
-  Future<InMemoryNavigationRepository>
-  crateInfrastructureInMemoryRepoInMemoryNavigationRepositoryDefault() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 44,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateInfrastructureInMemoryRepoInMemoryNavigationRepositoryDefaultConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateInfrastructureInMemoryRepoInMemoryNavigationRepositoryDefaultConstMeta =>
-      const TaskConstMeta(
-        debugName: "InMemoryNavigationRepository_default",
-        argNames: [],
-      );
-
-  @override
-  Future<InMemoryNavigationRepository>
-  crateInfrastructureInMemoryRepoInMemoryNavigationRepositoryNew() {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 45,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateInfrastructureInMemoryRepoInMemoryNavigationRepositoryNewConstMeta,
-        argValues: [],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateInfrastructureInMemoryRepoInMemoryNavigationRepositoryNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "InMemoryNavigationRepository_new",
-        argNames: [],
-      );
-
-  @override
-  Future<UuidValue> crateDomainEventsNavigationCompletedEventAggregateId({
-    required NavigationCompletedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationCompletedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 46,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateDomainEventsNavigationCompletedEventAggregateIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsNavigationCompletedEventAggregateIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "NavigationCompletedEvent_aggregate_id",
-        argNames: ["that"],
-      );
-
-  @override
   UuidValue crateDomainEventsNavigationCompletedEventAutoAccessorGetEventId({
     required NavigationCompletedEvent that,
   }) {
@@ -2982,7 +2032,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 47)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 34)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -3015,7 +2065,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 48)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 35)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -3048,7 +2098,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 36)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -3082,7 +2132,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 50)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 37)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_f_64,
@@ -3117,7 +2167,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 51)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 38)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_u_32,
@@ -3153,7 +2203,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(eventId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 52)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 39)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3188,7 +2238,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(occurredAt, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 53)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 40)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3223,7 +2273,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 54)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 41)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3259,7 +2309,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_f_64(totalDistanceMeters, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 55)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 42)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3296,7 +2346,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_u_32(totalDurationSeconds, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 56)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 43)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3319,43 +2369,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<UuidValue> crateDomainEventsNavigationCompletedEventEventId({
-    required NavigationCompletedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationCompletedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 57,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsNavigationCompletedEventEventIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsNavigationCompletedEventEventIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "NavigationCompletedEvent_event_id",
-        argNames: ["that"],
-      );
-
-  @override
   Future<NavigationCompletedEvent>
   crateDomainEventsNavigationCompletedEventNew({
     required UuidValue sessionId,
@@ -3372,7 +2385,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 58,
+            funcId: 44,
             port: port_,
           );
         },
@@ -3395,44 +2408,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<DateTime> crateDomainEventsNavigationCompletedEventOccurredAt({
-    required NavigationCompletedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationCompletedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 59,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Chrono_Utc,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateDomainEventsNavigationCompletedEventOccurredAtConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsNavigationCompletedEventOccurredAtConstMeta =>
-      const TaskConstMeta(
-        debugName: "NavigationCompletedEvent_occurred_at",
-        argNames: ["that"],
-      );
-
-  @override
   Position crateDomainEntitiesNavigationSessionAutoAccessorGetCurrentPosition({
     required NavigationSession that,
   }) {
@@ -3444,7 +2419,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 60)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 45)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_position,
@@ -3477,7 +2452,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 61)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 46)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -3510,7 +2485,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 62)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 47)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -3544,7 +2519,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 63)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 48)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -3577,7 +2552,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 64)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 49)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_navigation_status,
@@ -3610,7 +2585,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 65)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 50)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -3645,7 +2620,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_position(currentPosition, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 66)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 51)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3680,7 +2655,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(id, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 67)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 52)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3718,7 +2693,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             route,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 68)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 53)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3753,7 +2728,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(startedAt, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 69)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 54)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3788,7 +2763,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_navigation_status(status, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 70)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 55)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3823,7 +2798,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(updatedAt, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 71)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 56)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -3859,7 +2834,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 72,
+            funcId: 57,
             port: port_,
           );
         },
@@ -3897,7 +2872,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 73,
+            funcId: 58,
             port: port_,
           );
         },
@@ -3934,7 +2909,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 74,
+            funcId: 59,
             port: port_,
           );
         },
@@ -3970,7 +2945,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 75,
+            funcId: 60,
             port: port_,
           );
         },
@@ -4008,7 +2983,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 76,
+            funcId: 61,
             port: port_,
           );
         },
@@ -4031,43 +3006,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<UuidValue> crateDomainEventsNavigationStartedEventAggregateId({
-    required NavigationStartedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationStartedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 77,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsNavigationStartedEventAggregateIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsNavigationStartedEventAggregateIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "NavigationStartedEvent_aggregate_id",
-        argNames: ["that"],
-      );
-
-  @override
   UuidValue crateDomainEventsNavigationStartedEventAutoAccessorGetEventId({
     required NavigationStartedEvent that,
   }) {
@@ -4079,7 +3017,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 78)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 62)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -4112,7 +3050,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 79)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 63)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -4145,7 +3083,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 80)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 64)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -4178,7 +3116,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 81)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 65)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -4213,7 +3151,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(eventId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 82)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 66)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -4248,7 +3186,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(occurredAt, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 83)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 67)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -4283,7 +3221,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(routeId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 84)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 68)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -4318,7 +3256,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 85)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 69)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -4340,42 +3278,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<UuidValue> crateDomainEventsNavigationStartedEventEventId({
-    required NavigationStartedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationStartedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 86,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsNavigationStartedEventEventIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateDomainEventsNavigationStartedEventEventIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "NavigationStartedEvent_event_id",
-        argNames: ["that"],
-      );
-
-  @override
   Future<NavigationStartedEvent> crateDomainEventsNavigationStartedEventNew({
     required UuidValue sessionId,
     required UuidValue routeId,
@@ -4389,7 +3291,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 87,
+            funcId: 70,
             port: port_,
           );
         },
@@ -4412,303 +3314,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<DateTime> crateDomainEventsNavigationStartedEventOccurredAt({
-    required NavigationStartedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationStartedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 88,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Chrono_Utc,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsNavigationStartedEventOccurredAtConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsNavigationStartedEventOccurredAtConstMeta =>
-      const TaskConstMeta(
-        debugName: "NavigationStartedEvent_occurred_at",
-        argNames: ["that"],
-      );
-
-  @override
-  Future<OsrmRouteService> crateInfrastructureOsrmAdapterOsrmRouteServiceNew({
-    required String baseUrl,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(baseUrl, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 89,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOsrmRouteService,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateInfrastructureOsrmAdapterOsrmRouteServiceNewConstMeta,
-        argValues: [baseUrl],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateInfrastructureOsrmAdapterOsrmRouteServiceNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "OsrmRouteService_new",
-        argNames: ["baseUrl"],
-      );
-
-  @override
-  UuidValue
-  crateApplicationCommandsPauseNavigationCommandAutoAccessorGetSessionId({
-    required PauseNavigationCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 90)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsPauseNavigationCommandAutoAccessorGetSessionIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsPauseNavigationCommandAutoAccessorGetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "PauseNavigationCommand_auto_accessor_get_session_id",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApplicationCommandsPauseNavigationCommandAutoAccessorSetSessionId({
-    required PauseNavigationCommand that,
-    required UuidValue sessionId,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-            that,
-            serializer,
-          );
-          sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 91)!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsPauseNavigationCommandAutoAccessorSetSessionIdConstMeta,
-        argValues: [that, sessionId],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsPauseNavigationCommandAutoAccessorSetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "PauseNavigationCommand_auto_accessor_set_session_id",
-        argNames: ["that", "sessionId"],
-      );
-
-  @override
-  Future<void> crateApplicationHandlersPauseNavigationHandlerHandle({
-    required PauseNavigationHandler that,
-    required PauseNavigationCommand command,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-            that,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-            command,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 92,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta:
-            kCrateApplicationHandlersPauseNavigationHandlerHandleConstMeta,
-        argValues: [that, command],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersPauseNavigationHandlerHandleConstMeta =>
-      const TaskConstMeta(
-        debugName: "PauseNavigationHandler_handle",
-        argNames: ["that", "command"],
-      );
-
-  @override
-  Future<PauseNavigationHandler>
-  crateApplicationHandlersPauseNavigationHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynNavigationRepository(
-            navigationRepo,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 93,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApplicationHandlersPauseNavigationHandlerNewConstMeta,
-        argValues: [navigationRepo],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersPauseNavigationHandlerNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "PauseNavigationHandler_new",
-        argNames: ["navigationRepo"],
-      );
-
-  @override
-  Future<PhotonGeocodingService>
-  crateInfrastructureGeocodingAdapterPhotonGeocodingServiceNew({
-    required String baseUrl,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(baseUrl, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 94,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPhotonGeocodingService,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateInfrastructureGeocodingAdapterPhotonGeocodingServiceNewConstMeta,
-        argValues: [baseUrl],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateInfrastructureGeocodingAdapterPhotonGeocodingServiceNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "PhotonGeocodingService_new",
-        argNames: ["baseUrl"],
-      );
-
-  @override
-  Future<UuidValue> crateDomainEventsPositionUpdatedEventAggregateId({
-    required PositionUpdatedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 95,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsPositionUpdatedEventAggregateIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsPositionUpdatedEventAggregateIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "PositionUpdatedEvent_aggregate_id",
-        argNames: ["that"],
-      );
-
-  @override
   UuidValue crateDomainEventsPositionUpdatedEventAutoAccessorGetEventId({
     required PositionUpdatedEvent that,
   }) {
@@ -4720,7 +3325,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 96)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 71)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -4753,7 +3358,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 97)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 72)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -4786,7 +3391,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 98)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 73)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_position,
@@ -4819,7 +3424,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 99)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 74)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -4854,11 +3459,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(eventId, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 100,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 75)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -4893,11 +3494,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(occurredAt, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 101,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 76)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -4932,11 +3529,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_position(position, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 102,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 77)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -4971,11 +3564,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 103,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 78)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -4997,42 +3586,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<UuidValue> crateDomainEventsPositionUpdatedEventEventId({
-    required PositionUpdatedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 104,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsPositionUpdatedEventEventIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateDomainEventsPositionUpdatedEventEventIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "PositionUpdatedEvent_event_id",
-        argNames: ["that"],
-      );
-
-  @override
   Future<PositionUpdatedEvent> crateDomainEventsPositionUpdatedEventNew({
     required UuidValue sessionId,
     required Position position,
@@ -5046,7 +3599,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 105,
+            funcId: 79,
             port: port_,
           );
         },
@@ -5069,663 +3622,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<DateTime> crateDomainEventsPositionUpdatedEventOccurredAt({
-    required PositionUpdatedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 106,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Chrono_Utc,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsPositionUpdatedEventOccurredAtConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateDomainEventsPositionUpdatedEventOccurredAtConstMeta =>
-      const TaskConstMeta(
-        debugName: "PositionUpdatedEvent_occurred_at",
-        argNames: ["that"],
-      );
-
-  @override
-  int crateApplicationCommandsReportTrafficCommandAutoAccessorGetDelaySeconds({
-    required ReportTrafficCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 107,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_u_32,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetDelaySecondsConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetDelaySecondsConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_get_delay_seconds",
-        argNames: ["that"],
-      );
-
-  @override
-  String
-  crateApplicationCommandsReportTrafficCommandAutoAccessorGetDescription({
-    required ReportTrafficCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 108,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetDescriptionConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetDescriptionConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_get_description",
-        argNames: ["that"],
-      );
-
-  @override
-  Position crateApplicationCommandsReportTrafficCommandAutoAccessorGetPosition({
-    required ReportTrafficCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 109,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_position,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetPositionConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetPositionConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_get_position",
-        argNames: ["that"],
-      );
-
-  @override
-  UuidValue
-  crateApplicationCommandsReportTrafficCommandAutoAccessorGetSessionId({
-    required ReportTrafficCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 110,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetSessionIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_get_session_id",
-        argNames: ["that"],
-      );
-
-  @override
-  TrafficSeverity
-  crateApplicationCommandsReportTrafficCommandAutoAccessorGetSeverity({
-    required ReportTrafficCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 111,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_traffic_severity,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetSeverityConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorGetSeverityConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_get_severity",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetDelaySeconds({
-    required ReportTrafficCommand that,
-    required int delaySeconds,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          sse_encode_u_32(delaySeconds, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 112,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetDelaySecondsConstMeta,
-        argValues: [that, delaySeconds],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetDelaySecondsConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_set_delay_seconds",
-        argNames: ["that", "delaySeconds"],
-      );
-
-  @override
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetDescription({
-    required ReportTrafficCommand that,
-    required String description,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          sse_encode_String(description, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 113,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetDescriptionConstMeta,
-        argValues: [that, description],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetDescriptionConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_set_description",
-        argNames: ["that", "description"],
-      );
-
-  @override
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetPosition({
-    required ReportTrafficCommand that,
-    required Position position,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          sse_encode_position(position, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 114,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetPositionConstMeta,
-        argValues: [that, position],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetPositionConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_set_position",
-        argNames: ["that", "position"],
-      );
-
-  @override
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetSessionId({
-    required ReportTrafficCommand that,
-    required UuidValue sessionId,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 115,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetSessionIdConstMeta,
-        argValues: [that, sessionId],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_set_session_id",
-        argNames: ["that", "sessionId"],
-      );
-
-  @override
-  void crateApplicationCommandsReportTrafficCommandAutoAccessorSetSeverity({
-    required ReportTrafficCommand that,
-    required TrafficSeverity severity,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-            that,
-            serializer,
-          );
-          sse_encode_traffic_severity(severity, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 116,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetSeverityConstMeta,
-        argValues: [that, severity],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsReportTrafficCommandAutoAccessorSetSeverityConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReportTrafficCommand_auto_accessor_set_severity",
-        argNames: ["that", "severity"],
-      );
-
-  @override
-  UuidValue
-  crateApplicationCommandsResumeNavigationCommandAutoAccessorGetSessionId({
-    required ResumeNavigationCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 117,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsResumeNavigationCommandAutoAccessorGetSessionIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsResumeNavigationCommandAutoAccessorGetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "ResumeNavigationCommand_auto_accessor_get_session_id",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApplicationCommandsResumeNavigationCommandAutoAccessorSetSessionId({
-    required ResumeNavigationCommand that,
-    required UuidValue sessionId,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-            that,
-            serializer,
-          );
-          sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 118,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsResumeNavigationCommandAutoAccessorSetSessionIdConstMeta,
-        argValues: [that, sessionId],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsResumeNavigationCommandAutoAccessorSetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "ResumeNavigationCommand_auto_accessor_set_session_id",
-        argNames: ["that", "sessionId"],
-      );
-
-  @override
-  Future<void> crateApplicationHandlersResumeNavigationHandlerHandle({
-    required ResumeNavigationHandler that,
-    required ResumeNavigationCommand command,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-            that,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-            command,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 119,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta:
-            kCrateApplicationHandlersResumeNavigationHandlerHandleConstMeta,
-        argValues: [that, command],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersResumeNavigationHandlerHandleConstMeta =>
-      const TaskConstMeta(
-        debugName: "ResumeNavigationHandler_handle",
-        argNames: ["that", "command"],
-      );
-
-  @override
-  Future<ResumeNavigationHandler>
-  crateApplicationHandlersResumeNavigationHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynNavigationRepository(
-            navigationRepo,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 120,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApplicationHandlersResumeNavigationHandlerNewConstMeta,
-        argValues: [navigationRepo],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersResumeNavigationHandlerNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "ResumeNavigationHandler_new",
-        argNames: ["navigationRepo"],
-      );
-
-  @override
-  Future<String> crateApplicationHandlersReverseGeocodeHandlerHandle({
-    required ReverseGeocodeHandler that,
-    required ReverseGeocodeQuery query,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_reverse_geocode_query(query, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 121,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta:
-            kCrateApplicationHandlersReverseGeocodeHandlerHandleConstMeta,
-        argValues: [that, query],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersReverseGeocodeHandlerHandleConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReverseGeocodeHandler_handle",
-        argNames: ["that", "query"],
-      );
-
-  @override
-  Future<ReverseGeocodeHandler>
-  crateApplicationHandlersReverseGeocodeHandlerNew({
-    required ArcGeocodingService geocodingService,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynGeocodingService(
-            geocodingService,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 122,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApplicationHandlersReverseGeocodeHandlerNewConstMeta,
-        argValues: [geocodingService],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersReverseGeocodeHandlerNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "ReverseGeocodeHandler_new",
-        argNames: ["geocodingService"],
-      );
-
-  @override
   DateTime crateDomainEntitiesRouteAutoAccessorGetCreatedAt({
     required Route that,
   }) {
@@ -5737,11 +3633,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 123,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 80)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -5773,11 +3665,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 124,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 81)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_f_64,
@@ -5810,11 +3698,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 125,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 82)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_u_32,
@@ -5845,11 +3729,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 126,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 83)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -5880,11 +3760,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 127,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 84)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_position,
@@ -5915,11 +3791,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 128,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 85)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_waypoint,
@@ -5953,11 +3825,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(createdAt, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 129,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 86)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -5991,11 +3859,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_f_64(distanceMeters, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 130,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 87)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -6030,11 +3894,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_u_32(durationSeconds, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 131,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 88)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -6069,11 +3929,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(id, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 132,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 89)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -6106,11 +3962,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_list_position(polyline, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 133,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 90)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -6143,11 +3995,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_list_waypoint(waypoints, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 134,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 91)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -6185,7 +4033,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 135,
+            funcId: 92,
             port: port_,
           );
         },
@@ -6225,7 +4073,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 136,
+            funcId: 93,
             port: port_,
           );
         },
@@ -6247,525 +4095,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  String
-  crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetDeviceId({
-    required SendRouteToDeviceCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 137,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetDeviceIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetDeviceIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "SendRouteToDeviceCommand_auto_accessor_get_device_id",
-        argNames: ["that"],
-      );
-
-  @override
-  UuidValue
-  crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetSessionId({
-    required SendRouteToDeviceCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 138,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetSessionIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "SendRouteToDeviceCommand_auto_accessor_get_session_id",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetDeviceId({
-    required SendRouteToDeviceCommand that,
-    required String deviceId,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-            that,
-            serializer,
-          );
-          sse_encode_String(deviceId, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 139,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetDeviceIdConstMeta,
-        argValues: [that, deviceId],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetDeviceIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "SendRouteToDeviceCommand_auto_accessor_set_device_id",
-        argNames: ["that", "deviceId"],
-      );
-
-  @override
-  void
-  crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetSessionId({
-    required SendRouteToDeviceCommand that,
-    required UuidValue sessionId,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-            that,
-            serializer,
-          );
-          sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 140,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetSessionIdConstMeta,
-        argValues: [that, sessionId],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "SendRouteToDeviceCommand_auto_accessor_set_session_id",
-        argNames: ["that", "sessionId"],
-      );
-
-  @override
-  Future<NavigationSession>
-  crateApplicationHandlersStartNavigationHandlerHandle({
-    required StartNavigationHandler that,
-    required StartNavigationCommand command,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-            that,
-            serializer,
-          );
-          sse_encode_box_autoadd_start_navigation_command(command, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 141,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta:
-            kCrateApplicationHandlersStartNavigationHandlerHandleConstMeta,
-        argValues: [that, command],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersStartNavigationHandlerHandleConstMeta =>
-      const TaskConstMeta(
-        debugName: "StartNavigationHandler_handle",
-        argNames: ["that", "command"],
-      );
-
-  @override
-  Future<StartNavigationHandler>
-  crateApplicationHandlersStartNavigationHandlerNew({
-    required ArcRouteService routeService,
-    required ArcNavigationRepository navigationRepo,
-    required ArcDeviceCommunicationPort deviceComm,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRouteService(
-            routeService,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynNavigationRepository(
-            navigationRepo,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort(
-            deviceComm,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 142,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApplicationHandlersStartNavigationHandlerNewConstMeta,
-        argValues: [routeService, navigationRepo, deviceComm],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersStartNavigationHandlerNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "StartNavigationHandler_new",
-        argNames: ["routeService", "navigationRepo", "deviceComm"],
-      );
-
-  @override
-  bool crateApplicationCommandsStopNavigationCommandAutoAccessorGetCompleted({
-    required StopNavigationCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 143,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_bool,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsStopNavigationCommandAutoAccessorGetCompletedConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsStopNavigationCommandAutoAccessorGetCompletedConstMeta =>
-      const TaskConstMeta(
-        debugName: "StopNavigationCommand_auto_accessor_get_completed",
-        argNames: ["that"],
-      );
-
-  @override
-  UuidValue
-  crateApplicationCommandsStopNavigationCommandAutoAccessorGetSessionId({
-    required StopNavigationCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 144,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsStopNavigationCommandAutoAccessorGetSessionIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsStopNavigationCommandAutoAccessorGetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "StopNavigationCommand_auto_accessor_get_session_id",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApplicationCommandsStopNavigationCommandAutoAccessorSetCompleted({
-    required StopNavigationCommand that,
-    required bool completed,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-            that,
-            serializer,
-          );
-          sse_encode_bool(completed, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 145,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsStopNavigationCommandAutoAccessorSetCompletedConstMeta,
-        argValues: [that, completed],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsStopNavigationCommandAutoAccessorSetCompletedConstMeta =>
-      const TaskConstMeta(
-        debugName: "StopNavigationCommand_auto_accessor_set_completed",
-        argNames: ["that", "completed"],
-      );
-
-  @override
-  void crateApplicationCommandsStopNavigationCommandAutoAccessorSetSessionId({
-    required StopNavigationCommand that,
-    required UuidValue sessionId,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-            that,
-            serializer,
-          );
-          sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 146,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsStopNavigationCommandAutoAccessorSetSessionIdConstMeta,
-        argValues: [that, sessionId],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsStopNavigationCommandAutoAccessorSetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "StopNavigationCommand_auto_accessor_set_session_id",
-        argNames: ["that", "sessionId"],
-      );
-
-  @override
-  Future<void> crateApplicationHandlersStopNavigationHandlerHandle({
-    required StopNavigationHandler that,
-    required StopNavigationCommand command,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-            that,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-            command,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 147,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta:
-            kCrateApplicationHandlersStopNavigationHandlerHandleConstMeta,
-        argValues: [that, command],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersStopNavigationHandlerHandleConstMeta =>
-      const TaskConstMeta(
-        debugName: "StopNavigationHandler_handle",
-        argNames: ["that", "command"],
-      );
-
-  @override
-  Future<StopNavigationHandler>
-  crateApplicationHandlersStopNavigationHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynNavigationRepository(
-            navigationRepo,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 148,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApplicationHandlersStopNavigationHandlerNewConstMeta,
-        argValues: [navigationRepo],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersStopNavigationHandlerNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "StopNavigationHandler_new",
-        argNames: ["navigationRepo"],
-      );
-
-  @override
-  Future<UuidValue> crateDomainEventsTrafficAlertDetectedEventAggregateId({
-    required TrafficAlertDetectedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTrafficAlertDetectedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 149,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateDomainEventsTrafficAlertDetectedEventAggregateIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsTrafficAlertDetectedEventAggregateIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "TrafficAlertDetectedEvent_aggregate_id",
-        argNames: ["that"],
-      );
-
-  @override
   UuidValue crateDomainEventsTrafficAlertDetectedEventAutoAccessorGetEventId({
     required TrafficAlertDetectedEvent that,
   }) {
@@ -6777,11 +4106,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 150,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 94)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -6814,11 +4139,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 151,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 95)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Chrono_Utc,
@@ -6851,11 +4172,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 152,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 96)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_Uuid,
@@ -6889,11 +4206,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             that,
             serializer,
           );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 153,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 97)!;
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -6929,11 +4242,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Uuid(eventId, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 154,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 98)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -6968,11 +4277,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
             serializer,
           );
           sse_encode_Chrono_Utc(occurredAt, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 155,
-          )!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 99)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -7010,7 +4315,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 156,
+            funcId: 100,
           )!;
         },
         codec: SseCodec(
@@ -7052,7 +4357,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 157,
+            funcId: 101,
           )!;
         },
         codec: SseCodec(
@@ -7075,43 +4380,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<UuidValue> crateDomainEventsTrafficAlertDetectedEventEventId({
-    required TrafficAlertDetectedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTrafficAlertDetectedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 158,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsTrafficAlertDetectedEventEventIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsTrafficAlertDetectedEventEventIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "TrafficAlertDetectedEvent_event_id",
-        argNames: ["that"],
-      );
-
-  @override
   Future<TrafficAlertDetectedEvent>
   crateDomainEventsTrafficAlertDetectedEventNew({
     required UuidValue sessionId,
@@ -7129,7 +4397,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 159,
+            funcId: 102,
             port: port_,
           );
         },
@@ -7152,44 +4420,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<DateTime> crateDomainEventsTrafficAlertDetectedEventOccurredAt({
-    required TrafficAlertDetectedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTrafficAlertDetectedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 160,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Chrono_Utc,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateDomainEventsTrafficAlertDetectedEventOccurredAtConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsTrafficAlertDetectedEventOccurredAtConstMeta =>
-      const TaskConstMeta(
-        debugName: "TrafficAlertDetectedEvent_occurred_at",
-        argNames: ["that"],
-      );
-
-  @override
   int crateDomainEntitiesTrafficEventAutoAccessorGetDelaySeconds({
     required TrafficEvent that,
   }) {
@@ -7204,7 +4434,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 161,
+            funcId: 103,
           )!;
         },
         codec: SseCodec(
@@ -7241,7 +4471,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 162,
+            funcId: 104,
           )!;
         },
         codec: SseCodec(
@@ -7278,7 +4508,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 163,
+            funcId: 105,
           )!;
         },
         codec: SseCodec(
@@ -7315,7 +4545,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 164,
+            funcId: 106,
           )!;
         },
         codec: SseCodec(
@@ -7351,7 +4581,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 165,
+            funcId: 107,
           )!;
         },
         codec: SseCodec(
@@ -7388,7 +4618,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 166,
+            funcId: 108,
           )!;
         },
         codec: SseCodec(
@@ -7425,7 +4655,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 167,
+            funcId: 109,
           )!;
         },
         codec: SseCodec(
@@ -7464,7 +4694,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 168,
+            funcId: 110,
           )!;
         },
         codec: SseCodec(
@@ -7503,7 +4733,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 169,
+            funcId: 111,
           )!;
         },
         codec: SseCodec(
@@ -7542,7 +4772,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 170,
+            funcId: 112,
           )!;
         },
         codec: SseCodec(
@@ -7581,7 +4811,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 171,
+            funcId: 113,
           )!;
         },
         codec: SseCodec(
@@ -7619,7 +4849,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 172,
+            funcId: 114,
           )!;
         },
         codec: SseCodec(
@@ -7658,7 +4888,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 173,
+            funcId: 115,
           )!;
         },
         codec: SseCodec(
@@ -7697,7 +4927,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 174,
+            funcId: 116,
           )!;
         },
         codec: SseCodec(
@@ -7739,7 +4969,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 175,
+            funcId: 117,
             port: port_,
           );
         },
@@ -7774,284 +5004,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Position
-  crateApplicationCommandsUpdatePositionCommandAutoAccessorGetPosition({
-    required UpdatePositionCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 179,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_position,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsUpdatePositionCommandAutoAccessorGetPositionConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsUpdatePositionCommandAutoAccessorGetPositionConstMeta =>
-      const TaskConstMeta(
-        debugName: "UpdatePositionCommand_auto_accessor_get_position",
-        argNames: ["that"],
-      );
-
-  @override
-  UuidValue
-  crateApplicationCommandsUpdatePositionCommandAutoAccessorGetSessionId({
-    required UpdatePositionCommand that,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-            that,
-            serializer,
-          );
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 180,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsUpdatePositionCommandAutoAccessorGetSessionIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsUpdatePositionCommandAutoAccessorGetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "UpdatePositionCommand_auto_accessor_get_session_id",
-        argNames: ["that"],
-      );
-
-  @override
-  void crateApplicationCommandsUpdatePositionCommandAutoAccessorSetPosition({
-    required UpdatePositionCommand that,
-    required Position position,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-            that,
-            serializer,
-          );
-          sse_encode_position(position, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 181,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsUpdatePositionCommandAutoAccessorSetPositionConstMeta,
-        argValues: [that, position],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsUpdatePositionCommandAutoAccessorSetPositionConstMeta =>
-      const TaskConstMeta(
-        debugName: "UpdatePositionCommand_auto_accessor_set_position",
-        argNames: ["that", "position"],
-      );
-
-  @override
-  void crateApplicationCommandsUpdatePositionCommandAutoAccessorSetSessionId({
-    required UpdatePositionCommand that,
-    required UuidValue sessionId,
-  }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-            that,
-            serializer,
-          );
-          sse_encode_Uuid(sessionId, serializer);
-          return pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 182,
-          )!;
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: null,
-        ),
-        constMeta:
-            kCrateApplicationCommandsUpdatePositionCommandAutoAccessorSetSessionIdConstMeta,
-        argValues: [that, sessionId],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationCommandsUpdatePositionCommandAutoAccessorSetSessionIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "UpdatePositionCommand_auto_accessor_set_session_id",
-        argNames: ["that", "sessionId"],
-      );
-
-  @override
-  Future<void> crateApplicationHandlersUpdatePositionHandlerHandle({
-    required UpdatePositionHandler that,
-    required UpdatePositionCommand command,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-            that,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-            command,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 183,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta:
-            kCrateApplicationHandlersUpdatePositionHandlerHandleConstMeta,
-        argValues: [that, command],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersUpdatePositionHandlerHandleConstMeta =>
-      const TaskConstMeta(
-        debugName: "UpdatePositionHandler_handle",
-        argNames: ["that", "command"],
-      );
-
-  @override
-  Future<UpdatePositionHandler>
-  crateApplicationHandlersUpdatePositionHandlerNew({
-    required ArcNavigationRepository navigationRepo,
-    required ArcDeviceCommunicationPort deviceComm,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynNavigationRepository(
-            navigationRepo,
-            serializer,
-          );
-          sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort(
-            deviceComm,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 184,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData:
-              sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateApplicationHandlersUpdatePositionHandlerNewConstMeta,
-        argValues: [navigationRepo, deviceComm],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateApplicationHandlersUpdatePositionHandlerNewConstMeta =>
-      const TaskConstMeta(
-        debugName: "UpdatePositionHandler_new",
-        argNames: ["navigationRepo", "deviceComm"],
-      );
-
-  @override
-  Future<UuidValue> crateDomainEventsWaypointReachedEventAggregateId({
-    required WaypointReachedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 185,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsWaypointReachedEventAggregateIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta
-  get kCrateDomainEventsWaypointReachedEventAggregateIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "WaypointReachedEvent_aggregate_id",
-        argNames: ["that"],
-      );
-
-  @override
   UuidValue crateDomainEventsWaypointReachedEventAutoAccessorGetEventId({
     required WaypointReachedEvent that,
   }) {
@@ -8066,7 +5018,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 186,
+            funcId: 125,
           )!;
         },
         codec: SseCodec(
@@ -8103,7 +5055,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 187,
+            funcId: 126,
           )!;
         },
         codec: SseCodec(
@@ -8140,7 +5092,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 188,
+            funcId: 127,
           )!;
         },
         codec: SseCodec(
@@ -8177,7 +5129,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 189,
+            funcId: 128,
           )!;
         },
         codec: SseCodec(
@@ -8214,7 +5166,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 190,
+            funcId: 129,
           )!;
         },
         codec: SseCodec(
@@ -8253,7 +5205,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 191,
+            funcId: 130,
           )!;
         },
         codec: SseCodec(
@@ -8292,7 +5244,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 192,
+            funcId: 131,
           )!;
         },
         codec: SseCodec(
@@ -8331,7 +5283,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 193,
+            funcId: 132,
           )!;
         },
         codec: SseCodec(
@@ -8370,7 +5322,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 194,
+            funcId: 133,
           )!;
         },
         codec: SseCodec(
@@ -8409,7 +5361,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           return pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 195,
+            funcId: 134,
           )!;
         },
         codec: SseCodec(
@@ -8432,42 +5384,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<UuidValue> crateDomainEventsWaypointReachedEventEventId({
-    required WaypointReachedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 196,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Uuid,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsWaypointReachedEventEventIdConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateDomainEventsWaypointReachedEventEventIdConstMeta =>
-      const TaskConstMeta(
-        debugName: "WaypointReachedEvent_event_id",
-        argNames: ["that"],
-      );
-
-  @override
   Future<WaypointReachedEvent> crateDomainEventsWaypointReachedEventNew({
     required UuidValue sessionId,
     required BigInt waypointIndex,
@@ -8483,7 +5399,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 197,
+            funcId: 135,
             port: port_,
           );
         },
@@ -8506,42 +5422,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<DateTime> crateDomainEventsWaypointReachedEventOccurredAt({
-    required WaypointReachedEvent that,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
-            that,
-            serializer,
-          );
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 198,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_Chrono_Utc,
-          decodeErrorData: null,
-        ),
-        constMeta: kCrateDomainEventsWaypointReachedEventOccurredAtConstMeta,
-        argValues: [that],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateDomainEventsWaypointReachedEventOccurredAtConstMeta =>
-      const TaskConstMeta(
-        debugName: "WaypointReachedEvent_occurred_at",
-        argNames: ["that"],
-      );
-
-  @override
   Future<bool> crateDomainValueObjectsBatteryInfoIsCritical({
     required BatteryInfo that,
   }) {
@@ -8553,7 +5433,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 199,
+            funcId: 136,
             port: port_,
           );
         },
@@ -8586,7 +5466,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 200,
+            funcId: 137,
             port: port_,
           );
         },
@@ -8618,7 +5498,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 201,
+            funcId: 138,
             port: port_,
           );
         },
@@ -8651,7 +5531,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 202,
+            funcId: 139,
             port: port_,
           );
         },
@@ -8672,6 +5552,60 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
+  void crateApiV2DeleteDevice({required PlatformInt64 id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_64(id, serializer);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 140,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2DeleteDeviceConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2DeleteDeviceConstMeta =>
+      const TaskConstMeta(debugName: "delete_device", argNames: ["id"]);
+
+  @override
+  void crateApiV2DeleteSavedPlace({required PlatformInt64 id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_64(id, serializer);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 141,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2DeleteSavedPlaceConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2DeleteSavedPlaceConstMeta =>
+      const TaskConstMeta(debugName: "delete_saved_place", argNames: ["id"]);
+
+  @override
   Future<DeviceCapabilities> crateDomainValueObjectsDeviceCapabilitiesNew({
     required int screenWidth,
     required int screenHeight,
@@ -8685,7 +5619,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 203,
+            funcId: 142,
             port: port_,
           );
         },
@@ -8707,6 +5641,36 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
+  bool crateApiV2DeviceExistsByRemoteId({required String remoteId}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(remoteId, serializer);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 143,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_bool,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2DeviceExistsByRemoteIdConstMeta,
+        argValues: [remoteId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2DeviceExistsByRemoteIdConstMeta =>
+      const TaskConstMeta(
+        debugName: "device_exists_by_remote_id",
+        argNames: ["remoteId"],
+      );
+
+  @override
   Future<String> crateApiV2GeocodeSearch({required String query, int? limit}) {
     return handler.executeNormal(
       NormalTask(
@@ -8717,7 +5681,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 204,
+            funcId: 144,
             port: port_,
           );
         },
@@ -8746,7 +5710,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 205,
+            funcId: 145,
             port: port_,
           );
         },
@@ -8765,6 +5729,58 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       const TaskConstMeta(debugName: "get_active_session", argNames: []);
 
   @override
+  String crateApiV2GetAllDevices() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 146,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2GetAllDevicesConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2GetAllDevicesConstMeta =>
+      const TaskConstMeta(debugName: "get_all_devices", argNames: []);
+
+  @override
+  String crateApiV2GetAllSavedPlaces() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 147,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2GetAllSavedPlacesConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2GetAllSavedPlacesConstMeta =>
+      const TaskConstMeta(debugName: "get_all_saved_places", argNames: []);
+
+  @override
   Future<String> crateGetArchitectureInfo() {
     return handler.executeNormal(
       NormalTask(
@@ -8773,7 +5789,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 206,
+            funcId: 148,
             port: port_,
           );
         },
@@ -8792,6 +5808,90 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       const TaskConstMeta(debugName: "get_architecture_info", argNames: []);
 
   @override
+  String crateApiV2GetDeviceById({required PlatformInt64 id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_64(id, serializer);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 149,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2GetDeviceByIdConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2GetDeviceByIdConstMeta =>
+      const TaskConstMeta(debugName: "get_device_by_id", argNames: ["id"]);
+
+  @override
+  String crateApiV2GetDeviceByRemoteId({required String remoteId}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(remoteId, serializer);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 150,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2GetDeviceByRemoteIdConstMeta,
+        argValues: [remoteId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2GetDeviceByRemoteIdConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_device_by_remote_id",
+        argNames: ["remoteId"],
+      );
+
+  @override
+  String crateApiV2GetSavedPlaceById({required PlatformInt64 id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_64(id, serializer);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 151,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2GetSavedPlaceByIdConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2GetSavedPlaceByIdConstMeta =>
+      const TaskConstMeta(debugName: "get_saved_place_by_id", argNames: ["id"]);
+
+  @override
   Future<void> crateApiV2PauseNavigation({required String sessionId}) {
     return handler.executeNormal(
       NormalTask(
@@ -8801,7 +5901,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 207,
+            funcId: 152,
             port: port_,
           );
         },
@@ -8830,7 +5930,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 208,
+            funcId: 153,
             port: port_,
           );
         },
@@ -8862,7 +5962,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 209,
+            funcId: 154,
             port: port_,
           );
         },
@@ -8897,7 +5997,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 210,
+            funcId: 155,
             port: port_,
           );
         },
@@ -8928,7 +6028,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 211,
+            funcId: 156,
             port: port_,
           );
         },
@@ -8962,7 +6062,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 212,
+            funcId: 157,
             port: port_,
           );
         },
@@ -8983,6 +6083,76 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
+  PlatformInt64 crateApiV2SaveDevice({required String deviceJson}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(deviceJson, serializer);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 158,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_i_64,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2SaveDeviceConstMeta,
+        argValues: [deviceJson],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2SaveDeviceConstMeta =>
+      const TaskConstMeta(debugName: "save_device", argNames: ["deviceJson"]);
+
+  @override
+  PlatformInt64 crateApiV2SavePlace({
+    required String name,
+    String? address,
+    required double lat,
+    required double lon,
+    String? source,
+    PlatformInt64? typeId,
+    String? remoteId,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_opt_String(address, serializer);
+          sse_encode_f_64(lat, serializer);
+          sse_encode_f_64(lon, serializer);
+          sse_encode_opt_String(source, serializer);
+          sse_encode_opt_box_autoadd_i_64(typeId, serializer);
+          sse_encode_opt_String(remoteId, serializer);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 159,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_i_64,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2SavePlaceConstMeta,
+        argValues: [name, address, lat, lon, source, typeId, remoteId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2SavePlaceConstMeta => const TaskConstMeta(
+    debugName: "save_place",
+    argNames: ["name", "address", "lat", "lon", "source", "typeId", "remoteId"],
+  );
+
+  @override
   Future<String> crateApiV2StartNavigationSession({
     required List<(double, double)> waypoints,
     required (double, double) currentPosition,
@@ -8996,7 +6166,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 213,
+            funcId: 160,
             port: port_,
           );
         },
@@ -9031,7 +6201,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 214,
+            funcId: 161,
             port: port_,
           );
         },
@@ -9052,6 +6222,39 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
+  void crateApiV2UpdateDevice({
+    required PlatformInt64 id,
+    required String deviceJson,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_i_64(id, serializer);
+          sse_encode_String(deviceJson, serializer);
+          return pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 162,
+          )!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateApiV2UpdateDeviceConstMeta,
+        argValues: [id, deviceJson],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiV2UpdateDeviceConstMeta => const TaskConstMeta(
+    debugName: "update_device",
+    argNames: ["id", "deviceJson"],
+  );
+
+  @override
   Future<void> crateApiV2UpdateNavigationPosition({
     required String sessionId,
     required double latitude,
@@ -9067,7 +6270,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 215,
+            funcId: 163,
             port: port_,
           );
         },
@@ -9102,7 +6305,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 216,
+            funcId: 164,
             port: port_,
           );
         },
@@ -9132,14 +6335,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerAppContext;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ArcDeviceCommunicationPort => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ArcDeviceCommunicationPort => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort;
-
-  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_ArcGeocodingService => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynGeocodingService;
 
@@ -9164,14 +6359,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynRouteService;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_CalculateRouteHandler => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_CalculateRouteHandler => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler;
-
-  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_Device => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice;
 
@@ -9186,46 +6373,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   RustArcDecrementStrongCountFnType
   get rust_arc_decrement_strong_count_DeviceConnectedEvent => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDeviceConnectedEvent;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_GeocodeHandler => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_GeocodeHandler => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_GetActiveSessionHandler => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_GetActiveSessionHandler => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_GetSessionQuery => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_GetSessionQuery => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_GetTrafficAlertsQuery => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_GetTrafficAlertsQuery => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_InMemoryNavigationRepository => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_InMemoryNavigationRepository => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_NavigationCompletedEvent => wire
@@ -9252,38 +6399,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationStartedEvent;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_OsrmRouteService => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOsrmRouteService;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_OsrmRouteService => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOsrmRouteService;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_PauseNavigationCommand => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_PauseNavigationCommand => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_PauseNavigationHandler => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_PauseNavigationHandler => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_PhotonGeocodingService => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPhotonGeocodingService;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_PhotonGeocodingService => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPhotonGeocodingService;
-
-  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_PositionUpdatedEvent => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent;
 
@@ -9292,76 +6407,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ReportTrafficCommand => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ReportTrafficCommand => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ResumeNavigationCommand => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ResumeNavigationCommand => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ResumeNavigationHandler => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ResumeNavigationHandler => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_ReverseGeocodeHandler => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_ReverseGeocodeHandler => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler;
-
-  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_Route => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute;
 
   RustArcDecrementStrongCountFnType
   get rust_arc_decrement_strong_count_Route => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_SendRouteToDeviceCommand => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_SendRouteToDeviceCommand => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_StartNavigationHandler => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_StartNavigationHandler => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_StopNavigationCommand => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_StopNavigationCommand => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_StopNavigationHandler => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_StopNavigationHandler => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler;
 
   RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_TrafficAlertDetectedEvent => wire
@@ -9380,28 +6431,20 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTrafficEvent;
 
   RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_UpdatePositionCommand => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_UpdatePositionCommand => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand;
-
-  RustArcIncrementStrongCountFnType
-  get rust_arc_increment_strong_count_UpdatePositionHandler => wire
-      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler;
-
-  RustArcDecrementStrongCountFnType
-  get rust_arc_decrement_strong_count_UpdatePositionHandler => wire
-      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler;
-
-  RustArcIncrementStrongCountFnType
   get rust_arc_increment_strong_count_WaypointReachedEvent => wire
       .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent;
 
   RustArcDecrementStrongCountFnType
   get rust_arc_decrement_strong_count_WaypointReachedEvent => wire
       .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent;
+
+  RustArcIncrementStrongCountFnType
+  get rust_arc_increment_strong_count_Str => wire
+      .rust_arc_increment_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr;
+
+  RustArcDecrementStrongCountFnType
+  get rust_arc_decrement_strong_count_Str => wire
+      .rust_arc_decrement_strong_count_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr;
 
   @protected
   AnyhowException dco_decode_AnyhowException(dynamic raw) {
@@ -9416,17 +6459,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AppContextImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  ArcDeviceCommunicationPort
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ArcDeviceCommunicationPortImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
   }
 
   @protected
@@ -9459,15 +6491,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  CalculateRouteHandler
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return CalculateRouteHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   Device
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice(
     dynamic raw,
@@ -9483,55 +6506,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return DeviceConnectedEventImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GeocodeHandler
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GeocodeHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GetActiveSessionHandler
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetActiveSessionHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  GetSessionQuery
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetSessionQueryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GetTrafficAlertsQuery
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetTrafficAlertsQueryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  InMemoryNavigationRepository
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return InMemoryNavigationRepositoryImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
   }
 
   @protected
@@ -9566,48 +6540,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  OsrmRouteService
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOsrmRouteService(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return OsrmRouteServiceImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  PauseNavigationCommand
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PauseNavigationCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  PauseNavigationHandler
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PauseNavigationHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  PhotonGeocodingService
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPhotonGeocodingService(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PhotonGeocodingServiceImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
   PositionUpdatedEvent
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     dynamic raw,
@@ -9617,92 +6549,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReportTrafficCommand
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReportTrafficCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  ResumeNavigationCommand
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ResumeNavigationCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  ResumeNavigationHandler
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ResumeNavigationHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  ReverseGeocodeHandler
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReverseGeocodeHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   Route
   dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return RouteImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  SendRouteToDeviceCommand
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return SendRouteToDeviceCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  StartNavigationHandler
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StartNavigationHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  StopNavigationCommand
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StopNavigationCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  StopNavigationHandler
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StopNavigationHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -9723,24 +6575,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return TrafficEventImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  UpdatePositionCommand
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UpdatePositionCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  UpdatePositionHandler
-  dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UpdatePositionHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -9780,24 +6614,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  GetSessionQuery
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetSessionQueryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GetTrafficAlertsQuery
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetTrafficAlertsQueryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   NavigationCompletedEvent
   dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationCompletedEvent(
     dynamic raw,
@@ -9829,17 +6645,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  PauseNavigationCommand
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PauseNavigationCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
   PositionUpdatedEvent
   dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     dynamic raw,
@@ -9849,52 +6654,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReportTrafficCommand
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReportTrafficCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  ResumeNavigationCommand
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ResumeNavigationCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
   Route
   dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return RouteImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  SendRouteToDeviceCommand
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return SendRouteToDeviceCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  StopNavigationCommand
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StopNavigationCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -9918,15 +6683,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  UpdatePositionCommand
-  dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UpdatePositionCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   WaypointReachedEvent
   dco_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
     dynamic raw,
@@ -9945,15 +6701,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  CalculateRouteHandler
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return CalculateRouteHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   Device
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice(
     dynamic raw,
@@ -9969,44 +6716,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return DeviceConnectedEventImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GeocodeHandler
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GeocodeHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GetActiveSessionHandler
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetActiveSessionHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  GetSessionQuery
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetSessionQueryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GetTrafficAlertsQuery
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetTrafficAlertsQueryImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -10041,28 +6750,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  PauseNavigationCommand
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PauseNavigationCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  PauseNavigationHandler
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PauseNavigationHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
   PositionUpdatedEvent
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     dynamic raw,
@@ -10072,92 +6759,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReportTrafficCommand
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReportTrafficCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  ResumeNavigationCommand
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ResumeNavigationCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  ResumeNavigationHandler
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ResumeNavigationHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  ReverseGeocodeHandler
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReverseGeocodeHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   Route
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return RouteImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  SendRouteToDeviceCommand
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return SendRouteToDeviceCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  StartNavigationHandler
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StartNavigationHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  StopNavigationCommand
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StopNavigationCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  StopNavigationHandler
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StopNavigationHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -10181,30 +6788,21 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  UpdatePositionCommand
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UpdatePositionCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  UpdatePositionHandler
-  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UpdatePositionHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   WaypointReachedEvent
   dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return WaypointReachedEventImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  Str
+  dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return StrImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -10220,17 +6818,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return AppContextImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  ArcDeviceCommunicationPort
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ArcDeviceCommunicationPortImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
   }
 
   @protected
@@ -10263,15 +6850,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  CalculateRouteHandler
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return CalculateRouteHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   Device
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice(
     dynamic raw,
@@ -10287,55 +6865,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return DeviceConnectedEventImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GeocodeHandler
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GeocodeHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GetActiveSessionHandler
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetActiveSessionHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  GetSessionQuery
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetSessionQueryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  GetTrafficAlertsQuery
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return GetTrafficAlertsQueryImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  InMemoryNavigationRepository
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return InMemoryNavigationRepositoryImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
   }
 
   @protected
@@ -10370,48 +6899,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  OsrmRouteService
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOsrmRouteService(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return OsrmRouteServiceImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  PauseNavigationCommand
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PauseNavigationCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  PauseNavigationHandler
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PauseNavigationHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  PhotonGeocodingService
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPhotonGeocodingService(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return PhotonGeocodingServiceImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
   PositionUpdatedEvent
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     dynamic raw,
@@ -10421,92 +6908,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReportTrafficCommand
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReportTrafficCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  ResumeNavigationCommand
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ResumeNavigationCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  ResumeNavigationHandler
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ResumeNavigationHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  ReverseGeocodeHandler
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return ReverseGeocodeHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   Route
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return RouteImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  SendRouteToDeviceCommand
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return SendRouteToDeviceCommandImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  StartNavigationHandler
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StartNavigationHandlerImpl.frbInternalDcoDecode(
-      raw as List<dynamic>,
-    );
-  }
-
-  @protected
-  StopNavigationCommand
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StopNavigationCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  StopNavigationHandler
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return StopNavigationHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -10530,30 +6937,21 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  UpdatePositionCommand
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UpdatePositionCommandImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
-  UpdatePositionHandler
-  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return UpdatePositionHandlerImpl.frbInternalDcoDecode(raw as List<dynamic>);
-  }
-
-  @protected
   WaypointReachedEvent
   dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return WaypointReachedEventImpl.frbInternalDcoDecode(raw as List<dynamic>);
+  }
+
+  @protected
+  Str
+  dco_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return StrImpl.frbInternalDcoDecode(raw as List<dynamic>);
   }
 
   @protected
@@ -10564,6 +6962,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   DomainEvent dco_decode_TraitDef_DomainEvent(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    throw UnimplementedError();
+  }
+
+  @protected
+  Migration dco_decode_TraitDef_Migration(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     throw UnimplementedError();
   }
@@ -10594,12 +6998,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  NavigationSession
-  dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+  Str
+  dco_decode_box_autoadd_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+    return dco_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
       raw,
     );
   }
@@ -10611,31 +7015,15 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  CalculateRouteQuery dco_decode_box_autoadd_calculate_route_query(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_calculate_route_query(raw);
-  }
-
-  @protected
   DeviceCapabilities dco_decode_box_autoadd_device_capabilities(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_device_capabilities(raw);
   }
 
   @protected
-  GeocodeQuery dco_decode_box_autoadd_geocode_query(dynamic raw) {
+  PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_geocode_query(raw);
-  }
-
-  @protected
-  GetActiveSessionQuery dco_decode_box_autoadd_get_active_session_query(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_get_active_session_query(raw);
+    return dco_decode_i_64(raw);
   }
 
   @protected
@@ -10651,34 +7039,9 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReverseGeocodeQuery dco_decode_box_autoadd_reverse_geocode_query(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_reverse_geocode_query(raw);
-  }
-
-  @protected
-  StartNavigationCommand dco_decode_box_autoadd_start_navigation_command(
-    dynamic raw,
-  ) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    return dco_decode_start_navigation_command(raw);
-  }
-
-  @protected
   int dco_decode_box_autoadd_u_32(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as int;
-  }
-
-  @protected
-  CalculateRouteQuery dco_decode_calculate_route_query(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 1)
-      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return CalculateRouteQuery(waypoints: dco_decode_list_position(arr[0]));
   }
 
   @protected
@@ -10707,24 +7070,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   double dco_decode_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as double;
-  }
-
-  @protected
-  GeocodeQuery dco_decode_geocode_query(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 1)
-      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return GeocodeQuery(address: dco_decode_String(arr[0]));
-  }
-
-  @protected
-  GetActiveSessionQuery dco_decode_get_active_session_query(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 0)
-      throw Exception('unexpected arr length: expect 0 but see ${arr.length}');
-    return GetActiveSessionQuery();
   }
 
   @protected
@@ -10776,14 +7121,14 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  NavigationSession?
-  dco_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+  Str?
+  dco_decode_opt_box_autoadd_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
     dynamic raw,
   ) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null
         ? null
-        : dco_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+        : dco_decode_box_autoadd_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
             raw,
           );
   }
@@ -10792,6 +7137,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   BatteryInfo? dco_decode_opt_box_autoadd_battery_info(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_battery_info(raw);
+  }
+
+  @protected
+  PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null ? null : dco_decode_box_autoadd_i_64(raw);
   }
 
   @protected
@@ -10820,28 +7171,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       throw Exception('Expected 2 elements, got ${arr.length}');
     }
     return (dco_decode_f_64(arr[0]), dco_decode_f_64(arr[1]));
-  }
-
-  @protected
-  ReverseGeocodeQuery dco_decode_reverse_geocode_query(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 1)
-      throw Exception('unexpected arr length: expect 1 but see ${arr.length}');
-    return ReverseGeocodeQuery(position: dco_decode_position(arr[0]));
-  }
-
-  @protected
-  StartNavigationCommand dco_decode_start_navigation_command(dynamic raw) {
-    // Codec=Dco (DartCObject based), see doc to use other codecs
-    final arr = raw as List<dynamic>;
-    if (arr.length != 3)
-      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
-    return StartNavigationCommand(
-      waypoints: dco_decode_list_position(arr[0]),
-      currentPosition: dco_decode_position(arr[1]),
-      deviceId: dco_decode_opt_String(arr[2]),
-    );
   }
 
   @protected
@@ -10908,18 +7237,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ArcDeviceCommunicationPort
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ArcDeviceCommunicationPortImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   ArcGeocodingService
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynGeocodingService(
     SseDeserializer deserializer,
@@ -10956,18 +7273,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  CalculateRouteHandler
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return CalculateRouteHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   Device
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice(
     SseDeserializer deserializer,
@@ -10986,66 +7291,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return DeviceConnectedEventImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GeocodeHandler
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GeocodeHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetActiveSessionHandler
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetActiveSessionHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetSessionQuery
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetSessionQueryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetTrafficAlertsQuery
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetTrafficAlertsQueryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  InMemoryNavigationRepository
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return InMemoryNavigationRepositoryImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -11088,54 +7333,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  OsrmRouteService
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOsrmRouteService(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return OsrmRouteServiceImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PauseNavigationCommand
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PauseNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PauseNavigationHandler
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PauseNavigationHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PhotonGeocodingService
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPhotonGeocodingService(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PhotonGeocodingServiceImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   PositionUpdatedEvent
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     SseDeserializer deserializer,
@@ -11148,108 +7345,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReportTrafficCommand
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReportTrafficCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ResumeNavigationCommand
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ResumeNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ResumeNavigationHandler
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ResumeNavigationHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ReverseGeocodeHandler
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReverseGeocodeHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   Route
   sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return RouteImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  SendRouteToDeviceCommand
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return SendRouteToDeviceCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StartNavigationHandler
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StartNavigationHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StopNavigationCommand
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StopNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StopNavigationHandler
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StopNavigationHandlerImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -11274,30 +7375,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return TrafficEventImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  UpdatePositionCommand
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return UpdatePositionCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  UpdatePositionHandler
-  sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return UpdatePositionHandlerImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -11352,30 +7429,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  GetSessionQuery
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetSessionQueryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetTrafficAlertsQuery
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetTrafficAlertsQueryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   NavigationCompletedEvent
   sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationCompletedEvent(
     SseDeserializer deserializer,
@@ -11412,18 +7465,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  PauseNavigationCommand
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PauseNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   PositionUpdatedEvent
   sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     SseDeserializer deserializer,
@@ -11436,60 +7477,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReportTrafficCommand
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReportTrafficCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ResumeNavigationCommand
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ResumeNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   Route
   sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return RouteImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  SendRouteToDeviceCommand
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return SendRouteToDeviceCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StopNavigationCommand
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StopNavigationCommandImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -11520,18 +7513,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  UpdatePositionCommand
-  sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return UpdatePositionCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   WaypointReachedEvent
   sse_decode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
     SseDeserializer deserializer,
@@ -11556,18 +7537,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  CalculateRouteHandler
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return CalculateRouteHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   Device
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice(
     SseDeserializer deserializer,
@@ -11586,54 +7555,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return DeviceConnectedEventImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GeocodeHandler
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GeocodeHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetActiveSessionHandler
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetActiveSessionHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetSessionQuery
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetSessionQueryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetTrafficAlertsQuery
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetTrafficAlertsQueryImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -11676,30 +7597,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  PauseNavigationCommand
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PauseNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PauseNavigationHandler
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PauseNavigationHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   PositionUpdatedEvent
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     SseDeserializer deserializer,
@@ -11712,108 +7609,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReportTrafficCommand
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReportTrafficCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ResumeNavigationCommand
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ResumeNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ResumeNavigationHandler
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ResumeNavigationHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ReverseGeocodeHandler
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReverseGeocodeHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   Route
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return RouteImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  SendRouteToDeviceCommand
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return SendRouteToDeviceCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StartNavigationHandler
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StartNavigationHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StopNavigationCommand
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StopNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StopNavigationHandler
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StopNavigationHandlerImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -11844,36 +7645,24 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  UpdatePositionCommand
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return UpdatePositionCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  UpdatePositionHandler
-  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return UpdatePositionHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   WaypointReachedEvent
   sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return WaypointReachedEventImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  Str
+  sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return StrImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -11893,18 +7682,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return AppContextImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ArcDeviceCommunicationPort
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ArcDeviceCommunicationPortImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -11947,18 +7724,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  CalculateRouteHandler
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return CalculateRouteHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   Device
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice(
     SseDeserializer deserializer,
@@ -11977,66 +7742,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return DeviceConnectedEventImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GeocodeHandler
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GeocodeHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetActiveSessionHandler
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetActiveSessionHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetSessionQuery
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetSessionQueryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  GetTrafficAlertsQuery
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetTrafficAlertsQueryImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  InMemoryNavigationRepository
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return InMemoryNavigationRepositoryImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -12079,54 +7784,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  OsrmRouteService
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOsrmRouteService(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return OsrmRouteServiceImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PauseNavigationCommand
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PauseNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PauseNavigationHandler
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PauseNavigationHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  PhotonGeocodingService
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPhotonGeocodingService(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return PhotonGeocodingServiceImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   PositionUpdatedEvent
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     SseDeserializer deserializer,
@@ -12139,108 +7796,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReportTrafficCommand
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReportTrafficCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ResumeNavigationCommand
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ResumeNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ResumeNavigationHandler
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ResumeNavigationHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  ReverseGeocodeHandler
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return ReverseGeocodeHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   Route
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return RouteImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  SendRouteToDeviceCommand
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return SendRouteToDeviceCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StartNavigationHandler
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StartNavigationHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StopNavigationCommand
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StopNavigationCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  StopNavigationHandler
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return StopNavigationHandlerImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -12271,36 +7832,24 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  UpdatePositionCommand
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return UpdatePositionCommandImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
-  UpdatePositionHandler
-  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return UpdatePositionHandlerImpl.frbInternalSseDecode(
-      sse_decode_usize(deserializer),
-      sse_decode_i_32(deserializer),
-    );
-  }
-
-  @protected
   WaypointReachedEvent
   sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return WaypointReachedEventImpl.frbInternalSseDecode(
+      sse_decode_usize(deserializer),
+      sse_decode_i_32(deserializer),
+    );
+  }
+
+  @protected
+  Str
+  sse_decode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return StrImpl.frbInternalSseDecode(
       sse_decode_usize(deserializer),
       sse_decode_i_32(deserializer),
     );
@@ -12342,12 +7891,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  NavigationSession
-  sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+  Str
+  sse_decode_box_autoadd_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+    return (sse_decode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
       deserializer,
     ));
   }
@@ -12361,14 +7910,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  CalculateRouteQuery sse_decode_box_autoadd_calculate_route_query(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_calculate_route_query(deserializer));
-  }
-
-  @protected
   DeviceCapabilities sse_decode_box_autoadd_device_capabilities(
     SseDeserializer deserializer,
   ) {
@@ -12377,19 +7918,9 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  GeocodeQuery sse_decode_box_autoadd_geocode_query(
-    SseDeserializer deserializer,
-  ) {
+  PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_geocode_query(deserializer));
-  }
-
-  @protected
-  GetActiveSessionQuery sse_decode_box_autoadd_get_active_session_query(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_get_active_session_query(deserializer));
+    return (sse_decode_i_64(deserializer));
   }
 
   @protected
@@ -12407,34 +7938,9 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  ReverseGeocodeQuery sse_decode_box_autoadd_reverse_geocode_query(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_reverse_geocode_query(deserializer));
-  }
-
-  @protected
-  StartNavigationCommand sse_decode_box_autoadd_start_navigation_command(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return (sse_decode_start_navigation_command(deserializer));
-  }
-
-  @protected
   int sse_decode_box_autoadd_u_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_u_32(deserializer));
-  }
-
-  @protected
-  CalculateRouteQuery sse_decode_calculate_route_query(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_waypoints = sse_decode_list_position(deserializer);
-    return CalculateRouteQuery(waypoints: var_waypoints);
   }
 
   @protected
@@ -12469,21 +7975,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   double sse_decode_f_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getFloat64();
-  }
-
-  @protected
-  GeocodeQuery sse_decode_geocode_query(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_address = sse_decode_String(deserializer);
-    return GeocodeQuery(address: var_address);
-  }
-
-  @protected
-  GetActiveSessionQuery sse_decode_get_active_session_query(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return GetActiveSessionQuery();
   }
 
   @protected
@@ -12562,14 +8053,14 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  NavigationSession?
-  sse_decode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+  Str?
+  sse_decode_opt_box_autoadd_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
     SseDeserializer deserializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
-      return (sse_decode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+      return (sse_decode_box_autoadd_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
         deserializer,
       ));
     } else {
@@ -12585,6 +8076,17 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_battery_info(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_i_64(deserializer));
     } else {
       return null;
     }
@@ -12615,30 +8117,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     var var_field0 = sse_decode_f_64(deserializer);
     var var_field1 = sse_decode_f_64(deserializer);
     return (var_field0, var_field1);
-  }
-
-  @protected
-  ReverseGeocodeQuery sse_decode_reverse_geocode_query(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_position = sse_decode_position(deserializer);
-    return ReverseGeocodeQuery(position: var_position);
-  }
-
-  @protected
-  StartNavigationCommand sse_decode_start_navigation_command(
-    SseDeserializer deserializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    var var_waypoints = sse_decode_list_position(deserializer);
-    var var_currentPosition = sse_decode_position(deserializer);
-    var var_deviceId = sse_decode_opt_String(deserializer);
-    return StartNavigationCommand(
-      waypoints: var_waypoints,
-      currentPosition: var_currentPosition,
-      deviceId: var_deviceId,
-    );
   }
 
   @protected
@@ -12710,19 +8188,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort(
-    ArcDeviceCommunicationPort self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ArcDeviceCommunicationPortImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynGeocodingService(
     ArcGeocodingService self,
     SseSerializer serializer,
@@ -12762,19 +8227,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-    CalculateRouteHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as CalculateRouteHandlerImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice(
     Device self,
     SseSerializer serializer,
@@ -12795,73 +8247,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as DeviceConnectedEventImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-    GeocodeHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GeocodeHandlerImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-    GetActiveSessionHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetActiveSessionHandlerImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    GetSessionQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetSessionQueryImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    GetTrafficAlertsQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetTrafficAlertsQueryImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository(
-    InMemoryNavigationRepository self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as InMemoryNavigationRepositoryImpl).frbInternalSseEncode(
-        move: true,
-      ),
       serializer,
     );
   }
@@ -12907,58 +8292,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOsrmRouteService(
-    OsrmRouteService self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as OsrmRouteServiceImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    PauseNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PauseNavigationCommandImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-    PauseNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PauseNavigationHandlerImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPhotonGeocodingService(
-    PhotonGeocodingService self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PhotonGeocodingServiceImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     PositionUpdatedEvent self,
     SseSerializer serializer,
@@ -12972,58 +8305,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    ReportTrafficCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReportTrafficCommandImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    ResumeNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ResumeNavigationCommandImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-    ResumeNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ResumeNavigationHandlerImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-    ReverseGeocodeHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReverseGeocodeHandlerImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     Route self,
     SseSerializer serializer,
@@ -13031,58 +8312,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as RouteImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    SendRouteToDeviceCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as SendRouteToDeviceCommandImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-    StartNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StartNavigationHandlerImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    StopNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StopNavigationCommandImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-    StopNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StopNavigationHandlerImpl).frbInternalSseEncode(move: true),
       serializer,
     );
   }
@@ -13109,32 +8338,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as TrafficEventImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    UpdatePositionCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as UpdatePositionCommandImpl).frbInternalSseEncode(move: true),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-    UpdatePositionHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as UpdatePositionHandlerImpl).frbInternalSseEncode(move: true),
       serializer,
     );
   }
@@ -13193,32 +8396,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    GetSessionQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetSessionQueryImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    GetTrafficAlertsQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetTrafficAlertsQueryImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationCompletedEvent(
     NavigationCompletedEvent self,
     SseSerializer serializer,
@@ -13258,19 +8435,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    PauseNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PauseNavigationCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     PositionUpdatedEvent self,
     SseSerializer serializer,
@@ -13284,32 +8448,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    ReportTrafficCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReportTrafficCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    ResumeNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ResumeNavigationCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     Route self,
     SseSerializer serializer,
@@ -13317,32 +8455,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as RouteImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    SendRouteToDeviceCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as SendRouteToDeviceCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    StopNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StopNavigationCommandImpl).frbInternalSseEncode(move: false),
       serializer,
     );
   }
@@ -13375,19 +8487,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    UpdatePositionCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as UpdatePositionCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
     WaypointReachedEvent self,
     SseSerializer serializer,
@@ -13414,19 +8513,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-    CalculateRouteHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as CalculateRouteHandlerImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice(
     Device self,
     SseSerializer serializer,
@@ -13447,58 +8533,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as DeviceConnectedEventImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-    GeocodeHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GeocodeHandlerImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-    GetActiveSessionHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetActiveSessionHandlerImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    GetSessionQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetSessionQueryImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    GetTrafficAlertsQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetTrafficAlertsQueryImpl).frbInternalSseEncode(move: false),
       serializer,
     );
   }
@@ -13544,32 +8578,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    PauseNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PauseNavigationCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-    PauseNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PauseNavigationHandlerImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     PositionUpdatedEvent self,
     SseSerializer serializer,
@@ -13583,58 +8591,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    ReportTrafficCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReportTrafficCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    ResumeNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ResumeNavigationCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-    ResumeNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ResumeNavigationHandlerImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-    ReverseGeocodeHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReverseGeocodeHandlerImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     Route self,
     SseSerializer serializer,
@@ -13642,58 +8598,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as RouteImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    SendRouteToDeviceCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as SendRouteToDeviceCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-    StartNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StartNavigationHandlerImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    StopNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StopNavigationCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-    StopNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StopNavigationHandlerImpl).frbInternalSseEncode(move: false),
       serializer,
     );
   }
@@ -13726,32 +8630,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    UpdatePositionCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as UpdatePositionCommandImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-    UpdatePositionHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as UpdatePositionHandlerImpl).frbInternalSseEncode(move: false),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
     WaypointReachedEvent self,
     SseSerializer serializer,
@@ -13759,6 +8637,19 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as WaypointReachedEventImpl).frbInternalSseEncode(move: false),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
+    Str self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as StrImpl).frbInternalSseEncode(move: false),
       serializer,
     );
   }
@@ -13781,19 +8672,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as AppContextImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerArcdynDeviceCommunicationPort(
-    ArcDeviceCommunicationPort self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ArcDeviceCommunicationPortImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -13839,19 +8717,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerCalculateRouteHandler(
-    CalculateRouteHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as CalculateRouteHandlerImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerDevice(
     Device self,
     SseSerializer serializer,
@@ -13872,73 +8737,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as DeviceConnectedEventImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGeocodeHandler(
-    GeocodeHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GeocodeHandlerImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetActiveSessionHandler(
-    GetActiveSessionHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetActiveSessionHandlerImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetSessionQuery(
-    GetSessionQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetSessionQueryImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerGetTrafficAlertsQuery(
-    GetTrafficAlertsQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as GetTrafficAlertsQueryImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerInMemoryNavigationRepository(
-    InMemoryNavigationRepository self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as InMemoryNavigationRepositoryImpl).frbInternalSseEncode(
-        move: null,
-      ),
       serializer,
     );
   }
@@ -13984,58 +8782,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerOsrmRouteService(
-    OsrmRouteService self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as OsrmRouteServiceImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationCommand(
-    PauseNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PauseNavigationCommandImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPauseNavigationHandler(
-    PauseNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PauseNavigationHandlerImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPhotonGeocodingService(
-    PhotonGeocodingService self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as PhotonGeocodingServiceImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerPositionUpdatedEvent(
     PositionUpdatedEvent self,
     SseSerializer serializer,
@@ -14049,58 +8795,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReportTrafficCommand(
-    ReportTrafficCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReportTrafficCommandImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationCommand(
-    ResumeNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ResumeNavigationCommandImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerResumeNavigationHandler(
-    ResumeNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ResumeNavigationHandlerImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerReverseGeocodeHandler(
-    ReverseGeocodeHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as ReverseGeocodeHandlerImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerRoute(
     Route self,
     SseSerializer serializer,
@@ -14108,58 +8802,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as RouteImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerSendRouteToDeviceCommand(
-    SendRouteToDeviceCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as SendRouteToDeviceCommandImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStartNavigationHandler(
-    StartNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StartNavigationHandlerImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationCommand(
-    StopNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StopNavigationCommandImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerStopNavigationHandler(
-    StopNavigationHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as StopNavigationHandlerImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -14192,32 +8834,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionCommand(
-    UpdatePositionCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as UpdatePositionCommandImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
-  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerUpdatePositionHandler(
-    UpdatePositionHandler self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_usize(
-      (self as UpdatePositionHandlerImpl).frbInternalSseEncode(move: null),
-      serializer,
-    );
-  }
-
-  @protected
-  void
   sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerWaypointReachedEvent(
     WaypointReachedEvent self,
     SseSerializer serializer,
@@ -14225,6 +8841,19 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_usize(
       (self as WaypointReachedEventImpl).frbInternalSseEncode(move: null),
+      serializer,
+    );
+  }
+
+  @protected
+  void
+  sse_encode_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
+    Str self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_usize(
+      (self as StrImpl).frbInternalSseEncode(move: null),
       serializer,
     );
   }
@@ -14257,12 +8886,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
-    NavigationSession self,
+  sse_encode_box_autoadd_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
+    Str self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+    sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
       self,
       serializer,
     );
@@ -14278,15 +8907,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  void sse_encode_box_autoadd_calculate_route_query(
-    CalculateRouteQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_calculate_route_query(self, serializer);
-  }
-
-  @protected
   void sse_encode_box_autoadd_device_capabilities(
     DeviceCapabilities self,
     SseSerializer serializer,
@@ -14296,21 +8916,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  void sse_encode_box_autoadd_geocode_query(
-    GeocodeQuery self,
+  void sse_encode_box_autoadd_i_64(
+    PlatformInt64 self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_geocode_query(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_get_active_session_query(
-    GetActiveSessionQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_get_active_session_query(self, serializer);
+    sse_encode_i_64(self, serializer);
   }
 
   @protected
@@ -14332,36 +8943,9 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  void sse_encode_box_autoadd_reverse_geocode_query(
-    ReverseGeocodeQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_reverse_geocode_query(self, serializer);
-  }
-
-  @protected
-  void sse_encode_box_autoadd_start_navigation_command(
-    StartNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_start_navigation_command(self, serializer);
-  }
-
-  @protected
   void sse_encode_box_autoadd_u_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_u_32(self, serializer);
-  }
-
-  @protected
-  void sse_encode_calculate_route_query(
-    CalculateRouteQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_list_position(self.waypoints, serializer);
   }
 
   @protected
@@ -14388,20 +8972,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   void sse_encode_f_64(double self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putFloat64(self);
-  }
-
-  @protected
-  void sse_encode_geocode_query(GeocodeQuery self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_String(self.address, serializer);
-  }
-
-  @protected
-  void sse_encode_get_active_session_query(
-    GetActiveSessionQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
   }
 
   @protected
@@ -14477,15 +9047,15 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   @protected
   void
-  sse_encode_opt_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
-    NavigationSession? self,
+  sse_encode_opt_box_autoadd_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
+    Str? self,
     SseSerializer serializer,
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     sse_encode_bool(self != null, serializer);
     if (self != null) {
-      sse_encode_box_autoadd_Auto_Owned_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerNavigationSession(
+      sse_encode_box_autoadd_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerstr(
         self,
         serializer,
       );
@@ -14502,6 +9072,19 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_battery_info(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_i_64(
+    PlatformInt64? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_i_64(self, serializer);
     }
   }
 
@@ -14530,26 +9113,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_f_64(self.$1, serializer);
     sse_encode_f_64(self.$2, serializer);
-  }
-
-  @protected
-  void sse_encode_reverse_geocode_query(
-    ReverseGeocodeQuery self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_position(self.position, serializer);
-  }
-
-  @protected
-  void sse_encode_start_navigation_command(
-    StartNavigationCommand self,
-    SseSerializer serializer,
-  ) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    sse_encode_list_position(self.waypoints, serializer);
-    sse_encode_position(self.currentPosition, serializer);
-    sse_encode_opt_String(self.deviceId, serializer);
   }
 
   @protected
@@ -14644,35 +9207,6 @@ class AppContextImpl extends RustOpaque implements AppContext {
 }
 
 @sealed
-class ArcDeviceCommunicationPortImpl extends RustOpaque
-    implements ArcDeviceCommunicationPort {
-  // Not to be used by end users
-  ArcDeviceCommunicationPortImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ArcDeviceCommunicationPortImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_ArcDeviceCommunicationPort,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ArcDeviceCommunicationPort,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ArcDeviceCommunicationPortPtr,
-  );
-}
-
-@sealed
 class ArcGeocodingServiceImpl extends RustOpaque
     implements ArcGeocodingService {
   // Not to be used by end users
@@ -14750,43 +9284,6 @@ class ArcRouteServiceImpl extends RustOpaque implements ArcRouteService {
         .api
         .rust_arc_decrement_strong_count_ArcRouteServicePtr,
   );
-}
-
-@sealed
-class CalculateRouteHandlerImpl extends RustOpaque
-    implements CalculateRouteHandler {
-  // Not to be used by end users
-  CalculateRouteHandlerImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  CalculateRouteHandlerImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_CalculateRouteHandler,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_CalculateRouteHandler,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_CalculateRouteHandlerPtr,
-  );
-
-  Future<Route> handle({required CalculateRouteQuery query}) => RustBridge
-      .instance
-      .api
-      .crateApplicationHandlersCalculateRouteHandlerHandle(
-        that: this,
-        query: query,
-      );
 }
 
 @sealed
@@ -14944,171 +9441,6 @@ class DeviceImpl extends RustOpaque implements Device {
 }
 
 @sealed
-class GeocodeHandlerImpl extends RustOpaque implements GeocodeHandler {
-  // Not to be used by end users
-  GeocodeHandlerImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  GeocodeHandlerImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustBridge.instance.api.rust_arc_increment_strong_count_GeocodeHandler,
-    rustArcDecrementStrongCount:
-        RustBridge.instance.api.rust_arc_decrement_strong_count_GeocodeHandler,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_GeocodeHandlerPtr,
-  );
-
-  Future<List<Position>> handle({required GeocodeQuery query}) => RustBridge
-      .instance
-      .api
-      .crateApplicationHandlersGeocodeHandlerHandle(that: this, query: query);
-}
-
-@sealed
-class GetActiveSessionHandlerImpl extends RustOpaque
-    implements GetActiveSessionHandler {
-  // Not to be used by end users
-  GetActiveSessionHandlerImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  GetActiveSessionHandlerImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_GetActiveSessionHandler,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_GetActiveSessionHandler,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_GetActiveSessionHandlerPtr,
-  );
-
-  Future<NavigationSession?> handle({required GetActiveSessionQuery query}) =>
-      RustBridge.instance.api
-          .crateApplicationHandlersGetActiveSessionHandlerHandle(
-            that: this,
-            query: query,
-          );
-}
-
-@sealed
-class GetSessionQueryImpl extends RustOpaque implements GetSessionQuery {
-  // Not to be used by end users
-  GetSessionQueryImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  GetSessionQueryImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
-    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount:
-        RustBridge.instance.api.rust_arc_increment_strong_count_GetSessionQuery,
-    rustArcDecrementStrongCount:
-        RustBridge.instance.api.rust_arc_decrement_strong_count_GetSessionQuery,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_GetSessionQueryPtr,
-  );
-
-  UuidValue get sessionId => RustBridge.instance.api
-      .crateApplicationQueriesGetSessionQueryAutoAccessorGetSessionId(
-        that: this,
-      );
-
-  set sessionId(UuidValue sessionId) => RustBridge.instance.api
-      .crateApplicationQueriesGetSessionQueryAutoAccessorSetSessionId(
-        that: this,
-        sessionId: sessionId,
-      );
-}
-
-@sealed
-class GetTrafficAlertsQueryImpl extends RustOpaque
-    implements GetTrafficAlertsQuery {
-  // Not to be used by end users
-  GetTrafficAlertsQueryImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  GetTrafficAlertsQueryImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_GetTrafficAlertsQuery,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_GetTrafficAlertsQuery,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_GetTrafficAlertsQueryPtr,
-  );
-
-  UuidValue get sessionId => RustBridge.instance.api
-      .crateApplicationQueriesGetTrafficAlertsQueryAutoAccessorGetSessionId(
-        that: this,
-      );
-
-  set sessionId(UuidValue sessionId) => RustBridge.instance.api
-      .crateApplicationQueriesGetTrafficAlertsQueryAutoAccessorSetSessionId(
-        that: this,
-        sessionId: sessionId,
-      );
-}
-
-@sealed
-class InMemoryNavigationRepositoryImpl extends RustOpaque
-    implements InMemoryNavigationRepository {
-  // Not to be used by end users
-  InMemoryNavigationRepositoryImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  InMemoryNavigationRepositoryImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_InMemoryNavigationRepository,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_InMemoryNavigationRepository,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_InMemoryNavigationRepositoryPtr,
-  );
-}
-
-@sealed
 class NavigationCompletedEventImpl extends RustOpaque
     implements NavigationCompletedEvent {
   // Not to be used by end users
@@ -15135,9 +9467,6 @@ class NavigationCompletedEventImpl extends RustOpaque
         .api
         .rust_arc_decrement_strong_count_NavigationCompletedEventPtr,
   );
-
-  Future<UuidValue> aggregateId() => RustBridge.instance.api
-      .crateDomainEventsNavigationCompletedEventAggregateId(that: this);
 
   UuidValue get eventId => RustBridge.instance.api
       .crateDomainEventsNavigationCompletedEventAutoAccessorGetEventId(
@@ -15193,12 +9522,6 @@ class NavigationCompletedEventImpl extends RustOpaque
         that: this,
         totalDurationSeconds: totalDurationSeconds,
       );
-
-  Future<UuidValue> eventId() => RustBridge.instance.api
-      .crateDomainEventsNavigationCompletedEventEventId(that: this);
-
-  Future<DateTime> occurredAt() => RustBridge.instance.api
-      .crateDomainEventsNavigationCompletedEventOccurredAt(that: this);
 }
 
 @sealed
@@ -15330,9 +9653,6 @@ class NavigationStartedEventImpl extends RustOpaque
         .rust_arc_decrement_strong_count_NavigationStartedEventPtr,
   );
 
-  Future<UuidValue> aggregateId() => RustBridge.instance.api
-      .crateDomainEventsNavigationStartedEventAggregateId(that: this);
-
   UuidValue get eventId => RustBridge.instance.api
       .crateDomainEventsNavigationStartedEventAutoAccessorGetEventId(
         that: this,
@@ -15376,146 +9696,6 @@ class NavigationStartedEventImpl extends RustOpaque
         that: this,
         sessionId: sessionId,
       );
-
-  Future<UuidValue> eventId() => RustBridge.instance.api
-      .crateDomainEventsNavigationStartedEventEventId(that: this);
-
-  Future<DateTime> occurredAt() => RustBridge.instance.api
-      .crateDomainEventsNavigationStartedEventOccurredAt(that: this);
-}
-
-@sealed
-class OsrmRouteServiceImpl extends RustOpaque implements OsrmRouteService {
-  // Not to be used by end users
-  OsrmRouteServiceImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  OsrmRouteServiceImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_OsrmRouteService,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_OsrmRouteService,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_OsrmRouteServicePtr,
-  );
-}
-
-@sealed
-class PauseNavigationCommandImpl extends RustOpaque
-    implements PauseNavigationCommand {
-  // Not to be used by end users
-  PauseNavigationCommandImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  PauseNavigationCommandImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_PauseNavigationCommand,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_PauseNavigationCommand,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_PauseNavigationCommandPtr,
-  );
-
-  UuidValue get sessionId => RustBridge.instance.api
-      .crateApplicationCommandsPauseNavigationCommandAutoAccessorGetSessionId(
-        that: this,
-      );
-
-  set sessionId(UuidValue sessionId) => RustBridge.instance.api
-      .crateApplicationCommandsPauseNavigationCommandAutoAccessorSetSessionId(
-        that: this,
-        sessionId: sessionId,
-      );
-}
-
-@sealed
-class PauseNavigationHandlerImpl extends RustOpaque
-    implements PauseNavigationHandler {
-  // Not to be used by end users
-  PauseNavigationHandlerImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  PauseNavigationHandlerImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_PauseNavigationHandler,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_PauseNavigationHandler,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_PauseNavigationHandlerPtr,
-  );
-
-  Future<void> handle({required PauseNavigationCommand command}) => RustBridge
-      .instance
-      .api
-      .crateApplicationHandlersPauseNavigationHandlerHandle(
-        that: this,
-        command: command,
-      );
-}
-
-@sealed
-class PhotonGeocodingServiceImpl extends RustOpaque
-    implements PhotonGeocodingService {
-  // Not to be used by end users
-  PhotonGeocodingServiceImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  PhotonGeocodingServiceImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_PhotonGeocodingService,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_PhotonGeocodingService,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_PhotonGeocodingServicePtr,
-  );
 }
 
 @sealed
@@ -15545,9 +9725,6 @@ class PositionUpdatedEventImpl extends RustOpaque
         .api
         .rust_arc_decrement_strong_count_PositionUpdatedEventPtr,
   );
-
-  Future<UuidValue> aggregateId() => RustBridge.instance.api
-      .crateDomainEventsPositionUpdatedEventAggregateId(that: this);
 
   UuidValue get eventId => RustBridge.instance.api
       .crateDomainEventsPositionUpdatedEventAutoAccessorGetEventId(that: this);
@@ -15587,210 +9764,6 @@ class PositionUpdatedEventImpl extends RustOpaque
       .crateDomainEventsPositionUpdatedEventAutoAccessorSetSessionId(
         that: this,
         sessionId: sessionId,
-      );
-
-  Future<UuidValue> eventId() => RustBridge.instance.api
-      .crateDomainEventsPositionUpdatedEventEventId(that: this);
-
-  Future<DateTime> occurredAt() => RustBridge.instance.api
-      .crateDomainEventsPositionUpdatedEventOccurredAt(that: this);
-}
-
-@sealed
-class ReportTrafficCommandImpl extends RustOpaque
-    implements ReportTrafficCommand {
-  // Not to be used by end users
-  ReportTrafficCommandImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ReportTrafficCommandImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_ReportTrafficCommand,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ReportTrafficCommand,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ReportTrafficCommandPtr,
-  );
-
-  int get delaySeconds => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorGetDelaySeconds(
-        that: this,
-      );
-
-  String get description => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorGetDescription(
-        that: this,
-      );
-
-  Position get position => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorGetPosition(
-        that: this,
-      );
-
-  UuidValue get sessionId => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorGetSessionId(
-        that: this,
-      );
-
-  TrafficSeverity get severity => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorGetSeverity(
-        that: this,
-      );
-
-  set delaySeconds(int delaySeconds) => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorSetDelaySeconds(
-        that: this,
-        delaySeconds: delaySeconds,
-      );
-
-  set description(String description) => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorSetDescription(
-        that: this,
-        description: description,
-      );
-
-  set position(Position position) => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorSetPosition(
-        that: this,
-        position: position,
-      );
-
-  set sessionId(UuidValue sessionId) => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorSetSessionId(
-        that: this,
-        sessionId: sessionId,
-      );
-
-  set severity(TrafficSeverity severity) => RustBridge.instance.api
-      .crateApplicationCommandsReportTrafficCommandAutoAccessorSetSeverity(
-        that: this,
-        severity: severity,
-      );
-}
-
-@sealed
-class ResumeNavigationCommandImpl extends RustOpaque
-    implements ResumeNavigationCommand {
-  // Not to be used by end users
-  ResumeNavigationCommandImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ResumeNavigationCommandImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_ResumeNavigationCommand,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ResumeNavigationCommand,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ResumeNavigationCommandPtr,
-  );
-
-  UuidValue get sessionId => RustBridge.instance.api
-      .crateApplicationCommandsResumeNavigationCommandAutoAccessorGetSessionId(
-        that: this,
-      );
-
-  set sessionId(UuidValue sessionId) => RustBridge.instance.api
-      .crateApplicationCommandsResumeNavigationCommandAutoAccessorSetSessionId(
-        that: this,
-        sessionId: sessionId,
-      );
-}
-
-@sealed
-class ResumeNavigationHandlerImpl extends RustOpaque
-    implements ResumeNavigationHandler {
-  // Not to be used by end users
-  ResumeNavigationHandlerImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ResumeNavigationHandlerImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_ResumeNavigationHandler,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ResumeNavigationHandler,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ResumeNavigationHandlerPtr,
-  );
-
-  Future<void> handle({required ResumeNavigationCommand command}) => RustBridge
-      .instance
-      .api
-      .crateApplicationHandlersResumeNavigationHandlerHandle(
-        that: this,
-        command: command,
-      );
-}
-
-@sealed
-class ReverseGeocodeHandlerImpl extends RustOpaque
-    implements ReverseGeocodeHandler {
-  // Not to be used by end users
-  ReverseGeocodeHandlerImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  ReverseGeocodeHandlerImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_ReverseGeocodeHandler,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ReverseGeocodeHandler,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_ReverseGeocodeHandlerPtr,
-  );
-
-  Future<String> handle({required ReverseGeocodeQuery query}) => RustBridge
-      .instance
-      .api
-      .crateApplicationHandlersReverseGeocodeHandlerHandle(
-        that: this,
-        query: query,
       );
 }
 
@@ -15869,178 +9842,23 @@ class RouteImpl extends RustOpaque implements Route {
 }
 
 @sealed
-class SendRouteToDeviceCommandImpl extends RustOpaque
-    implements SendRouteToDeviceCommand {
+class StrImpl extends RustOpaque implements Str {
   // Not to be used by end users
-  SendRouteToDeviceCommandImpl.frbInternalDcoDecode(List<dynamic> wire)
+  StrImpl.frbInternalDcoDecode(List<dynamic> wire)
     : super.frbInternalDcoDecode(wire, _kStaticData);
 
   // Not to be used by end users
-  SendRouteToDeviceCommandImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
+  StrImpl.frbInternalSseDecode(BigInt ptr, int externalSizeOnNative)
+    : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
 
   static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_SendRouteToDeviceCommand,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_SendRouteToDeviceCommand,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_SendRouteToDeviceCommandPtr,
+    rustArcIncrementStrongCount:
+        RustBridge.instance.api.rust_arc_increment_strong_count_Str,
+    rustArcDecrementStrongCount:
+        RustBridge.instance.api.rust_arc_decrement_strong_count_Str,
+    rustArcDecrementStrongCountPtr:
+        RustBridge.instance.api.rust_arc_decrement_strong_count_StrPtr,
   );
-
-  String get deviceId => RustBridge.instance.api
-      .crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetDeviceId(
-        that: this,
-      );
-
-  UuidValue get sessionId => RustBridge.instance.api
-      .crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorGetSessionId(
-        that: this,
-      );
-
-  set deviceId(String deviceId) => RustBridge.instance.api
-      .crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetDeviceId(
-        that: this,
-        deviceId: deviceId,
-      );
-
-  set sessionId(UuidValue sessionId) => RustBridge.instance.api
-      .crateApplicationCommandsSendRouteToDeviceCommandAutoAccessorSetSessionId(
-        that: this,
-        sessionId: sessionId,
-      );
-}
-
-@sealed
-class StartNavigationHandlerImpl extends RustOpaque
-    implements StartNavigationHandler {
-  // Not to be used by end users
-  StartNavigationHandlerImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  StartNavigationHandlerImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_StartNavigationHandler,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_StartNavigationHandler,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_StartNavigationHandlerPtr,
-  );
-
-  Future<NavigationSession> handle({required StartNavigationCommand command}) =>
-      RustBridge.instance.api
-          .crateApplicationHandlersStartNavigationHandlerHandle(
-            that: this,
-            command: command,
-          );
-}
-
-@sealed
-class StopNavigationCommandImpl extends RustOpaque
-    implements StopNavigationCommand {
-  // Not to be used by end users
-  StopNavigationCommandImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  StopNavigationCommandImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_StopNavigationCommand,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_StopNavigationCommand,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_StopNavigationCommandPtr,
-  );
-
-  bool get completed => RustBridge.instance.api
-      .crateApplicationCommandsStopNavigationCommandAutoAccessorGetCompleted(
-        that: this,
-      );
-
-  UuidValue get sessionId => RustBridge.instance.api
-      .crateApplicationCommandsStopNavigationCommandAutoAccessorGetSessionId(
-        that: this,
-      );
-
-  set completed(bool completed) => RustBridge.instance.api
-      .crateApplicationCommandsStopNavigationCommandAutoAccessorSetCompleted(
-        that: this,
-        completed: completed,
-      );
-
-  set sessionId(UuidValue sessionId) => RustBridge.instance.api
-      .crateApplicationCommandsStopNavigationCommandAutoAccessorSetSessionId(
-        that: this,
-        sessionId: sessionId,
-      );
-}
-
-@sealed
-class StopNavigationHandlerImpl extends RustOpaque
-    implements StopNavigationHandler {
-  // Not to be used by end users
-  StopNavigationHandlerImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  StopNavigationHandlerImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_StopNavigationHandler,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_StopNavigationHandler,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_StopNavigationHandlerPtr,
-  );
-
-  Future<void> handle({required StopNavigationCommand command}) => RustBridge
-      .instance
-      .api
-      .crateApplicationHandlersStopNavigationHandlerHandle(
-        that: this,
-        command: command,
-      );
 }
 
 @sealed
@@ -16070,9 +9888,6 @@ class TrafficAlertDetectedEventImpl extends RustOpaque
         .api
         .rust_arc_decrement_strong_count_TrafficAlertDetectedEventPtr,
   );
-
-  Future<UuidValue> aggregateId() => RustBridge.instance.api
-      .crateDomainEventsTrafficAlertDetectedEventAggregateId(that: this);
 
   UuidValue get eventId => RustBridge.instance.api
       .crateDomainEventsTrafficAlertDetectedEventAutoAccessorGetEventId(
@@ -16117,12 +9932,6 @@ class TrafficAlertDetectedEventImpl extends RustOpaque
         that: this,
         trafficEvent: trafficEvent,
       );
-
-  Future<UuidValue> eventId() => RustBridge.instance.api
-      .crateDomainEventsTrafficAlertDetectedEventEventId(that: this);
-
-  Future<DateTime> occurredAt() => RustBridge.instance.api
-      .crateDomainEventsTrafficAlertDetectedEventOccurredAt(that: this);
 }
 
 @sealed
@@ -16208,94 +10017,6 @@ class TrafficEventImpl extends RustOpaque implements TrafficEvent {
 }
 
 @sealed
-class UpdatePositionCommandImpl extends RustOpaque
-    implements UpdatePositionCommand {
-  // Not to be used by end users
-  UpdatePositionCommandImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  UpdatePositionCommandImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_UpdatePositionCommand,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_UpdatePositionCommand,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_UpdatePositionCommandPtr,
-  );
-
-  Position get position => RustBridge.instance.api
-      .crateApplicationCommandsUpdatePositionCommandAutoAccessorGetPosition(
-        that: this,
-      );
-
-  UuidValue get sessionId => RustBridge.instance.api
-      .crateApplicationCommandsUpdatePositionCommandAutoAccessorGetSessionId(
-        that: this,
-      );
-
-  set position(Position position) => RustBridge.instance.api
-      .crateApplicationCommandsUpdatePositionCommandAutoAccessorSetPosition(
-        that: this,
-        position: position,
-      );
-
-  set sessionId(UuidValue sessionId) => RustBridge.instance.api
-      .crateApplicationCommandsUpdatePositionCommandAutoAccessorSetSessionId(
-        that: this,
-        sessionId: sessionId,
-      );
-}
-
-@sealed
-class UpdatePositionHandlerImpl extends RustOpaque
-    implements UpdatePositionHandler {
-  // Not to be used by end users
-  UpdatePositionHandlerImpl.frbInternalDcoDecode(List<dynamic> wire)
-    : super.frbInternalDcoDecode(wire, _kStaticData);
-
-  // Not to be used by end users
-  UpdatePositionHandlerImpl.frbInternalSseDecode(
-    BigInt ptr,
-    int externalSizeOnNative,
-  ) : super.frbInternalSseDecode(ptr, externalSizeOnNative, _kStaticData);
-
-  static final _kStaticData = RustArcStaticData(
-    rustArcIncrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_increment_strong_count_UpdatePositionHandler,
-    rustArcDecrementStrongCount: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_UpdatePositionHandler,
-    rustArcDecrementStrongCountPtr: RustBridge
-        .instance
-        .api
-        .rust_arc_decrement_strong_count_UpdatePositionHandlerPtr,
-  );
-
-  Future<void> handle({required UpdatePositionCommand command}) => RustBridge
-      .instance
-      .api
-      .crateApplicationHandlersUpdatePositionHandlerHandle(
-        that: this,
-        command: command,
-      );
-}
-
-@sealed
 class WaypointReachedEventImpl extends RustOpaque
     implements WaypointReachedEvent {
   // Not to be used by end users
@@ -16322,9 +10043,6 @@ class WaypointReachedEventImpl extends RustOpaque
         .api
         .rust_arc_decrement_strong_count_WaypointReachedEventPtr,
   );
-
-  Future<UuidValue> aggregateId() => RustBridge.instance.api
-      .crateDomainEventsWaypointReachedEventAggregateId(that: this);
 
   UuidValue get eventId => RustBridge.instance.api
       .crateDomainEventsWaypointReachedEventAutoAccessorGetEventId(that: this);
@@ -16376,10 +10094,4 @@ class WaypointReachedEventImpl extends RustOpaque
         that: this,
         waypointIndex: waypointIndex,
       );
-
-  Future<UuidValue> eventId() => RustBridge.instance.api
-      .crateDomainEventsWaypointReachedEventEventId(that: this);
-
-  Future<DateTime> occurredAt() => RustBridge.instance.api
-      .crateDomainEventsWaypointReachedEventOccurredAt(that: this);
 }

@@ -8,14 +8,11 @@ import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/extensions/geocoding_to_saved.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
 
-import 'package:nav_e/features/home/widgets/bottom_navigation_bar.dart'
-    show BottomNavigationBarWidget;
 import 'package:nav_e/features/location_preview/location_preview_widget.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.dart';
-import 'package:nav_e/features/home/widgets/search_overlay_widget.dart'
-    show SearchOverlayWidget;
+import 'package:nav_e/features/home/widgets/bottom_search_bar_widget.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
 import 'package:nav_e/features/map_layers/presentation/utils/map_helpers.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
@@ -24,7 +21,6 @@ import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart'
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/saved_places/utils/saved_places_utils.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
-import 'package:nav_e/widgets/side_menu_drawer.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({
@@ -194,19 +190,6 @@ class _HomeViewState extends State<HomeView> {
                   extraMarkers: markers,
                 ),
 
-                SearchOverlayWidget(
-                  onResultSelected: (r) {
-                    FocusScope.of(context).unfocus();
-                    AppNav.homeWithCoords(
-                      lat: r.lat,
-                      lon: r.lon,
-                      label: r.displayName,
-                      placeId: r.id,
-                      zoom: 14,
-                    );
-                  },
-                ),
-
                 RecenterFAB(mapController: _mapController),
                 RotateNorthFAB(mapController: _mapController),
                 MapControlsFAB(),
@@ -245,13 +228,24 @@ class _HomeViewState extends State<HomeView> {
                       }
                     },
                   ),
+
+                BottomSearchBarWidget(
+                  onResultSelected: (r) {
+                    FocusScope.of(context).unfocus();
+                    AppNav.homeWithCoords(
+                      lat: r.lat,
+                      lon: r.lon,
+                      label: r.displayName,
+                      placeId: r.id,
+                      zoom: 14,
+                    );
+                  },
+                ),
               ],
             );
           },
         ),
       ),
-      drawer: const SideMenuDrawerWidget(),
-      bottomNavigationBar: const BottomNavigationBarWidget(),
     );
   }
 }

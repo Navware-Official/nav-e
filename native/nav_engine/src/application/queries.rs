@@ -5,46 +5,52 @@ use uuid::Uuid;
 
 /// Get active navigation session
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(ignore)]
 pub struct GetActiveSessionQuery {}
 
 /// Get navigation session by ID
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[frb(opaque)]
+#[frb(ignore)]
 pub struct GetSessionQuery {
     pub session_id: Uuid,
 }
 
 /// Get connected devices
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(ignore)]
 pub struct GetConnectedDevicesQuery {}
 
 /// Get device by ID
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(ignore)]
 pub struct GetDeviceQuery {
     pub device_id: String,
 }
 
 /// Get traffic alerts for current route
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[frb(opaque)]
+#[frb(ignore)]
 pub struct GetTrafficAlertsQuery {
     pub session_id: Uuid,
 }
 
 /// Calculate route without starting navigation
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(ignore)]
 pub struct CalculateRouteQuery {
     pub waypoints: Vec<crate::domain::value_objects::Position>,
 }
 
 /// Geocode an address
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(ignore)]
 pub struct GeocodeQuery {
     pub address: String,
 }
 
 /// Reverse geocode a position
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[frb(ignore)]
 pub struct ReverseGeocodeQuery {
     pub position: crate::domain::value_objects::Position,
 }

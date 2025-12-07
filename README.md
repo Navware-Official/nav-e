@@ -11,6 +11,8 @@
 
 nav-e is a feature-rich navigation application built with Flutter that combines GPS tracking, Bluetooth device management, interactive mapping, and intelligent route planning. Designed for modern navigation needs, it provides a seamless experience across multiple platforms while maintaining high performance and reliability.
 
+📚 **[Complete Documentation](docs/README.md)** - Architecture, development guides, and API references
+
 ## Releases
 
 ### 📦 Download & Installation

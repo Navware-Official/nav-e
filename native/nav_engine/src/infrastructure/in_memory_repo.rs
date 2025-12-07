@@ -2,11 +2,13 @@
 use crate::domain::{entities::NavigationSession, ports::NavigationRepository};
 use anyhow::Result;
 use async_trait::async_trait;
+use flutter_rust_bridge::frb;
 use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
+#[frb(ignore)]
 pub struct InMemoryNavigationRepository {
     sessions: Arc<RwLock<HashMap<Uuid, NavigationSession>>>,
 }

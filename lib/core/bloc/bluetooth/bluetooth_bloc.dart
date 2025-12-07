@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:nav_e/core/data/local/database_helper.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -15,8 +13,7 @@ part 'bluetooth_state.dart';
 final navwareBluetoothServiceUUIDs = <Guid>[Guid("6e400001-b5a3-f393-e0a9-e50e24dcca9e")];
 
 class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
-  final DatabaseHelper databaseHelper;
-  BluetoothBloc(this.databaseHelper) : super(BluetoothInitial()) {
+  BluetoothBloc() : super(BluetoothInitial()) {
     on<CheckBluetoothRequirements>(_checkBluetoothSupport);
     on<StartScanning>(_startScanning);
     on<InitiateConnectionCheck>(_awaitConnectionCheck);

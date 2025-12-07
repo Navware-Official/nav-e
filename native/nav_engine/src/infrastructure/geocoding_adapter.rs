@@ -2,7 +2,9 @@
 use crate::domain::{ports::GeocodingService, value_objects::Position};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
+use flutter_rust_bridge::frb;
 
+#[frb(ignore)]
 pub struct PhotonGeocodingService {
     base_url: String,
     client: reqwest::Client,

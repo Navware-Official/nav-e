@@ -40,10 +40,7 @@ abstract class DeviceConnectedEvent implements RustOpaqueInterface {
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NavigationCompletedEvent>>
-abstract class NavigationCompletedEvent
-    implements RustOpaqueInterface, DomainEvent {
-  Future<UuidValue> aggregateId();
-
+abstract class NavigationCompletedEvent implements RustOpaqueInterface {
   UuidValue get eventId;
 
   DateTime get occurredAt;
@@ -64,8 +61,6 @@ abstract class NavigationCompletedEvent
 
   set totalDurationSeconds(int totalDurationSeconds);
 
-  Future<UuidValue> eventId();
-
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<NavigationCompletedEvent> newInstance({
     required UuidValue sessionId,
@@ -76,15 +71,10 @@ abstract class NavigationCompletedEvent
     totalDistanceMeters: totalDistanceMeters,
     totalDurationSeconds: totalDurationSeconds,
   );
-
-  Future<DateTime> occurredAt();
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<NavigationStartedEvent>>
-abstract class NavigationStartedEvent
-    implements RustOpaqueInterface, DomainEvent {
-  Future<UuidValue> aggregateId();
-
+abstract class NavigationStartedEvent implements RustOpaqueInterface {
   UuidValue get eventId;
 
   DateTime get occurredAt;
@@ -101,8 +91,6 @@ abstract class NavigationStartedEvent
 
   set sessionId(UuidValue sessionId);
 
-  Future<UuidValue> eventId();
-
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<NavigationStartedEvent> newInstance({
     required UuidValue sessionId,
@@ -111,15 +99,10 @@ abstract class NavigationStartedEvent
     sessionId: sessionId,
     routeId: routeId,
   );
-
-  Future<DateTime> occurredAt();
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<PositionUpdatedEvent>>
-abstract class PositionUpdatedEvent
-    implements RustOpaqueInterface, DomainEvent {
-  Future<UuidValue> aggregateId();
-
+abstract class PositionUpdatedEvent implements RustOpaqueInterface {
   UuidValue get eventId;
 
   DateTime get occurredAt;
@@ -136,8 +119,6 @@ abstract class PositionUpdatedEvent
 
   set sessionId(UuidValue sessionId);
 
-  Future<UuidValue> eventId();
-
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<PositionUpdatedEvent> newInstance({
     required UuidValue sessionId,
@@ -146,15 +127,10 @@ abstract class PositionUpdatedEvent
     sessionId: sessionId,
     position: position,
   );
-
-  Future<DateTime> occurredAt();
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TrafficAlertDetectedEvent>>
-abstract class TrafficAlertDetectedEvent
-    implements RustOpaqueInterface, DomainEvent {
-  Future<UuidValue> aggregateId();
-
+abstract class TrafficAlertDetectedEvent implements RustOpaqueInterface {
   UuidValue get eventId;
 
   DateTime get occurredAt;
@@ -171,8 +147,6 @@ abstract class TrafficAlertDetectedEvent
 
   set trafficEvent(TrafficEvent trafficEvent);
 
-  Future<UuidValue> eventId();
-
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<TrafficAlertDetectedEvent> newInstance({
     required UuidValue sessionId,
@@ -181,15 +155,10 @@ abstract class TrafficAlertDetectedEvent
     sessionId: sessionId,
     trafficEvent: trafficEvent,
   );
-
-  Future<DateTime> occurredAt();
 }
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<WaypointReachedEvent>>
-abstract class WaypointReachedEvent
-    implements RustOpaqueInterface, DomainEvent {
-  Future<UuidValue> aggregateId();
-
+abstract class WaypointReachedEvent implements RustOpaqueInterface {
   UuidValue get eventId;
 
   DateTime get occurredAt;
@@ -210,8 +179,6 @@ abstract class WaypointReachedEvent
 
   set waypointIndex(BigInt waypointIndex);
 
-  Future<UuidValue> eventId();
-
   // HINT: Make it `#[frb(sync)]` to let it become the default constructor of Dart class.
   static Future<WaypointReachedEvent> newInstance({
     required UuidValue sessionId,
@@ -222,8 +189,6 @@ abstract class WaypointReachedEvent
     waypointIndex: waypointIndex,
     position: position,
   );
-
-  Future<DateTime> occurredAt();
 }
 
 abstract class DomainEvent {
