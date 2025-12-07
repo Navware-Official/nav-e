@@ -33,12 +33,10 @@ class DevicesBloc extends Bloc<DevicesEvent, DevicesState> {
 
     try {
       // Check if device with same remote ID already exists
-      if (event.device.remoteId != null) {
-        final exists = await deviceRepository.existsByRemoteId(event.device.remoteId!);
-        if (exists) {
-          emit(const DeviceOperationFailure("Device with this remote ID already exists"));
-          return;
-        }
+      final exists = await deviceRepository.existsByRemoteId(event.device.remoteId);
+      if (exists) {
+        emit(const DeviceOperationFailure("Device with this remote ID already exists"));
+        return;
       }
 
       final id = await deviceRepository.insert(event.device);

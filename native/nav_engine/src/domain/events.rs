@@ -17,9 +17,13 @@ pub trait DomainEvent: Send + Sync {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
 pub struct NavigationStartedEvent {
+    #[frb(sync)]
     pub event_id: Uuid,
+    #[frb(sync)]
     pub session_id: Uuid,
+    #[frb(sync)]
     pub route_id: Uuid,
+    #[frb(sync)]
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -34,19 +38,16 @@ impl NavigationStartedEvent {
     }
 }
 
-impl DomainEvent for NavigationStartedEvent {
-    fn event_id(&self) -> Uuid { self.event_id }
-    fn occurred_at(&self) -> DateTime<Utc> { self.occurred_at }
-    fn aggregate_id(&self) -> Uuid { self.session_id }
-}
-
 /// Position was updated during navigation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
 pub struct PositionUpdatedEvent {
+    #[frb(sync)]
     pub event_id: Uuid,
+    #[frb(sync)]
     pub session_id: Uuid,
     pub position: Position,
+    #[frb(sync)]
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -61,20 +62,17 @@ impl PositionUpdatedEvent {
     }
 }
 
-impl DomainEvent for PositionUpdatedEvent {
-    fn event_id(&self) -> Uuid { self.event_id }
-    fn occurred_at(&self) -> DateTime<Utc> { self.occurred_at }
-    fn aggregate_id(&self) -> Uuid { self.session_id }
-}
-
 /// Waypoint reached
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
 pub struct WaypointReachedEvent {
+    #[frb(sync)]
     pub event_id: Uuid,
+    #[frb(sync)]
     pub session_id: Uuid,
     pub waypoint_index: usize,
     pub position: Position,
+    #[frb(sync)]
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -90,20 +88,17 @@ impl WaypointReachedEvent {
     }
 }
 
-impl DomainEvent for WaypointReachedEvent {
-    fn event_id(&self) -> Uuid { self.event_id }
-    fn occurred_at(&self) -> DateTime<Utc> { self.occurred_at }
-    fn aggregate_id(&self) -> Uuid { self.session_id }
-}
-
 /// Navigation completed
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
 pub struct NavigationCompletedEvent {
+    #[frb(sync)]
     pub event_id: Uuid,
+    #[frb(sync)]
     pub session_id: Uuid,
     pub total_distance_meters: f64,
     pub total_duration_seconds: u32,
+    #[frb(sync)]
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -119,19 +114,15 @@ impl NavigationCompletedEvent {
     }
 }
 
-impl DomainEvent for NavigationCompletedEvent {
-    fn event_id(&self) -> Uuid { self.event_id }
-    fn occurred_at(&self) -> DateTime<Utc> { self.occurred_at }
-    fn aggregate_id(&self) -> Uuid { self.session_id }
-}
-
 /// Device connected
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
 pub struct DeviceConnectedEvent {
+    #[frb(sync)]
     pub event_id: Uuid,
     pub device_id: String,
     pub device_type: DeviceType,
+    #[frb(sync)]
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -150,9 +141,12 @@ impl DeviceConnectedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[frb(opaque)]
 pub struct TrafficAlertDetectedEvent {
+    #[frb(sync)]
     pub event_id: Uuid,
+    #[frb(sync)]
     pub session_id: Uuid,
     pub traffic_event: TrafficEvent,
+    #[frb(sync)]
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -165,10 +159,4 @@ impl TrafficAlertDetectedEvent {
             occurred_at: Utc::now(),
         }
     }
-}
-
-impl DomainEvent for TrafficAlertDetectedEvent {
-    fn event_id(&self) -> Uuid { self.event_id }
-    fn occurred_at(&self) -> DateTime<Utc> { self.occurred_at }
-    fn aggregate_id(&self) -> Uuid { self.session_id }
 }

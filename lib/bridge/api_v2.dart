@@ -6,7 +6,7 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-// These functions are ignored because they are not marked as `pub`: `get_context`, `route_to_dto`, `session_to_dto`
+// These functions are ignored because they are not marked as `pub`: `get_context`, `get_db_path`, `route_to_dto`, `session_to_dto`
 // These functions are ignored because they have generic arguments: `send_control_command`, `send_position_update`, `send_route_blob`, `send_route_summary`, `send_traffic_alert`
 // These types are ignored because they are neither used by any `pub` functions nor (for structs and enums) marked `#[frb(unignore)]`: `GeocodingResultDto`, `MockDeviceComm`, `NavigationSessionDto`, `RouteDto`, `WaypointDto`
 // These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `clone`, `clone`, `clone`, `fmt`, `fmt`, `fmt`, `fmt`
@@ -68,6 +68,69 @@ Future<String> reverseGeocode({
   latitude: latitude,
   longitude: longitude,
 );
+
+/// Get all saved places as JSON array
+String getAllSavedPlaces() =>
+    RustBridge.instance.api.crateApiV2GetAllSavedPlaces();
+
+/// Get a saved place by ID as JSON object
+String getSavedPlaceById({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateApiV2GetSavedPlaceById(id: id);
+
+/// Save a new place and return the assigned ID
+PlatformInt64 savePlace({
+  required String name,
+  String? address,
+  required double lat,
+  required double lon,
+  String? source,
+  PlatformInt64? typeId,
+  String? remoteId,
+}) => RustBridge.instance.api.crateApiV2SavePlace(
+  name: name,
+  address: address,
+  lat: lat,
+  lon: lon,
+  source: source,
+  typeId: typeId,
+  remoteId: remoteId,
+);
+
+/// Delete a saved place by ID
+void deleteSavedPlace({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateApiV2DeleteSavedPlace(id: id);
+
+/// Get all devices as JSON array
+String getAllDevices() => RustBridge.instance.api.crateApiV2GetAllDevices();
+
+/// Get a device by ID as JSON object
+String getDeviceById({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateApiV2GetDeviceById(id: id);
+
+/// Get a device by remote ID as JSON object
+String getDeviceByRemoteId({required String remoteId}) =>
+    RustBridge.instance.api.crateApiV2GetDeviceByRemoteId(remoteId: remoteId);
+
+/// Save a new device from JSON and return the assigned ID
+PlatformInt64 saveDevice({required String deviceJson}) =>
+    RustBridge.instance.api.crateApiV2SaveDevice(deviceJson: deviceJson);
+
+/// Update an existing device from JSON
+void updateDevice({required PlatformInt64 id, required String deviceJson}) =>
+    RustBridge.instance.api.crateApiV2UpdateDevice(
+      id: id,
+      deviceJson: deviceJson,
+    );
+
+/// Delete a device by ID
+void deleteDevice({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateApiV2DeleteDevice(id: id);
+
+/// Check if a device exists by remote ID
+bool deviceExistsByRemoteId({required String remoteId}) => RustBridge
+    .instance
+    .api
+    .crateApiV2DeviceExistsByRemoteId(remoteId: remoteId);
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<AppContext>>
 abstract class AppContext implements RustOpaqueInterface {

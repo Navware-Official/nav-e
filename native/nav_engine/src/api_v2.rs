@@ -14,6 +14,7 @@ use crate::infrastructure::{
     geocoding_adapter::PhotonGeocodingService,
     in_memory_repo::InMemoryNavigationRepository,
     osrm_adapter::OsrmRouteService,
+    database::{Database, SavedPlacesRepository, DeviceRepository, SavedPlace, Device},
 };
 
 // Re-export traits for frb_generated.rs
@@ -57,6 +58,11 @@ pub struct GeocodingResultDto {
     pub latitude: f64,
     pub longitude: f64,
     pub display_name: String,
+    pub name: Option<String>,
+    pub city: Option<String>,
+    pub country: Option<String>,
+    pub osm_type: Option<String>,
+    pub osm_id: Option<i64>,
 }
 
 // ============================================================================
@@ -67,10 +73,20 @@ pub struct AppContext {
     pub route_service: Arc<dyn RouteService>,
     pub geocoding_service: Arc<dyn GeocodingService>,
     pub navigation_repo: Arc<dyn NavigationRepository>,
+    #[frb(ignore)]
+    pub saved_places_repo: SavedPlacesRepository,
+    #[frb(ignore)]
+    pub device_repo: DeviceRepository,
 }
 
 impl AppContext {
     pub fn new() -> Self {
+        // Initialize database
+        let db_path = Self::get_db_path();
+        let db = Database::new(db_path)
+            .expect("Failed to initialize database");
+        let db_conn = db.get_connection();
+        
         Self {
             route_service: Arc::new(OsrmRouteService::new(
                 "https://router.project-osrm.org".to_string(),
@@ -79,6 +95,30 @@ impl AppContext {
                 "https://photon.komoot.io".to_string(),
             )),
             navigation_repo: Arc::new(InMemoryNavigationRepository::new()),
+            saved_places_repo: SavedPlacesRepository::new(Arc::clone(&db_conn)),
+            device_repo: DeviceRepository::new(db_conn),
+        }
+    }
+    
+    fn get_db_path() -> std::path::PathBuf {
+        // Get app data directory - this will be platform-specific
+        #[cfg(target_os = "android")]
+        {
+            // On Android, use the app's internal storage
+            std::path::PathBuf::from("/data/data/org.navware.nav_e/databases/nav_e.db")
+        }
+        
+        #[cfg(target_os = "ios")]
+        {
+            // On iOS, use the Documents directory
+            let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_string());
+            std::path::PathBuf::from(format!("{}/Documents/nav_e.db", home))
+        }
+        
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            // For desktop/testing, use current directory
+            std::path::PathBuf::from("nav_e.db")
         }
     }
 }
@@ -278,19 +318,73 @@ pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
         .build()?;
 
     rt.block_on(async {
-        let ctx = get_context();
-        let handler = GeocodeHandler::new(ctx.geocoding_service.clone());
+        // Call Photon API directly to get rich results
+        let url = format!(
+            "https://photon.komoot.io/api?q={}&limit={}",
+            urlencoding::encode(&query),
+            limit.unwrap_or(10)
+        );
 
-        let geocode_query = GeocodeQuery { address: query };
-        let positions = handler.handle(geocode_query).await?;
+        let client = reqwest::Client::new();
+        let response = client
+            .get(&url)
+            .send()
+            .await
+            .context("Failed to send geocoding request")?;
 
-        let results: Vec<GeocodingResultDto> = positions
-            .into_iter()
-            .take(limit.unwrap_or(10) as usize)
-            .map(|pos| GeocodingResultDto {
-                latitude: pos.latitude,
-                longitude: pos.longitude,
-                display_name: format!("{:.4}, {:.4}", pos.latitude, pos.longitude),
+        let data: serde_json::Value = response
+            .json()
+            .await
+            .context("Failed to parse geocoding response")?;
+
+        let features = data["features"]
+            .as_array()
+            .context("No features in response")?;
+
+        let results: Vec<GeocodingResultDto> = features
+            .iter()
+            .filter_map(|feature| {
+                let coords = feature["geometry"]["coordinates"].as_array()?;
+                let lon = coords.first()?.as_f64()?;
+                let lat = coords.get(1)?.as_f64()?;
+                
+                let props = &feature["properties"];
+                let name = props["name"].as_str().map(|s| s.to_string());
+                let city = props["city"].as_str().map(|s| s.to_string());
+                let country = props["country"].as_str().map(|s| s.to_string());
+                let osm_type = props["osm_type"].as_str().map(|s| s.to_string());
+                let osm_id = props["osm_id"].as_i64();
+                
+                // Build display name from properties
+                let mut parts = Vec::new();
+                if let Some(n) = props["name"].as_str() {
+                    parts.push(n.to_string());
+                }
+                if let Some(s) = props["street"].as_str() {
+                    parts.push(s.to_string());
+                }
+                if let Some(c) = props["city"].as_str() {
+                    parts.push(c.to_string());
+                }
+                if let Some(co) = props["country"].as_str() {
+                    parts.push(co.to_string());
+                }
+                let display_name = if parts.is_empty() {
+                    format!("{:.4}, {:.4}", lat, lon)
+                } else {
+                    parts.join(", ")
+                };
+
+                Some(GeocodingResultDto {
+                    latitude: lat,
+                    longitude: lon,
+                    display_name,
+                    name,
+                    city,
+                    country,
+                    osm_type,
+                    osm_id,
+                })
             })
             .collect();
 
@@ -386,4 +480,136 @@ impl DeviceCommunicationPort for MockDeviceComm {
     async fn send_control_command(&self, _device_id: String, _command: ControlCommand) -> Result<()> {
         Ok(())
     }
+}
+
+// ============================================================================
+// Saved Places APIs
+// ============================================================================
+
+/// Get all saved places as JSON array
+#[frb(sync)]
+pub fn get_all_saved_places() -> Result<String> {
+    let ctx = get_context();
+    let places = ctx.saved_places_repo.get_all()?;
+    let json = serde_json::to_string(&places)?;
+    Ok(json)
+}
+
+/// Get a saved place by ID as JSON object
+#[frb(sync)]
+pub fn get_saved_place_by_id(id: i64) -> Result<String> {
+    let ctx = get_context();
+    let place = ctx.saved_places_repo.get_by_id(id)?;
+    let json = serde_json::to_string(&place)?;
+    Ok(json)
+}
+
+/// Save a new place and return the assigned ID
+#[frb(sync)]
+pub fn save_place(
+    name: String,
+    address: Option<String>,
+    lat: f64,
+    lon: f64,
+    source: Option<String>,
+    type_id: Option<i64>,
+    remote_id: Option<String>,
+) -> Result<i64> {
+    let ctx = get_context();
+    let now = chrono::Utc::now().timestamp_millis();
+    
+    let place = SavedPlace {
+        id: None,
+        type_id,
+        source: source.unwrap_or_else(|| "manual".to_string()),
+        remote_id,
+        name,
+        address,
+        lat,
+        lon,
+        created_at: now,
+    };
+    
+    let id = ctx.saved_places_repo.insert(place)?;
+    Ok(id)
+}
+
+/// Delete a saved place by ID
+#[frb(sync)]
+pub fn delete_saved_place(id: i64) -> Result<()> {
+    let ctx = get_context();
+    ctx.saved_places_repo.delete(id)?;
+    Ok(())
+}
+
+// ============================================================================
+// Device Management APIs
+// ============================================================================
+
+/// Get all devices as JSON array
+#[frb(sync)]
+pub fn get_all_devices() -> Result<String> {
+    let ctx = get_context();
+    let devices = ctx.device_repo.get_all()?;
+    let json = serde_json::to_string(&devices)?;
+    Ok(json)
+}
+
+/// Get a device by ID as JSON object
+#[frb(sync)]
+pub fn get_device_by_id(id: i64) -> Result<String> {
+    let ctx = get_context();
+    let device = ctx.device_repo.get_by_id(id)?;
+    let json = serde_json::to_string(&device)?;
+    Ok(json)
+}
+
+/// Get a device by remote ID as JSON object
+#[frb(sync)]
+pub fn get_device_by_remote_id(remote_id: String) -> Result<String> {
+    let ctx = get_context();
+    let device = ctx.device_repo.get_by_remote_id(&remote_id)?;
+    let json = serde_json::to_string(&device)?;
+    Ok(json)
+}
+
+/// Save a new device from JSON and return the assigned ID
+#[frb(sync)]
+pub fn save_device(device_json: String) -> Result<i64> {
+    let ctx = get_context();
+    let mut device: Device = serde_json::from_str(&device_json)?;
+    let now = chrono::Utc::now().timestamp_millis();
+    device.created_at = now;
+    device.updated_at = now;
+    device.id = None; // Ensure no ID for insert
+    
+    let id = ctx.device_repo.insert(device)?;
+    Ok(id)
+}
+
+/// Update an existing device from JSON
+#[frb(sync)]
+pub fn update_device(id: i64, device_json: String) -> Result<()> {
+    let ctx = get_context();
+    let mut device: Device = serde_json::from_str(&device_json)?;
+    device.updated_at = chrono::Utc::now().timestamp_millis();
+    
+    ctx.device_repo.update(id, device)?;
+    Ok(())
+}
+
+/// Delete a device by ID
+#[frb(sync)]
+pub fn delete_device(id: i64) -> Result<()> {
+    let ctx = get_context();
+    ctx.device_repo.delete(id)?;
+    Ok(())
+}
+
+/// Check if a device exists by remote ID
+#[frb(sync)]
+pub fn device_exists_by_remote_id(remote_id: String) -> Result<bool> {
+    let ctx = get_context();
+    let exists = ctx.device_repo.exists_by_remote_id(&remote_id)?;
+    Ok(exists)
 }

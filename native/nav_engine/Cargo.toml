@@ -24,6 +24,7 @@ uuid = { version = "1", features = ["v4", "serde"] }
 async-trait = "0.1"
 sha2 = "0.10"
 device_comm = { path = "../device_comm" }
+rusqlite = { version = "0.32", features = ["bundled"] }
 
 [build-dependencies]
 prost-build = "0.13"

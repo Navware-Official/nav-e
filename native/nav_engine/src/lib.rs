@@ -4,15 +4,18 @@ pub mod domain;
 pub(crate) mod application;  // Internal - CQRS layer
 pub(crate) mod infrastructure;  // Internal - adapters
 
-// Re-export commonly used types for frb_generated.rs
-pub use std::sync::Mutex;
-pub use domain::ports::{
+// Private module - database migrations (not exposed via FFI)
+mod migrations;
+
+// Re-export commonly used types for frb_generated.rs (internal use only)
+pub(crate) use std::sync::Mutex;
+pub(crate) use domain::ports::{
     DeviceCommunicationPort, 
     GeocodingService, 
     NavigationRepository, 
     RouteService,
 };
-pub use infrastructure::protobuf_adapter::DeviceTransport;
+pub(crate) use infrastructure::protobuf_adapter::DeviceTransport;
 
 // Modern API layer
 mod api_v2;

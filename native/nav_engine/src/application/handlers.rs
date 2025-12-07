@@ -3,10 +3,12 @@ use crate::application::{commands::*, queries::*};
 use crate::domain::{entities::*, events::*, ports::*, value_objects::*};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
+use flutter_rust_bridge::frb;
 use std::sync::Arc;
 use uuid::Uuid;
 
 /// Command handler for StartNavigationCommand
+#[frb(ignore)]
 pub struct StartNavigationHandler {
     route_service: Arc<dyn RouteService>,
     navigation_repo: Arc<dyn NavigationRepository>,
@@ -60,6 +62,7 @@ impl StartNavigationHandler {
 }
 
 /// Command handler for UpdatePositionCommand
+#[frb(ignore)]
 pub struct UpdatePositionHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
     device_comm: Arc<dyn DeviceCommunicationPort>,
@@ -111,6 +114,7 @@ impl UpdatePositionHandler {
 }
 
 /// Command handler for PauseNavigationCommand
+#[frb(ignore)]
 pub struct PauseNavigationHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -135,6 +139,7 @@ impl PauseNavigationHandler {
 }
 
 /// Command handler for ResumeNavigationCommand
+#[frb(ignore)]
 pub struct ResumeNavigationHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -159,6 +164,7 @@ impl ResumeNavigationHandler {
 }
 
 /// Command handler for StopNavigationCommand
+#[frb(ignore)]
 pub struct StopNavigationHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -194,6 +200,7 @@ impl StopNavigationHandler {
 }
 
 /// Query handler for GetActiveSessionQuery
+#[frb(ignore)]
 pub struct GetActiveSessionHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -209,6 +216,7 @@ impl GetActiveSessionHandler {
 }
 
 /// Query handler for CalculateRouteQuery
+#[frb(ignore)]
 pub struct CalculateRouteHandler {
     route_service: Arc<dyn RouteService>,
 }
@@ -224,6 +232,7 @@ impl CalculateRouteHandler {
 }
 
 /// Query handler for GeocodeQuery
+#[frb(ignore)]
 pub struct GeocodeHandler {
     geocoding_service: Arc<dyn GeocodingService>,
 }
@@ -239,6 +248,7 @@ impl GeocodeHandler {
 }
 
 /// Query handler for ReverseGeocodeQuery
+#[frb(ignore)]
 pub struct ReverseGeocodeHandler {
     geocoding_service: Arc<dyn GeocodingService>,
 }

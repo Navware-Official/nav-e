@@ -42,7 +42,7 @@ class _MapWidgetState extends State<MapWidget> {
   }
 
   void _ensureAdapter(MapState state) {
-    // Recreate adapter if preference changed or not yet created
+    // Recreate adapter if preference changed, source changed, or not yet created
     if (_adapter == null || _lastUseMapLibre != state.useMapLibre) {
       _adapter?.dispose();
       _adapter = MapAdapterFactory.create(
@@ -50,6 +50,9 @@ class _MapWidgetState extends State<MapWidget> {
         useMapLibre: state.useMapLibre,
       );
       _lastUseMapLibre = state.useMapLibre;
+      debugPrint(
+        '[MapWidget] Adapter recreated: useMapLibre=$_lastUseMapLibre',
+      );
     }
   }
 
@@ -64,8 +67,16 @@ class _MapWidgetState extends State<MapWidget> {
     final mapBloc = context.read<MapBloc>();
 
     return BlocConsumer<MapBloc, MapState>(
-      buildWhen: (prev, curr) => prev.useMapLibre != curr.useMapLibre || prev.source != curr.source || prev.isReady != curr.isReady,
-      listenWhen: (prev, curr) => curr.isReady && (prev.center != curr.center || prev.zoom != curr.zoom || prev.polylines != curr.polylines || curr.autoFit),
+      buildWhen: (prev, curr) =>
+          prev.useMapLibre != curr.useMapLibre ||
+          prev.source != curr.source ||
+          prev.isReady != curr.isReady,
+      listenWhen: (prev, curr) =>
+          curr.isReady &&
+          (prev.center != curr.center ||
+              prev.zoom != curr.zoom ||
+              prev.polylines != curr.polylines ||
+              curr.autoFit),
       listener: (context, state) {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!context.mounted) return;
@@ -97,7 +108,9 @@ class _MapWidgetState extends State<MapWidget> {
           } else if (state.followUser) {
             // Only move the camera to follow the user when followUser flag is true.
             // Use adapter instead of direct controller
-            if (_adapter != null && (_adapter!.currentCenter != state.center || _adapter!.currentZoom != state.zoom)) {
+            if (_adapter != null &&
+                (_adapter!.currentCenter != state.center ||
+                    _adapter!.currentZoom != state.zoom)) {
               _adapter!.moveCamera(state.center, state.zoom);
             }
           }
@@ -114,13 +127,14 @@ class _MapWidgetState extends State<MapWidget> {
         } else {
           _ensureAdapter(state);
         }
-        
+
         final src = state.source;
 
         // For legacy adapter, we still need to use the passed-in controller
         // This maintains backward compatibility
         if (_adapter is LegacyMapAdapter) {
           return RepaintBoundary(
+            key: const ValueKey('legacy_map'),
             child: FlutterMap(
               mapController: widget.mapController,
               options: MapOptions(
@@ -162,18 +176,22 @@ class _MapWidgetState extends State<MapWidget> {
                       src.queryParams ?? const {},
                     ),
                     tileProvider: NetworkTileProvider(
-                      headers: Map<String, String>.from(src.headers ?? const {}),
+                      headers: Map<String, String>.from(
+                        src.headers ?? const {},
+                      ),
                     ),
                   ),
                 if ((widget.polylines.isNotEmpty || state.polylines.isNotEmpty))
                   PolylineLayer(
                     polylines: [
                       ...widget.polylines,
-                      ...state.polylines.map((m) => Polyline(
-                            points: m.points,
-                            color: Color(m.colorArgb),
-                            strokeWidth: m.strokeWidth,
-                          )),
+                      ...state.polylines.map(
+                        (m) => Polyline(
+                          points: m.points,
+                          color: Color(m.colorArgb),
+                          strokeWidth: m.strokeWidth,
+                        ),
+                      ),
                     ],
                   ),
                 MarkerLayer(markers: widget.markers),
@@ -183,7 +201,9 @@ class _MapWidgetState extends State<MapWidget> {
                     child: Padding(
                       padding: const EdgeInsets.all(6),
                       child: RichAttributionWidget(
-                        attributions: [TextSourceAttribution(src!.attribution!)],
+                        attributions: [
+                          TextSourceAttribution(src!.attribution!),
+                        ],
                         alignment: AttributionAlignment.bottomRight,
                       ),
                     ),
@@ -197,29 +217,32 @@ class _MapWidgetState extends State<MapWidget> {
         if (_adapter == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        
-        return _adapter!.buildMap(
-          source: src,
-          center: state.center,
-          zoom: state.zoom,
-          markers: widget.markers.map((m) => m as Widget).toList(),
-          polylines: [...state.polylines],
-          onMapReady: () {
-            if (!state.isReady) {
-              mapBloc.add(MapInitialized());
-            }
-          },
-          onPositionChanged: (center, zoom) {
-            if (center != state.center || zoom != state.zoom) {
-              mapBloc.add(MapMoved(center, zoom));
-            }
-          },
-          onUserGesture: (hasGesture) {
-            if (hasGesture) {
-              mapBloc.add(ToggleFollowUser(false));
-            }
-          },
-          onMapTap: widget.onMapTap,
+
+        return KeyedSubtree(
+          key: const ValueKey('maplibre_map'),
+          child: _adapter!.buildMap(
+            source: src,
+            center: state.center,
+            zoom: state.zoom,
+            markers: widget.markers.map((m) => m as Widget).toList(),
+            polylines: [...state.polylines],
+            onMapReady: () {
+              if (!state.isReady) {
+                mapBloc.add(MapInitialized());
+              }
+            },
+            onPositionChanged: (center, zoom) {
+              if (center != state.center || zoom != state.zoom) {
+                mapBloc.add(MapMoved(center, zoom));
+              }
+            },
+            onUserGesture: (hasGesture) {
+              if (hasGesture) {
+                mapBloc.add(ToggleFollowUser(false));
+              }
+            },
+            onMapTap: widget.onMapTap,
+          ),
         );
       },
     );
