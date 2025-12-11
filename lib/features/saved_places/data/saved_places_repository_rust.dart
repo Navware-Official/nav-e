@@ -26,7 +26,6 @@ class SavedPlacesRepositoryRust implements ISavedPlacesRepository {
   @override
   Future<int> insert(SavedPlace place) async {
     try {
-      print('[DART SAVE] Attempting to save place: ${place.name}');
       final id = rust.savePlace(
         name: place.name,
         address: place.address,
@@ -36,11 +35,8 @@ class SavedPlacesRepositoryRust implements ISavedPlacesRepository {
         typeId: place.typeId,
         remoteId: place.remoteId,
       );
-      print('[DART SAVE] Successfully saved with ID: $id');
       return id;
-    } catch (e, stackTrace) {
-      print('[DART SAVE ERROR] Failed to save place: $e');
-      print('[DART SAVE ERROR] Stack trace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }
