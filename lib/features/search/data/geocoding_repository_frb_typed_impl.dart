@@ -10,18 +10,13 @@ class GeocodingRepositoryFrbTypedImpl implements IGeocodingRepository {
   @override
   Future<List<GeocodingResult>> search(String query, {int limit = 10}) async {
     // Use the new clean API that returns JSON with rich geocoding data
-    print('[DART GEOCODING] Searching for: "$query" with limit: $limit');
     
     try {
       final json = await rust.geocodeSearch(query: query, limit: limit);
-      print('[DART GEOCODING] Received JSON response length: ${json.length}');
-      print('[DART GEOCODING] JSON response: $json');
       
       final List<dynamic> results = jsonDecode(json);
-      print('[DART GEOCODING] Decoded ${results.length} results');
       
       if (results.isEmpty) {
-        print('[DART GEOCODING] WARNING: No results returned from Rust API');
         return [];
       }
     
@@ -57,9 +52,7 @@ class GeocodingRepositoryFrbTypedImpl implements IGeocodingRepository {
         address: null,
       );
     }).toList();
-    } catch (e, stackTrace) {
-      print('[DART GEOCODING ERROR] Exception occurred: $e');
-      print('[DART GEOCODING ERROR] Stack trace: $stackTrace');
+    } catch (e) {
       rethrow;
     }
   }

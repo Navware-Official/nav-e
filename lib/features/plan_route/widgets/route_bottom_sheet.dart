@@ -59,7 +59,7 @@ class RouteBottomSheet extends StatelessWidget {
                           width: 40,
                           height: 5,
                           decoration: BoxDecoration(
-                            color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
@@ -165,9 +165,9 @@ class RouteBottomSheet extends StatelessWidget {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: computing
-                                ? colorScheme.primaryContainer.withOpacity(0.3)
+                                ? colorScheme.primaryContainer.withValues(alpha: 0.3)
                                 : computeError != null
-                                    ? colorScheme.errorContainer.withOpacity(0.3)
+                                    ? colorScheme.errorContainer.withValues(alpha: 0.3)
                                     : routePoints.isNotEmpty
                                         ? Colors.green.shade50
                                         : colorScheme.surfaceContainerHighest,
@@ -354,7 +354,7 @@ class RouteBottomSheet extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: colorScheme.primaryContainer.withOpacity(0.3),
+                              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
                                 color: colorScheme.primaryContainer,
