@@ -61,3 +61,9 @@ native/nav_engine/src/frb_generated.web.rs
 **/native/**/*.dylib
 **/native/**/*.dll
 **/native/**/*.a
+**/native/**/target/**
+
+# Ignore generated Flutter Rust Bridge Dart files
+lib/bridge/**
+lib/bridge/**/*
+

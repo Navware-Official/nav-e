@@ -34,19 +34,6 @@ class BottomSearchBarWidget extends StatelessWidget {
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.language),
-              title: const Text('Language'),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Language settings are not implemented yet.'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              },
-            ),
-            ListTile(
               leading: const Icon(Icons.devices),
               title: const Text('Device Management'),
               onTap: () {
@@ -79,7 +66,7 @@ class BottomSearchBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      bottom: 16,
+      top: 26,
       left: 16,
       right: 16,
       child: Container(

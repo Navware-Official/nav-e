@@ -1,12 +1,11 @@
 // Domain Entities - Core business objects with identity
 use crate::domain::value_objects::*;
 use chrono::{DateTime, Utc};
-use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Represents an active navigation session
-#[frb(opaque)]
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NavigationSession {
     pub id: Uuid,
@@ -60,7 +59,7 @@ pub enum NavigationStatus {
 }
 
 /// Represents a route with waypoints
-#[frb(opaque)]
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Route {
     pub id: Uuid,
@@ -89,7 +88,7 @@ impl Route {
 }
 
 /// Device connected to the navigation system
-#[frb(opaque)]
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Device {
     pub id: String,
@@ -133,7 +132,7 @@ pub enum DeviceType {
 }
 
 /// Traffic alert affecting navigation
-#[frb(opaque)]
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TrafficEvent {
     pub id: Uuid,

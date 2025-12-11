@@ -120,10 +120,24 @@ class LegacyMapAdapter implements MapAdapter {
   }
 
   @override
-  LatLng get currentCenter => _controller.camera.center;
+  LatLng get currentCenter {
+    try {
+      return _controller.camera.center;
+    } catch (e) {
+      // Return default center if camera not ready
+      return LatLng(0, 0);
+    }
+  }
 
   @override
-  double get currentZoom => _controller.camera.zoom;
+  double get currentZoom {
+    try {
+      return _controller.camera.zoom;
+    } catch (e) {
+      // Return default zoom if camera not ready
+      return 13.0;
+    }
+  }
 
   @override
   bool supportsSource(MapSource source) {

@@ -1,14 +1,13 @@
 // Command and Query Handlers - Application logic
-use crate::application::{commands::*, queries::*};
+use crate::application::{commands::*, queries::*, traits::*};
 use crate::domain::{entities::*, events::*, ports::*, value_objects::*};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
-use flutter_rust_bridge::frb;
 use std::sync::Arc;
 use uuid::Uuid;
 
 /// Command handler for StartNavigationCommand
-#[frb(ignore)]
+
 pub struct StartNavigationHandler {
     route_service: Arc<dyn RouteService>,
     navigation_repo: Arc<dyn NavigationRepository>,
@@ -27,8 +26,11 @@ impl StartNavigationHandler {
             device_comm,
         }
     }
+}
 
-    pub async fn handle(&self, command: StartNavigationCommand) -> Result<NavigationSession> {
+#[async_trait]
+impl CommandHandler<StartNavigationCommand, NavigationSession> for StartNavigationHandler {
+    async fn handle(&self, command: StartNavigationCommand) -> Result<NavigationSession> {
         // Calculate route
         let route = self
             .route_service
@@ -62,7 +64,7 @@ impl StartNavigationHandler {
 }
 
 /// Command handler for UpdatePositionCommand
-#[frb(ignore)]
+
 pub struct UpdatePositionHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
     device_comm: Arc<dyn DeviceCommunicationPort>,
@@ -78,8 +80,11 @@ impl UpdatePositionHandler {
             device_comm,
         }
     }
+}
 
-    pub async fn handle(&self, command: UpdatePositionCommand) -> Result<()> {
+#[async_trait]
+impl CommandHandler<UpdatePositionCommand, ()> for UpdatePositionHandler {
+    async fn handle(&self, command: UpdatePositionCommand) -> Result<()> {
         // Load session
         let mut session = self
             .navigation_repo
@@ -114,7 +119,7 @@ impl UpdatePositionHandler {
 }
 
 /// Command handler for PauseNavigationCommand
-#[frb(ignore)]
+
 pub struct PauseNavigationHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -123,8 +128,11 @@ impl PauseNavigationHandler {
     pub fn new(navigation_repo: Arc<dyn NavigationRepository>) -> Self {
         Self { navigation_repo }
     }
+}
 
-    pub async fn handle(&self, command: PauseNavigationCommand) -> Result<()> {
+#[async_trait]
+impl CommandHandler<PauseNavigationCommand, ()> for PauseNavigationHandler {
+    async fn handle(&self, command: PauseNavigationCommand) -> Result<()> {
         let mut session = self
             .navigation_repo
             .load_session(command.session_id)
@@ -139,7 +147,7 @@ impl PauseNavigationHandler {
 }
 
 /// Command handler for ResumeNavigationCommand
-#[frb(ignore)]
+
 pub struct ResumeNavigationHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -148,8 +156,11 @@ impl ResumeNavigationHandler {
     pub fn new(navigation_repo: Arc<dyn NavigationRepository>) -> Self {
         Self { navigation_repo }
     }
+}
 
-    pub async fn handle(&self, command: ResumeNavigationCommand) -> Result<()> {
+#[async_trait]
+impl CommandHandler<ResumeNavigationCommand, ()> for ResumeNavigationHandler {
+    async fn handle(&self, command: ResumeNavigationCommand) -> Result<()> {
         let mut session = self
             .navigation_repo
             .load_session(command.session_id)
@@ -164,7 +175,7 @@ impl ResumeNavigationHandler {
 }
 
 /// Command handler for StopNavigationCommand
-#[frb(ignore)]
+
 pub struct StopNavigationHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -173,8 +184,11 @@ impl StopNavigationHandler {
     pub fn new(navigation_repo: Arc<dyn NavigationRepository>) -> Self {
         Self { navigation_repo }
     }
+}
 
-    pub async fn handle(&self, command: StopNavigationCommand) -> Result<()> {
+#[async_trait]
+impl CommandHandler<StopNavigationCommand, ()> for StopNavigationHandler {
+    async fn handle(&self, command: StopNavigationCommand) -> Result<()> {
         let mut session = self
             .navigation_repo
             .load_session(command.session_id)
@@ -200,7 +214,7 @@ impl StopNavigationHandler {
 }
 
 /// Query handler for GetActiveSessionQuery
-#[frb(ignore)]
+
 pub struct GetActiveSessionHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -209,14 +223,17 @@ impl GetActiveSessionHandler {
     pub fn new(navigation_repo: Arc<dyn NavigationRepository>) -> Self {
         Self { navigation_repo }
     }
+}
 
-    pub async fn handle(&self, _query: GetActiveSessionQuery) -> Result<Option<NavigationSession>> {
+#[async_trait]
+impl QueryHandler<GetActiveSessionQuery, Option<NavigationSession>> for GetActiveSessionHandler {
+    async fn handle(&self, _query: GetActiveSessionQuery) -> Result<Option<NavigationSession>> {
         self.navigation_repo.load_active_session().await
     }
 }
 
 /// Query handler for CalculateRouteQuery
-#[frb(ignore)]
+
 pub struct CalculateRouteHandler {
     route_service: Arc<dyn RouteService>,
 }
@@ -225,14 +242,17 @@ impl CalculateRouteHandler {
     pub fn new(route_service: Arc<dyn RouteService>) -> Self {
         Self { route_service }
     }
+}
 
-    pub async fn handle(&self, query: CalculateRouteQuery) -> Result<Route> {
+#[async_trait]
+impl QueryHandler<CalculateRouteQuery, Route> for CalculateRouteHandler {
+    async fn handle(&self, query: CalculateRouteQuery) -> Result<Route> {
         self.route_service.calculate_route(query.waypoints).await
     }
 }
 
 /// Query handler for GeocodeQuery
-#[frb(ignore)]
+
 pub struct GeocodeHandler {
     geocoding_service: Arc<dyn GeocodingService>,
 }
@@ -241,14 +261,17 @@ impl GeocodeHandler {
     pub fn new(geocoding_service: Arc<dyn GeocodingService>) -> Self {
         Self { geocoding_service }
     }
+}
 
-    pub async fn handle(&self, query: GeocodeQuery) -> Result<Vec<Position>> {
+#[async_trait]
+impl QueryHandler<GeocodeQuery, Vec<Position>> for GeocodeHandler {
+    async fn handle(&self, query: GeocodeQuery) -> Result<Vec<Position>> {
         self.geocoding_service.geocode(&query.address).await
     }
 }
 
 /// Query handler for ReverseGeocodeQuery
-#[frb(ignore)]
+
 pub struct ReverseGeocodeHandler {
     geocoding_service: Arc<dyn GeocodingService>,
 }
@@ -257,8 +280,11 @@ impl ReverseGeocodeHandler {
     pub fn new(geocoding_service: Arc<dyn GeocodingService>) -> Self {
         Self { geocoding_service }
     }
+}
 
-    pub async fn handle(&self, query: ReverseGeocodeQuery) -> Result<String> {
+#[async_trait]
+impl QueryHandler<ReverseGeocodeQuery, String> for ReverseGeocodeHandler {
+    async fn handle(&self, query: ReverseGeocodeQuery) -> Result<String> {
         self.geocoding_service.reverse_geocode(query.position).await
     }
 }

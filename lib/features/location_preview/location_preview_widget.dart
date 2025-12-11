@@ -139,12 +139,6 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                           const SizedBox(width: 8),
                           OutlinedButton.icon(
                             onPressed: () {
-                              // Navigate via the app router so deep links and
-                              // named routes work consistently.
-                                // Navigate via the app router so deep links and
-                                // named routes work consistently. Use a string
-                                // URL because some go_router versions don't
-                                // expose a queryParams parameter on pushNamed.
                                 final uri = Uri(
                                   path: '/plan-route',
                                   queryParameters: widget.route.toPathParams(),

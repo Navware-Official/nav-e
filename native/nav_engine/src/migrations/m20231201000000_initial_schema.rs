@@ -1,6 +1,5 @@
 use super::Migration;
 
-#[flutter_rust_bridge::frb(ignore)]
 pub struct InitialSchema {}
 
 impl Migration for InitialSchema {

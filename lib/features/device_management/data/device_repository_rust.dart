@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:nav_e/core/domain/repositories/device_repository.dart';
-import 'package:nav_e/bridge/api_v2.dart' as api;
+import 'package:nav_e/bridge/lib.dart' as rust;
 
 /// Rust-backed device repository
 /// All persistence logic is handled in Rust, this is a thin wrapper
 class DeviceRepositoryRust implements IDeviceRepository {
   @override
   Future<List<Device>> getAll() async {
-    final json = api.getAllDevices();
+    final json = rust.getAllDevices();
     final List<dynamic> data = jsonDecode(json);
     
     return data.map((item) => _fromRustJson(item)).toList();
@@ -16,7 +16,7 @@ class DeviceRepositoryRust implements IDeviceRepository {
 
   @override
   Future<Device?> getById(int id) async {
-    final json = api.getDeviceById(id: id);
+    final json = rust.getDeviceById(id: id);
     if (json == 'null') return null;
     
     final data = jsonDecode(json);
@@ -25,7 +25,7 @@ class DeviceRepositoryRust implements IDeviceRepository {
 
   @override
   Future<Device?> getByRemoteId(String remoteId) async {
-    final json = api.getDeviceByRemoteId(remoteId: remoteId);
+    final json = rust.getDeviceByRemoteId(remoteId: remoteId);
     if (json == 'null') return null;
     
     final data = jsonDecode(json);
@@ -35,7 +35,7 @@ class DeviceRepositoryRust implements IDeviceRepository {
   @override
   Future<int> insert(Device device) async {
     final deviceJson = jsonEncode(_toRustJson(device));
-    final id = api.saveDevice(deviceJson: deviceJson);
+    final id = rust.saveDevice(deviceJson: deviceJson);
     return id;
   }
 
@@ -46,19 +46,19 @@ class DeviceRepositoryRust implements IDeviceRepository {
     }
     
     final deviceJson = jsonEncode(_toRustJson(device));
-    api.updateDevice(id: device.id!, deviceJson: deviceJson);
+    rust.updateDevice(id: device.id!, deviceJson: deviceJson);
     return 1; // Assume success
   }
 
   @override
   Future<int> delete(int id) async {
-    api.deleteDevice(id: id);
+    rust.deleteDevice(id: id);
     return 1; // Assume success
   }
 
   @override
   Future<bool> existsByRemoteId(String remoteId) async {
-    return api.deviceExistsByRemoteId(remoteId: remoteId);
+    return rust.deviceExistsByRemoteId(remoteId: remoteId);
   }
 
   @override

@@ -1,12 +1,11 @@
 // Domain Events - Events that represent something that happened in the domain
 use crate::domain::{entities::*, value_objects::*};
 use chrono::{DateTime, Utc};
-use flutter_rust_bridge::frb;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Base trait for domain events (internal use only, not exposed to FFI)
-#[frb(ignore)]
+
 pub trait DomainEvent: Send + Sync {
     fn event_id(&self) -> Uuid;
     fn occurred_at(&self) -> DateTime<Utc>;
@@ -15,15 +14,15 @@ pub trait DomainEvent: Send + Sync {
 
 /// Navigation session started
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[frb(opaque)]
+
 pub struct NavigationStartedEvent {
-    #[frb(sync)]
+    
     pub event_id: Uuid,
-    #[frb(sync)]
+    
     pub session_id: Uuid,
-    #[frb(sync)]
+    
     pub route_id: Uuid,
-    #[frb(sync)]
+    
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -40,14 +39,14 @@ impl NavigationStartedEvent {
 
 /// Position was updated during navigation
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[frb(opaque)]
+
 pub struct PositionUpdatedEvent {
-    #[frb(sync)]
+    
     pub event_id: Uuid,
-    #[frb(sync)]
+    
     pub session_id: Uuid,
     pub position: Position,
-    #[frb(sync)]
+    
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -64,15 +63,15 @@ impl PositionUpdatedEvent {
 
 /// Waypoint reached
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[frb(opaque)]
+
 pub struct WaypointReachedEvent {
-    #[frb(sync)]
+    
     pub event_id: Uuid,
-    #[frb(sync)]
+    
     pub session_id: Uuid,
     pub waypoint_index: usize,
     pub position: Position,
-    #[frb(sync)]
+    
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -90,15 +89,15 @@ impl WaypointReachedEvent {
 
 /// Navigation completed
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[frb(opaque)]
+
 pub struct NavigationCompletedEvent {
-    #[frb(sync)]
+    
     pub event_id: Uuid,
-    #[frb(sync)]
+    
     pub session_id: Uuid,
     pub total_distance_meters: f64,
     pub total_duration_seconds: u32,
-    #[frb(sync)]
+    
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -116,13 +115,13 @@ impl NavigationCompletedEvent {
 
 /// Device connected
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[frb(opaque)]
+
 pub struct DeviceConnectedEvent {
-    #[frb(sync)]
+    
     pub event_id: Uuid,
     pub device_id: String,
     pub device_type: DeviceType,
-    #[frb(sync)]
+    
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -139,14 +138,14 @@ impl DeviceConnectedEvent {
 
 /// Traffic alert detected
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[frb(opaque)]
+
 pub struct TrafficAlertDetectedEvent {
-    #[frb(sync)]
+    
     pub event_id: Uuid,
-    #[frb(sync)]
+    
     pub session_id: Uuid,
     pub traffic_event: TrafficEvent,
-    #[frb(sync)]
+    
     pub occurred_at: DateTime<Utc>,
 }
 

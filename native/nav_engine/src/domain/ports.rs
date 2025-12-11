@@ -2,7 +2,39 @@
 use crate::domain::{entities::*, value_objects::*};
 use anyhow::Result;
 use async_trait::async_trait;
-use flutter_rust_bridge::frb;
+
+// ============================================================================
+// Generic Repository Pattern
+// ============================================================================
+
+/// Generic repository trait for common CRUD operations
+/// 
+/// This trait provides a standard interface for all repositories,
+/// reducing boilerplate and ensuring consistency.
+/// 
+/// # Type Parameters
+/// - `T`: The entity type
+/// - `ID`: The identifier type (typically i64 for SQLite)
+pub trait Repository<T, ID>: Send + Sync {
+    /// Get all entities
+    fn get_all(&self) -> Result<Vec<T>>;
+    
+    /// Get an entity by its ID
+    fn get_by_id(&self, id: ID) -> Result<Option<T>>;
+    
+    /// Insert a new entity and return its assigned ID
+    fn insert(&self, entity: T) -> Result<ID>;
+    
+    /// Update an existing entity
+    fn update(&self, id: ID, entity: T) -> Result<()>;
+    
+    /// Delete an entity by its ID
+    fn delete(&self, id: ID) -> Result<()>;
+}
+
+// ============================================================================
+// Service Ports
+// ============================================================================
 
 /// Port for route calculation service
 #[async_trait]
@@ -54,7 +86,7 @@ pub trait TrafficService: Send + Sync {
 }
 
 /// Control commands for navigation
-#[frb(opaque)]
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ControlCommand {
     StartNavigation,
