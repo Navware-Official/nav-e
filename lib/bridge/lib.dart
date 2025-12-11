@@ -6,9 +6,117 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Simple ping function to verify FFI is working
-Future<String> ping() => RustBridge.instance.api.cratePing();
+/// Initialize the database with the platform-specific path
+/// Must be called before any database operations
+Future<void> initializeDatabase({required String dbPath}) =>
+    RustBridge.instance.api.crateInitializeDatabase(dbPath: dbPath);
 
-/// Get architecture info
-Future<String> getArchitectureInfo() =>
-    RustBridge.instance.api.crateGetArchitectureInfo();
+/// Calculate a route between waypoints
+Future<String> calculateRoute({required List<(double, double)> waypoints}) =>
+    RustBridge.instance.api.crateCalculateRoute(waypoints: waypoints);
+
+/// Start a new navigation session
+Future<String> startNavigationSession({
+  required List<(double, double)> waypoints,
+  required (double, double) currentPosition,
+}) => RustBridge.instance.api.crateStartNavigationSession(
+  waypoints: waypoints,
+  currentPosition: currentPosition,
+);
+
+/// Update current position during navigation
+Future<void> updateNavigationPosition({
+  required String sessionId,
+  required double latitude,
+  required double longitude,
+}) => RustBridge.instance.api.crateUpdateNavigationPosition(
+  sessionId: sessionId,
+  latitude: latitude,
+  longitude: longitude,
+);
+
+/// Get the currently active navigation session
+Future<String?> getActiveSession() =>
+    RustBridge.instance.api.crateGetActiveSession();
+
+/// Pause active navigation
+Future<void> pauseNavigation({required String sessionId}) =>
+    RustBridge.instance.api.cratePauseNavigation(sessionId: sessionId);
+
+/// Resume paused navigation
+Future<void> resumeNavigation({required String sessionId}) =>
+    RustBridge.instance.api.crateResumeNavigation(sessionId: sessionId);
+
+/// Stop and complete navigation session
+Future<void> stopNavigation({required String sessionId}) =>
+    RustBridge.instance.api.crateStopNavigation(sessionId: sessionId);
+
+/// Search for locations by address/name
+Future<String> geocodeSearch({required String query, int? limit}) =>
+    RustBridge.instance.api.crateGeocodeSearch(query: query, limit: limit);
+
+/// Reverse geocode coordinates to address
+Future<String> reverseGeocode({
+  required double latitude,
+  required double longitude,
+}) => RustBridge.instance.api.crateReverseGeocode(
+  latitude: latitude,
+  longitude: longitude,
+);
+
+/// Get all saved places as JSON array
+String getAllSavedPlaces() => RustBridge.instance.api.crateGetAllSavedPlaces();
+
+/// Get a saved place by ID as JSON object
+String getSavedPlaceById({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateGetSavedPlaceById(id: id);
+
+/// Save a new place and return the assigned ID
+PlatformInt64 savePlace({
+  required String name,
+  String? address,
+  required double lat,
+  required double lon,
+  String? source,
+  PlatformInt64? typeId,
+  String? remoteId,
+}) => RustBridge.instance.api.crateSavePlace(
+  name: name,
+  address: address,
+  lat: lat,
+  lon: lon,
+  source: source,
+  typeId: typeId,
+  remoteId: remoteId,
+);
+
+/// Delete a saved place by ID
+void deleteSavedPlace({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateDeleteSavedPlace(id: id);
+
+/// Get all devices as JSON array
+String getAllDevices() => RustBridge.instance.api.crateGetAllDevices();
+
+/// Get a device by ID as JSON object
+String getDeviceById({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateGetDeviceById(id: id);
+
+/// Get a device by remote ID as JSON object
+String getDeviceByRemoteId({required String remoteId}) =>
+    RustBridge.instance.api.crateGetDeviceByRemoteId(remoteId: remoteId);
+
+/// Save a new device from JSON and return the assigned ID
+PlatformInt64 saveDevice({required String deviceJson}) =>
+    RustBridge.instance.api.crateSaveDevice(deviceJson: deviceJson);
+
+/// Update an existing device from JSON
+void updateDevice({required PlatformInt64 id, required String deviceJson}) =>
+    RustBridge.instance.api.crateUpdateDevice(id: id, deviceJson: deviceJson);
+
+/// Delete a device by ID
+void deleteDevice({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateDeleteDevice(id: id);
+
+/// Check if a device exists by remote ID
+bool deviceExistsByRemoteId({required String remoteId}) =>
+    RustBridge.instance.api.crateDeviceExistsByRemoteId(remoteId: remoteId);

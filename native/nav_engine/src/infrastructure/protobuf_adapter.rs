@@ -3,13 +3,12 @@ use crate::domain::{entities::*, ports::*, value_objects::*};
 use device_comm::proto;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
-use flutter_rust_bridge::frb;
 use prost::Message as ProstMessage;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
 /// Adapter that translates domain models to protobuf messages
-#[frb(ignore)]
+
 pub struct ProtobufDeviceCommunicator {
     // In real implementation, this would be BLE or network transport
     transport: Arc<Mutex<dyn DeviceTransport>>,

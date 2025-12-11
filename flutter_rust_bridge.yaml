@@ -1,5 +1,5 @@
 rust_input: "crate"
-rust_root: "native/nav_engine/"
+rust_root: "native/nav_e_ffi/"
 dart_output: "lib/bridge"
 dart_entrypoint_class_name: "RustBridge"
 web: false

@@ -2,9 +2,8 @@
 use crate::domain::{entities::Route, ports::RouteService, value_objects::*};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
-use flutter_rust_bridge::frb;
 
-#[frb(ignore)]
+
 pub struct OsrmRouteService {
     base_url: String,
     client: reqwest::Client,
@@ -22,6 +21,7 @@ impl OsrmRouteService {
 #[async_trait]
 impl RouteService for OsrmRouteService {
     async fn calculate_route(&self, waypoints: Vec<Position>) -> Result<Route> {
+        eprintln!("[RUST OSRM] Starting route calculation");
         // Build OSRM request URL
         let coords: Vec<String> = waypoints
             .iter()
@@ -33,14 +33,17 @@ impl RouteService for OsrmRouteService {
             "{}/route/v1/driving/{}?overview=full&geometries=polyline&steps=true",
             self.base_url, coords_str
         );
+        eprintln!("[RUST OSRM] Request URL: {}", url);
 
         // Make request
+        eprintln!("[RUST OSRM] Sending HTTP request");
         let response = self
             .client
             .get(&url)
             .send()
             .await
             .context("Failed to send OSRM request")?;
+        eprintln!("[RUST OSRM] Received response");
 
         let osrm_response: serde_json::Value = response
             .json()

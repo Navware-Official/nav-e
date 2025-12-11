@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
-import 'package:nav_e/bridge/api_v2.dart' as api;
+import 'package:nav_e/bridge/lib.dart' as rust;
 
 /// FRB-backed geocoding repository using the new DDD/CQRS API.
 class GeocodingRepositoryFrbTypedImpl implements IGeocodingRepository {
@@ -10,8 +10,20 @@ class GeocodingRepositoryFrbTypedImpl implements IGeocodingRepository {
   @override
   Future<List<GeocodingResult>> search(String query, {int limit = 10}) async {
     // Use the new clean API that returns JSON with rich geocoding data
-    final json = await api.geocodeSearch(query: query, limit: limit);
-    final List<dynamic> results = jsonDecode(json);
+    print('[DART GEOCODING] Searching for: "$query" with limit: $limit');
+    
+    try {
+      final json = await rust.geocodeSearch(query: query, limit: limit);
+      print('[DART GEOCODING] Received JSON response length: ${json.length}');
+      print('[DART GEOCODING] JSON response: $json');
+      
+      final List<dynamic> results = jsonDecode(json);
+      print('[DART GEOCODING] Decoded ${results.length} results');
+      
+      if (results.isEmpty) {
+        print('[DART GEOCODING] WARNING: No results returned from Rust API');
+        return [];
+      }
     
     return results.asMap().entries.map((entry) {
       final index = entry.key;
@@ -45,5 +57,10 @@ class GeocodingRepositoryFrbTypedImpl implements IGeocodingRepository {
         address: null,
       );
     }).toList();
+    } catch (e, stackTrace) {
+      print('[DART GEOCODING ERROR] Exception occurred: $e');
+      print('[DART GEOCODING ERROR] Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 }

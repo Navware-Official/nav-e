@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:nav_e/bridge/api_v2.dart' as api;
+import 'package:nav_e/bridge/lib.dart' as rust;
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/core/theme/colors.dart';
@@ -90,7 +90,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         (startPos.latitude, startPos.longitude),
         (dest.lat, dest.lon),
       ];
-      final json = await api.calculateRoute(waypoints: waypoints);
+      final json = await rust.calculateRoute(waypoints: waypoints);
       final Map<String, dynamic> obj = jsonDecode(json);
       final List wp = obj['waypoints'] as List? ?? [];
       final pts = wp.map<LatLng>((e) {

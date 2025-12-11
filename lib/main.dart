@@ -20,9 +20,22 @@ import 'package:nav_e/core/domain/repositories/map_source_repository.dart';
 
 import 'package:nav_e/core/theme/app_theme.dart';
 import 'package:nav_e/core/theme/theme_cubit.dart';
+import 'package:nav_e/bridge/frb_generated.dart';
+import 'package:nav_e/bridge/lib.dart' as rust_api;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize Flutter Rust Bridge
+  await RustBridge.init();
+  
+  // Get the application documents directory and initialize the database
+  final appDir = await getApplicationDocumentsDirectory();
+  final dbPath = path.join(appDir.path, 'nav_e.db');
+  await rust_api.initializeDatabase(dbPath: dbPath);
+  
   final geocodingRepo = GeocodingRepositoryFrbTypedImpl();
 
   final mapSourceRepo = MapSourceRepositoryImpl();

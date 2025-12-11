@@ -1,14 +1,14 @@
 import 'dart:convert';
 import 'package:nav_e/core/domain/entities/saved_place.dart';
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
-import 'package:nav_e/bridge/api_v2.dart' as api;
+import 'package:nav_e/bridge/lib.dart' as rust;
 
 /// Rust-backed saved places repository
 /// All persistence logic is handled in Rust, this is a thin wrapper
 class SavedPlacesRepositoryRust implements ISavedPlacesRepository {
   @override
   Future<List<SavedPlace>> getAll() async {
-    final json = api.getAllSavedPlaces();
+    final json = rust.getAllSavedPlaces();
     final List<dynamic> data = jsonDecode(json);
     
     return data.map((item) => _fromRustJson(item)).toList();
@@ -16,7 +16,7 @@ class SavedPlacesRepositoryRust implements ISavedPlacesRepository {
 
   @override
   Future<SavedPlace?> getById(int id) async {
-    final json = api.getSavedPlaceById(id: id);
+    final json = rust.getSavedPlaceById(id: id);
     if (json == 'null') return null;
     
     final data = jsonDecode(json);
@@ -25,21 +25,29 @@ class SavedPlacesRepositoryRust implements ISavedPlacesRepository {
 
   @override
   Future<int> insert(SavedPlace place) async {
-    final id = api.savePlace(
-      name: place.name,
-      address: place.address,
-      lat: place.lat,
-      lon: place.lon,
-      source: place.source,
-      typeId: place.typeId,
-      remoteId: place.remoteId,
-    );
-    return id;
+    try {
+      print('[DART SAVE] Attempting to save place: ${place.name}');
+      final id = rust.savePlace(
+        name: place.name,
+        address: place.address,
+        lat: place.lat,
+        lon: place.lon,
+        source: place.source,
+        typeId: place.typeId,
+        remoteId: place.remoteId,
+      );
+      print('[DART SAVE] Successfully saved with ID: $id');
+      return id;
+    } catch (e, stackTrace) {
+      print('[DART SAVE ERROR] Failed to save place: $e');
+      print('[DART SAVE ERROR] Stack trace: $stackTrace');
+      rethrow;
+    }
   }
 
   @override
   Future<int> delete(int id) async {
-    api.deleteSavedPlace(id: id);
+    rust.deleteSavedPlace(id: id);
     return 1; // Rust doesn't return affected rows, assume success
   }
 

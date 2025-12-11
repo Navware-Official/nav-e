@@ -15,11 +15,10 @@ use std::sync::{Arc, Mutex};
 // Migration modules - add new migrations here
 mod m20231201000000_initial_schema;
 
-// Re-export migrations
+// Re-export migrations (internal use only, not for FFI)
 pub use m20231201000000_initial_schema::InitialSchema;
 
 /// Represents a single database migration
-#[flutter_rust_bridge::frb(ignore)]
 pub trait Migration: Send + Sync {
     /// Returns the version number (timestamp recommended: YYYYMMDDHHMMSS)
     fn version(&self) -> i64;
@@ -37,7 +36,6 @@ pub trait Migration: Send + Sync {
 }
 
 /// Migration manager handles running and tracking migrations
-#[flutter_rust_bridge::frb(ignore)]
 pub struct MigrationManager {
     conn: Arc<Mutex<Connection>>,
 }
@@ -235,7 +233,6 @@ impl MigrationManager {
 }
 
 /// Registry of all migrations - ADD NEW MIGRATIONS HERE
-#[flutter_rust_bridge::frb(ignore)]
 pub fn get_all_migrations() -> Vec<Box<dyn Migration>> {
     vec![
         Box::new(InitialSchema {}),
