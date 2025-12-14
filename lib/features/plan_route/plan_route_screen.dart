@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:convert';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/bridge/lib.dart' as rust;
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
+import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/plan_route/widgets/plan_route_map.dart';
@@ -28,7 +28,6 @@ class PlanRouteScreen extends StatefulWidget {
 }
 
 class _PlanRouteScreenState extends State<PlanRouteScreen> {
-  final MapController _mapController = MapController();
   List<LatLng> _routePoints = [];
   double? _distanceM;
   double? _durationS;
@@ -129,37 +128,12 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
       );
       if (mounted) {
         try {
+          // Auto-fit the route with padding - MapWidget handles this via autoFit flag
           context.read<MapBloc>().add(ReplacePolylines([model], fit: true));
         } catch (_) {
           // If MapBloc isn't available in this context for some reason,
           // ignore and continue — the inline polyline remains a fallback.
         }
-      }
-
-      // Adjust camera to fit the route with reasonable padding so the top
-      // overlay and bottom sheet do not cover the line.
-      if (_routePoints.isNotEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          try {
-            final mq = MediaQuery.of(context);
-            final pad = EdgeInsets.only(
-              left: 12,
-              right: 12,
-              top: mq.padding.top + 88, // space for top overlay
-              bottom: mq.padding.bottom + 220, // space for bottom sheet
-            );
-            final fit = CameraFit.coordinates(
-              coordinates: _routePoints,
-              maxZoom: 17,
-              padding: pad,
-            );
-            _mapController.fitCamera(fit);
-          } catch (e) {
-            // Fallback: move to first point with a reasonable zoom.
-            final p = _routePoints.first;
-            _mapController.move(p, 14);
-          }
-        });
       }
     } catch (e) {
       // surface error to UI
@@ -200,40 +174,41 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         startLabel = 'Current location';
       }
     }
-    final markers = <Marker>[
-      Marker(
-        point: dest.position,
-        width: 45,
-        height: 45,
-        child: const Icon(Icons.place, color: Color(0xFF3646F4), size: 52),
+    final markers = <MarkerModel>[
+      // Destination marker
+      MarkerModel(
+        id: 'destination',
+        position: dest.position,
+        icon: const Icon(Icons.place, color: Color(0xFF3646F4), size: 52),
       ),
+      // Current location marker
       if (userPos != null)
-        Marker(
-          point: userPos,
-          width: 28,
-          height: 28,
-          child: Container(
+        MarkerModel(
+          id: 'current_location',
+          position: userPos,
+          icon: Container(
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
               color: Colors.blueAccent,
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
             ),
-            child: const SizedBox.shrink(),
           ),
         ),
       // If the user picked a custom start on the map, show it as a marker.
       if (_pickedStart != null)
-        Marker(
-          point: _pickedStart!,
-          width: 30,
-          height: 30,
-          child: Container(
+        MarkerModel(
+          id: 'picked_start',
+          position: _pickedStart!,
+          icon: Container(
+            width: 30,
+            height: 30,
             decoration: BoxDecoration(
               color: Colors.orangeAccent,
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
             ),
-            child: const SizedBox.shrink(),
           ),
         ),
     ];
@@ -248,13 +223,16 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         // Map
         Positioned.fill(
           child: PlanRouteMap(
-            mapController: _mapController,
             markers: markers,
             polylines: _routePoints.isNotEmpty
                 ? [
-                    Polyline(
+                    PolylineModel(
+                      id: 'route',
                       points: _routePoints,
-                      color: AppColors.blueRibbonDark02,
+                      colorArgb: (AppColors.blueRibbonDark02.a.toInt() << 24) |
+                                (AppColors.blueRibbonDark02.r.toInt() << 16) |
+                                (AppColors.blueRibbonDark02.g.toInt() << 8) |
+                                AppColors.blueRibbonDark02.b.toInt(),
                       strokeWidth: 6.0,
                     )
                   ]
@@ -289,11 +267,9 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
     startLabel: startLabel,
   ),
 
-  // Reuse the mini map control widgets (same as HomeView) so users
-  // can re-center, rotate north, or open map controls while planning
-  // a route.
-  RecenterFAB(mapController: _mapController),
-  RotateNorthFAB(mapController: _mapController),
+  // Map control widgets (same as HomeView)
+  const RecenterFAB(),
+  const RotateNorthFAB(),
   const MapControlsFAB(),
 
   // Bottom sheet

@@ -14,20 +14,18 @@ class MapState {
   final List<MapSource> available;
   final bool loadingSource;
   final Object? error;
-  final bool useMapLibre;
 
   MapState({
     required this.center,
     required this.zoom,
     required this.isReady,
     this.followUser = true,
-  this.polylines = const [],
+    this.polylines = const [],
     this.autoFit = false,
     this.source,
     this.available = const [],
     this.loadingSource = false,
     this.error,
-    this.useMapLibre = false,
   });
 
   MapState copyWith({
@@ -35,26 +33,24 @@ class MapState {
     double? zoom,
     bool? isReady,
     bool? followUser,
-  List<PolylineModel>? polylines,
+    List<PolylineModel>? polylines,
     bool? autoFit,
     MapSource? source,
     List<MapSource>? available,
     bool? loadingSource,
     Object? error,
-    bool? useMapLibre,
   }) {
     return MapState(
       center: center ?? this.center,
       zoom: zoom ?? this.zoom,
       isReady: isReady ?? this.isReady,
       followUser: followUser ?? this.followUser,
-  polylines: polylines ?? this.polylines,
+      polylines: polylines ?? this.polylines,
       autoFit: autoFit ?? this.autoFit,
       source: source ?? this.source,
       available: available ?? this.available,
       loadingSource: loadingSource ?? this.loadingSource,
       error: error,
-      useMapLibre: useMapLibre ?? this.useMapLibre,
     );
   }
 }

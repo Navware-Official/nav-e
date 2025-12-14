@@ -28,8 +28,3 @@ class ReplacePolylines extends MapEvent {
 }
 
 class MapAutoFitDone extends MapEvent {}
-
-class ToggleMapAdapter extends MapEvent {
-  final bool useMapLibre;
-  ToggleMapAdapter(this.useMapLibre);
-}

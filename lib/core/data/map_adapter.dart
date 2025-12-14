@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/domain/entities/map_source.dart';
+import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 
 /// Abstract interface for map rendering implementations (OSM/MapLibre/etc).
@@ -12,7 +13,7 @@ abstract class MapAdapter {
     required MapSource? source,
     required LatLng center,
     required double zoom,
-    required List<Widget> markers,
+    required List<MarkerModel> markers,
     required List<PolylineModel> polylines,
     required VoidCallback onMapReady,
     required void Function(LatLng center, double zoom) onPositionChanged,

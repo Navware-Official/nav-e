@@ -129,14 +129,14 @@ class DeviceCard extends StatelessWidget {
                         return Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Container( // TODO: Add onclick
+                            Container(
                               padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
                                 color: awaitingColor.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(color: awaitingColor.withValues(alpha: 0.3)),
                               ),
-                  child: Row(
+                                child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   SizedBox(
