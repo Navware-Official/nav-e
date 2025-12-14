@@ -63,8 +63,6 @@ class DeviceRepositoryRust implements IDeviceRepository {
 
   @override
   Future<List<Device>> searchByName(String name) async {
-    // For now, get all and filter in Dart
-    // TODO: Add Rust API for search if needed for performance
     final all = await getAll();
     final lowerName = name.toLowerCase();
     return all.where((d) => d.name.toLowerCase().contains(lowerName)).toList();
@@ -86,8 +84,8 @@ class DeviceRepositoryRust implements IDeviceRepository {
       'remote_id': device.remoteId,
       'name': device.name,
       'device_type': device.model ?? 'Unknown',
-      'connection_type': 'bluetooth', // Default to bluetooth
-      'paired': true, // Default to paired
+      'connection_type': 'bluetooth',
+      'paired': true,
       'last_connected': now,
       'firmware_version': null,
       'battery_level': null,

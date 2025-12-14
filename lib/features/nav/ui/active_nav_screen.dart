@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:nav_e/features/nav/bloc/nav_bloc.dart';
@@ -24,7 +23,6 @@ class ActiveNavScreen extends StatefulWidget {
 
 class _ActiveNavScreenState extends State<ActiveNavScreen> {
   late final NavBloc _navBloc;
-  final MapController _mapController = MapController();
 
   @override
   void initState() {
@@ -79,18 +77,8 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
           body: Stack(
             children: [
               Positioned.fill(
-                child: MapWidget(
-                  mapController: _mapController,
-                  markers: const [],
-                  polylines: widget.routePoints.isNotEmpty
-                      ? [
-                          Polyline(
-                            points: widget.routePoints,
-                            color: Colors.blueAccent,
-                            strokeWidth: 4.0,
-                          ),
-                        ]
-                      : const [],
+                child: const MapWidget(
+                  markers: [],
                 ),
               ),
               // minimal top banner for turns / next cue
