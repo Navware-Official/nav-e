@@ -2,10 +2,12 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
 import 'package:nav_e/features/device_management/add_device_screen.dart';
 import 'package:nav_e/features/device_management/device_management_screen.dart';
+import 'package:nav_e/features/device_comm/presentation/screens/device_comm_debug_screen.dart';
 
 import 'package:nav_e/features/home/home_screen.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
@@ -96,6 +98,23 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
           final g = GeocodingResult.fromPathParams(params);
           if (g == null) return const HomeScreen();
           return PlanRouteScreen(destination: g);
+        },
+      ),
+      GoRoute(
+        path: '/device-comm-debug',
+        name: 'deviceCommDebug',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (ctx, state) {
+          // Route data passed via extra
+          final extra = state.extra as Map<String, dynamic>?;
+          if (extra == null) return const HomeScreen();
+          final routePoints = (extra['routePoints'] as List).cast<LatLng>();
+          return DeviceCommDebugScreen(
+            routePoints: routePoints,
+            distanceM: extra['distanceM'] as double?,
+            durationS: extra['durationS'] as double?,
+            polyline: extra['polyline'] as String? ?? '',
+          );
         },
       ),
     ],

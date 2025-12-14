@@ -40,15 +40,25 @@ impl RouteService for OsrmRouteService {
         let response = self
             .client
             .get(&url)
+            .timeout(std::time::Duration::from_secs(10))
             .send()
             .await
             .context("Failed to send OSRM request")?;
-        eprintln!("[RUST OSRM] Received response");
+        
+        eprintln!("[RUST OSRM] Received response with status: {}", response.status());
+        
+        if !response.status().is_success() {
+            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            eprintln!("[RUST OSRM] Error response: {}", error_text);
+            anyhow::bail!("OSRM returned error status: {}", error_text);
+        }
 
         let osrm_response: serde_json::Value = response
             .json()
             .await
             .context("Failed to parse OSRM response")?;
+        
+        eprintln!("[RUST OSRM] Parsed response successfully");
 
         // Parse response
         let routes = osrm_response["routes"]

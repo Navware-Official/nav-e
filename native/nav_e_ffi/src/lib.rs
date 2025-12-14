@@ -193,3 +193,43 @@ pub fn delete_device(id: i64) -> Result<()> {
 pub fn device_exists_by_remote_id(remote_id: String) -> Result<bool> {
     nav_engine::api::device_exists_by_remote_id(remote_id)
 }
+
+// ============================================================================
+// Device Communication API
+// ============================================================================
+
+/// Prepare a route message for sending to a device
+/// Takes route JSON and returns serialized protobuf message bytes
+#[frb(sync)]
+pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
+    nav_engine::api::prepare_route_message(route_json)
+}
+
+/// Chunk a protobuf message into BLE frames
+/// Returns a vector of frame bytes ready for BLE transmission
+#[frb(sync)]
+pub fn chunk_message_for_ble(
+    message_bytes: Vec<u8>,
+    route_id: String,
+    mtu: u32,
+) -> Result<Vec<Vec<u8>>> {
+    nav_engine::api::chunk_message_for_ble(message_bytes, route_id, mtu)
+}
+
+/// Reassemble BLE frames back into a complete message
+/// Returns the reassembled message bytes
+#[frb(sync)]
+pub fn reassemble_frames(frame_bytes: Vec<Vec<u8>>) -> Result<Vec<u8>> {
+    nav_engine::api::reassemble_frames(frame_bytes)
+}
+
+/// Create a control command message (ACK, NACK, START_NAV, etc.)
+#[frb(sync)]
+pub fn create_control_message(
+    route_id: String,
+    command_type: String,
+    status_code: u32,
+    message: String,
+) -> Result<Vec<u8>> {
+    nav_engine::api::create_control_message(route_id, command_type, status_code, message)
+}

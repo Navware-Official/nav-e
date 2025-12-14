@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/app/app_router.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
+import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_bloc.dart';
 
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
 import 'package:nav_e/core/domain/repositories/device_repository.dart';
@@ -27,15 +28,15 @@ import 'package:path/path.dart' as path;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Flutter Rust Bridge
   await RustBridge.init();
-  
+
   // Get the application documents directory and initialize the database
   final appDir = await getApplicationDocumentsDirectory();
   final dbPath = path.join(appDir.path, 'nav_e.db');
   await rust_api.initializeDatabase(dbPath: dbPath);
-  
+
   final geocodingRepo = GeocodingRepositoryFrbTypedImpl();
 
   final mapSourceRepo = MapSourceRepositoryImpl();
@@ -66,9 +67,8 @@ Future<void> main() async {
           BlocProvider(
             create: (ctx) => DevicesBloc(ctx.read<IDeviceRepository>()),
           ),
-          BlocProvider(
-            create: (_) => BluetoothBloc(),
-          ),
+          BlocProvider(create: (_) => BluetoothBloc()),
+          BlocProvider(create: (_) => DeviceCommBloc()),
         ],
         child: BlocBuilder<ThemeCubit, AppThemeMode>(
           builder: (context, mode) {

@@ -67,7 +67,7 @@ pub(crate) fn calculate_crc32(data: &[u8]) -> u32 {
 }
 
 /// Split a message into frames for BLE transmission
-pub(crate) fn chunk_message(
+pub fn chunk_message(
     msg: &proto::Message,
     route_id: &Uuid,
     msg_type: u32,
@@ -102,7 +102,7 @@ pub(crate) fn chunk_message(
 }
 
 /// Reassemble frames back into a message
-pub(crate) struct FrameAssembler {
+pub struct FrameAssembler {
     frames: std::collections::HashMap<u32, Vec<u8>>,
     total_seqs: Option<u32>,
     route_id: Option<Uuid>,
