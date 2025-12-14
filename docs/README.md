@@ -2,32 +2,36 @@
 
 Welcome to the Nav-E documentation! This directory contains all technical documentation for the project.
 
-## 📚 Documentation Index
+## 📚 Documentation Structure
 
-### Architecture & Design
-- **[Architecture](architecture.md)** - System architecture, DDD/Hexagonal design, and module organization
-- **[Native Rust](native-rust.md)** - Rust codebase structure and development guide
+### 🏗️ Architecture (`architecture/`)
+System design, patterns, and architectural decisions:
+- **[Overview](architecture/overview.md)** - System architecture, DDD/Hexagonal design, CQRS pattern, and module organization
 
-### Database & Migrations
-- **[Migrations: Developer Guide](migrations-developer-guide.md)** - Creating and managing database migrations
-- **[Migrations: Release Process](migrations-release.md)** - Migration workflow for releases and deployments
+### 📖 Developer Guides (`guides/`)
+Step-by-step guides for common development tasks:
+- **[Flutter-Rust Bridge](guides/flutter-rust-bridge.md)** - FFI integration between Flutter and Rust
+- **[Device Communication](guides/device-communication.md)** - Sending routes to devices via BLE
+- **[Testing](guides/testing.md)** - Testing strategy and test organization
 
-### Flutter & Dart
-- **[Flutter-Rust Bridge](flutter-rust-bridge.md)** - FFI integration between Flutter and Rust
-- **[Testing](testing.md)** - Testing strategy and test organization
+### 🦀 Rust Documentation (`rust/`)
+Native Rust codebase documentation:
+- **[Overview](rust/overview.md)** - Rust project structure, crates, and development workflow
+- **[Device Comm](rust/device-comm.md)** - BLE communication protocol and frame handling
+- **[Protobuf](rust/protobuf.md)** - Protocol Buffer definitions and code generation
 
-### Communication
-- **[Protobuf](protobuf.md)** - Protocol Buffer definitions and code generation
+## 🚀 Quick Start
 
-## 🚀 Quick Start Guides
+### New Developers
+1. Start with [Architecture Overview](architecture/overview.md) to understand the system design
+2. Read [Rust Overview](rust/overview.md) for Rust development setup
+3. Check [Testing Guide](guides/testing.md) for testing guidelines
 
-### For Developers
-1. Read [Architecture](architecture.md) to understand the system design
-2. Check [Native Rust](native-rust.md) for Rust development setup
-3. Review [Testing](testing.md) for testing guidelines
-
-### For Database Changes
-1. Read [Migrations: Developer Guide](migrations-developer-guide.md)
+### Working with Device Communication
+1. Read [Device Communication Guide](guides/device-communication.md) for Flutter integration
+2. Understand the [Device Comm Protocol](rust/device-comm.md) for low-level details
+3. Review [Protobuf](rust/protobuf.md) message definitions
+4. Check [Flutter-Rust Bridge](guides/flutter-rust-bridge.md) for FFI integration
 2. Run `make migrate-new` to create a migration
 3. Follow [Migrations: Release Process](migrations-release.md) for releases
 
@@ -69,14 +73,18 @@ When adding new documentation:
 
 ```
 docs/
-├── README.md                          # This file
-├── architecture.md                    # System architecture
-├── native-rust.md                     # Rust development
-├── flutter-rust-bridge.md             # FFI integration
-├── migrations-developer-guide.md      # Creating migrations
-├── migrations-release.md              # Release workflow
-├── protobuf.md                        # Protocol buffers
-└── testing.md                         # Testing guide
+├── README.md                          # This index file
+├── architecture/
+│   └── overview.md                    # System architecture and design patterns
+├── guides/
+│   ├── device-communication.md        # BLE device communication guide
+│   ├── flutter-rust-bridge.md         # FFI integration between Flutter/Rust
+│   └── testing.md                     # Testing strategy and guidelines
+├── reference/                         # (Reserved for API references)
+└── rust/
+    ├── overview.md                    # Rust codebase structure
+    ├── device-comm.md                 # BLE protocol and frame handling
+    └── protobuf.md                    # Protocol buffer definitions
 ```
 
 ---

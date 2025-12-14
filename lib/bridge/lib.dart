@@ -94,6 +94,26 @@ PlatformInt64 savePlace({
 void deleteSavedPlace({required PlatformInt64 id}) =>
     RustBridge.instance.api.crateDeleteSavedPlace(id: id);
 
+/// Send route data to a connected device via Bluetooth
+///
+/// # Arguments
+/// * `device_id` - The device ID (from saved devices)
+/// * `route_json` - JSON string containing route waypoints and metadata
+///
+/// # Returns
+/// Result indicating success or failure
+///
+/// # Note
+/// Currently returns a stub implementation. Full device communication
+/// will be implemented using device_comm crate and protobuf protocol.
+Future<void> sendRouteToDevice({
+  required PlatformInt64 deviceId,
+  required String routeJson,
+}) => RustBridge.instance.api.crateSendRouteToDevice(
+  deviceId: deviceId,
+  routeJson: routeJson,
+);
+
 /// Get all devices as JSON array
 String getAllDevices() => RustBridge.instance.api.crateGetAllDevices();
 
@@ -120,3 +140,38 @@ void deleteDevice({required PlatformInt64 id}) =>
 /// Check if a device exists by remote ID
 bool deviceExistsByRemoteId({required String remoteId}) =>
     RustBridge.instance.api.crateDeviceExistsByRemoteId(remoteId: remoteId);
+
+/// Prepare a route message for sending to a device
+/// Takes route JSON and returns serialized protobuf message bytes
+Uint8List prepareRouteMessage({required String routeJson}) =>
+    RustBridge.instance.api.cratePrepareRouteMessage(routeJson: routeJson);
+
+/// Chunk a protobuf message into BLE frames
+/// Returns a vector of frame bytes ready for BLE transmission
+List<Uint8List> chunkMessageForBle({
+  required List<int> messageBytes,
+  required String routeId,
+  required int mtu,
+}) => RustBridge.instance.api.crateChunkMessageForBle(
+  messageBytes: messageBytes,
+  routeId: routeId,
+  mtu: mtu,
+);
+
+/// Reassemble BLE frames back into a complete message
+/// Returns the reassembled message bytes
+Uint8List reassembleFrames({required List<Uint8List> frameBytes}) =>
+    RustBridge.instance.api.crateReassembleFrames(frameBytes: frameBytes);
+
+/// Create a control command message (ACK, NACK, START_NAV, etc.)
+Uint8List createControlMessage({
+  required String routeId,
+  required String commandType,
+  required int statusCode,
+  required String message,
+}) => RustBridge.instance.api.crateCreateControlMessage(
+  routeId: routeId,
+  commandType: commandType,
+  statusCode: statusCode,
+  message: message,
+);

@@ -11,7 +11,7 @@ class RouteParamsHandler {
   String? _lastUriString;
   String? _lastHandledRouteKey;
   bool _handlingRoute = false;
-  bool _mapReady = false;
+  bool _mapReady = false;                            
 
   /// Initializes route parameter handling for the given context.
   void initialize(BuildContext context) {
@@ -42,7 +42,7 @@ class RouteParamsHandler {
     router.routerDelegate.addListener(_routerListener!);
   }
 
-  /// Updates the map ready state.
+  /// Updates the map ready state.                                        
   void setMapReady(bool ready) {
     _mapReady = ready;
   }

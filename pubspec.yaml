@@ -47,7 +47,7 @@ dependencies:
   path_provider: ^2.1.5
   flutter_rust_bridge: 2.11.1
   package_info_plus: ^8.3.1
-  protobuf: ^3.1.0
+  protobuf: ^6.0.0
 
   collection: any
   uuid: any
@@ -67,7 +67,7 @@ dev_dependencies:
   test: ^1.26.2
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
-  protoc_plugin: ^21.1.2
+  protoc_plugin: ^25.0.0
   freezed: ^2.4.5
   build_runner: ^2.4.6
 
