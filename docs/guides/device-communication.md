@@ -231,32 +231,6 @@ Periodic updates (position, ETA)
 Send STOP_NAV when complete
 ```
 
-## Implementation Checklist
-
-When adding device communication to a screen:
-
-**1. Prerequisites**
-- [ ] Ensure `DeviceCommBloc` is provided in widget tree
-- [ ] Check `DevicesBloc` for connected devices
-- [ ] Verify `BluetoothBloc` shows BLE is enabled
-
-**2. UI Elements**
-- [ ] Add "Send to Device" button (disabled if no devices)
-- [ ] Device selection dropdown/dialog
-- [ ] Progress indicator for transmission
-- [ ] Success/error snackbars
-
-**3. State Management**
-- [ ] Listen to `DeviceCommBloc` states
-- [ ] Update UI based on transmission progress
-- [ ] Handle errors gracefully
-- [ ] Reset state when done
-
-**4. Data Preparation**
-- [ ] Route data includes: waypoints, distance, duration, polyline
-- [ ] Convert to JSON format expected by FFI
-- [ ] Include route ID for tracking
-
 ## Common Patterns
 
 ### Pattern 1: Send After Route Calculation
@@ -282,25 +256,6 @@ Used in `DeviceCommDebugScreen` - test communication with detailed logging.
 **When:** Developer or tester needs to verify device communication.
 **BLoCs:** DeviceCommBloc, DevicesBloc, BluetoothBloc
 **Flow:** Select device → Show route info → Send → Display events
-
-## Error Handling Strategy
-
-### User-Facing Errors
-
-**Device Not Connected**
-- **Detection:** Check `DevicesBloc.state.connectedDevices`
-- **Action:** Prompt user to connect device first
-- **UI:** "Please connect a device to send routes"
-
-**Transmission Failed**
-- **Detection:** `DeviceCommError` state
-- **Action:** Offer retry button
-- **UI:** "Failed to send route. Retry?"
-
-**Invalid Route Data**
-- **Detection:** FFI returns error
-- **Action:** Log error, show generic message
-- **UI:** "Unable to prepare route data"
 
 ### Developer-Facing Errors
 
@@ -346,19 +301,6 @@ Shows: FFI calls, protobuf serialization, frame chunking
 adb logcat | grep -E "BlueDevice|flutter_blue"
 ```
 Shows: Connection events, characteristic discovery, GATT writes
-
-### External Tools
-
-**nRF Connect** (Android/iOS)
-- View raw BLE packets
-- Verify characteristic UUIDs
-- Monitor transmission timing
-- Check MTU negotiation
-
-**Wireshark with Bluetooth Plugin**
-- Capture BLE traffic
-- Analyze protocol timing
-- Debug frame structure
 
 ### Troubleshooting Guide
 
@@ -406,22 +348,3 @@ Shows: Connection events, characteristic discovery, GATT writes
 - Wait for device connection before enabling send
 - Implement retry logic (already in service layer)
 - Validate route data before transmission
-
-## Next Steps
-
-**For Developers:**
-1. Review [Device Comm Protocol](../rust/device-comm.md) for implementation details
-2. Check [Protobuf Messages](../rust/protobuf.md) for message structure
-3. See [Testing Guide](testing.md) for integration testing strategies
-
-**For Testers:**
-1. Use DeviceCommDebugScreen for manual testing
-2. Test with various route sizes (small, medium, large)
-3. Verify error handling (disconnect device mid-transmission)
-4. Check UI responsiveness during long transmissions
-
-**For Device Firmware Developers:**
-1. Implement frame reassembly using FrameAssembler pattern
-2. Validate CRC checksums on each frame
-3. Send ACK/NACK control messages
-4. Handle out-of-order frames correctly
