@@ -35,10 +35,6 @@ The analyzer errors in `lib/bridge/` for internal types (application/, infrastru
 - DO NOT import or use types from these directories
 - Stick to `api_v2.dart` functions only
 
-## Future Fix
-
-To properly hide internal types, all internal modules need `#[frb(ignore)]` attributes in Rust. This is tracked for future cleanup.
-
 ## Regenerating Bridge
 
 Always use:

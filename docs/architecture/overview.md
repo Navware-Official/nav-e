@@ -252,25 +252,6 @@ deviceBloc.stream.listen((state) {
 });
 ```
 
-## Migration Plan
-
-The legacy code (`osrm.rs`, `route.rs`, `geocode.rs`) remains functional. Migrate incrementally:
-
-1. ✅ New features use DDD/Hexagonal/CQRS architecture
-2. 🔄 Refactor existing code module by module
-3. 📝 Update flutter_rust_bridge API to expose new handlers
-4. 🧪 Write tests for domain logic
-5. 🚀 Deploy progressively
-
-## Next Steps
-
-1. **Implement SQLite repository** for persistent navigation state
-2. **Add event bus** for domain event publishing
-3. **Create BLE transport adapter** for actual device communication
-4. **Integrate with LocationBloc** to trigger position updates
-5. **Add traffic service adapter** (TomTom, HERE, etc.)
-6. **Expose handlers via flutter_rust_bridge** for Flutter to call
-
 ## References
 
 - [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/)

@@ -11,7 +11,7 @@ Protocol Buffers specification for device communication between the phone and we
 Located in `proto/navigation.proto`, this defines all message types for device communication. The protocol is transport-agnostic and designed for:
 - Wear OS watches
 - Custom BLE devices
-- Future transports (USB, WiFi Direct, etc.)
+- Additional transports as needed
 
 ## Message Types
 
@@ -105,7 +105,6 @@ For Rust examples, see [Device Comm documentation](device-comm.md#usage-examples
 ### Performance Optimization
 - Target: < 500 bytes for frequent updates (RouteSummary, PositionUpdate)
 - Polyline simplification: 200-1000 points after Douglas-Peucker
-- Optional compression for RouteBlob (future enhancement)
 
 ## Troubleshooting
 
