@@ -52,6 +52,13 @@ area:navigation:
       - "lib/data/repositories/navigation/**"
       - "lib/data/services/navigation/**"
 
+area:rust:
+  - changed-files:
+    - any-glob-to-any-file:
+      - "native/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+
 platform:android:
   - changed-files:
     - any-glob-to-any-file: "android/**"
