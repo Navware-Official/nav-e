@@ -8,6 +8,10 @@ Welcome to the Nav-E documentation! This directory contains all technical docume
 System design, patterns, and architectural decisions:
 - **[Overview](architecture/overview.md)** - System architecture, DDD/Hexagonal design, CQRS pattern, and module organization
 
+### 📋 Architecture Decision Records (`adr/`)
+Documentation of key architectural decisions and their rationale:
+- **[ADR Index](adr/README.md)** - Complete list of all architecture decisions with context, alternatives, and consequences
+
 ### 📖 Developer Guides (`guides/`)
 Step-by-step guides for common development tasks:
 - **[Flutter-Rust Bridge](guides/flutter-rust-bridge.md)** - FFI integration between Flutter and Rust
@@ -74,6 +78,14 @@ When adding new documentation:
 ```
 docs/
 ├── README.md                          # This index file
+├── adr/                               # Architecture Decision Records
+│   ├── README.md                      # ADR index and guidelines
+│   ├── 0000-template.md               # ADR template
+│   ├── 0001-adopt-ddd-hexagonal-cqrs.md
+│   ├── 0002-rust-core-flutter-ui.md
+│   ├── 0003-osrm-routing-engine.md
+│   ├── 0004-nominatim-geocoding.md
+│   └── 0005-protocol-buffers-device-communication.md
 ├── architecture/
 │   └── overview.md                    # System architecture and design patterns
 ├── guides/
