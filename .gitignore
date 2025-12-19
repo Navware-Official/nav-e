@@ -67,3 +67,6 @@ native/nav_engine/src/frb_generated.web.rs
 lib/bridge/**
 lib/bridge/**/*
 
+# FFI Generated bindings (generated on merge to main)
+lib/bridge/generated/
+

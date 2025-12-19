@@ -8,13 +8,6 @@ on:
       - 'flutter_rust_bridge.yaml'
       - 'Makefile'
       - '.github/workflows/frb_codegen_build.yml'
-  pull_request:
-    branches: [ main, master ]
-    paths:
-      - 'native/**'
-      - 'flutter_rust_bridge.yaml'
-      - 'Makefile'
-      - '.github/workflows/frb_codegen_build.yml'
 
 jobs:
   codegen-and-build:
@@ -68,10 +61,17 @@ jobs:
         run: |
           make build-native
 
-      - name: List generated files (for debug)
+      - name: Commit generated bindings
         run: |
-          ls -la lib/bridge || true
-          ls -la native/nav_engine/target/release || true
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add lib/bridge/
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: regenerate FFI bindings [skip ci]"
+            git push
+          else
+            echo "No changes to FFI bindings"
+          fi
 
       - name: Upload FRB bindings artifact
         uses: actions/upload-artifact@v4

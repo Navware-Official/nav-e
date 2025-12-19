@@ -15,8 +15,8 @@ jobs:
           cache: true
       - name: Flutter deps
         run: flutter pub get
-      - name: Format check
-        run: dart format --output=none --set-exit-if-changed .
+      - name: Format check (exclude generated)
+        run: dart format --output=none --set-exit-if-changed $(find lib -name '*.dart' ! -path 'lib/bridge/generated/*')
       - name: Analyze
         run: dart analyze
       - name: Tests
