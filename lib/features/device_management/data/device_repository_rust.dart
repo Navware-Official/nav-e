@@ -10,7 +10,7 @@ class DeviceRepositoryRust implements IDeviceRepository {
   Future<List<Device>> getAll() async {
     final json = rust.getAllDevices();
     final List<dynamic> data = jsonDecode(json);
-    
+
     return data.map((item) => _fromRustJson(item)).toList();
   }
 
@@ -18,7 +18,7 @@ class DeviceRepositoryRust implements IDeviceRepository {
   Future<Device?> getById(int id) async {
     final json = rust.getDeviceById(id: id);
     if (json == 'null') return null;
-    
+
     final data = jsonDecode(json);
     return _fromRustJson(data);
   }
@@ -27,7 +27,7 @@ class DeviceRepositoryRust implements IDeviceRepository {
   Future<Device?> getByRemoteId(String remoteId) async {
     final json = rust.getDeviceByRemoteId(remoteId: remoteId);
     if (json == 'null') return null;
-    
+
     final data = jsonDecode(json);
     return _fromRustJson(data);
   }
@@ -44,7 +44,7 @@ class DeviceRepositoryRust implements IDeviceRepository {
     if (device.id == null) {
       throw ArgumentError('Device ID cannot be null for update operation');
     }
-    
+
     final deviceJson = jsonEncode(_toRustJson(device));
     rust.updateDevice(id: device.id!, deviceJson: deviceJson);
     return 1; // Assume success

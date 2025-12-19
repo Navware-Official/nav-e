@@ -15,10 +15,7 @@ class UserLocationMarker extends StatelessWidget {
       decoration: AppDecorations.userLocationMarker,
       child: Transform.rotate(
         angle: (heading ?? 0) * math.pi / 180,
-        child: const Icon(
-          Icons.navigation,
-          size: 30,
-        ),
+        child: const Icon(Icons.navigation, size: 30),
       ),
     );
   }

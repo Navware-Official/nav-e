@@ -23,5 +23,4 @@ class AppNav {
 
     _router.goNamed('home', queryParameters: qp.cast<String, String>());
   }
-
 }

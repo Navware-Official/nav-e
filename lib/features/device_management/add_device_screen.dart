@@ -23,13 +23,16 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.capeCodDark02,),
-          onPressed: (){
+          icon: Icon(Icons.arrow_back, color: AppColors.capeCodDark02),
+          onPressed: () {
             // Navigate to devices list using named route
             context.push('/devices');
-          }, 
+          },
         ),
-        title: Text('Add a new bluetooth device', style: TextStyle(color: Colors.black)),
+        title: Text(
+          'Add a new bluetooth device',
+          style: TextStyle(color: Colors.black),
+        ),
       ),
       body: Container(
         padding: EdgeInsets.all(8),
@@ -58,8 +61,8 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                         );
                         context.push('/devices');
                       }
-                    }
-                  )
+                    },
+                  ),
                 ],
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -86,81 +89,126 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                             SnackBar(
                               content: Text("Scanning complete!"),
                               duration: Duration(milliseconds: 3000),
-                            )
+                            ),
                           );
                         }
                       },
                       builder: (context, state) {
                         if (state is BluetoothCheckInProgress) {
-                          return Expanded(child: Text(
-                            "Checking bluetooth requirements...", 
-                            textAlign: TextAlign.center, 
-                            style: TextStyle(fontSize: 24, color: Colors.grey))
+                          return Expanded(
+                            child: Text(
+                              "Checking bluetooth requirements...",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 24,
+                                color: Colors.grey,
+                              ),
+                            ),
                           );
                         } else if (state is BluetoothOperationFailure) {
                           return ElevatedButton(
-                            onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothRequirements());}, 
-                            child: Text("Try again")
+                            onPressed: () {
+                              context.read<BluetoothBloc>().add(
+                                CheckBluetoothRequirements(),
+                              );
+                            },
+                            child: Text("Try again"),
                           );
                         } else if (state is BluetoothScanInProgress) {
-                            return CircularProgressIndicator();
+                          return CircularProgressIndicator();
                         } else if (state is BluetoothScanComplete) {
-                            return Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  SizedBox(
-                                    width: 150,
-                                    child: ElevatedButton(
-                                      onPressed: () {context.read<BluetoothBloc>().add(CheckBluetoothRequirements());}, 
-                                      child: Row(children: [Icon(Icons.refresh), Text(" Scan Again")]),
-                                    )
+                          return Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  width: 150,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      context.read<BluetoothBloc>().add(
+                                        CheckBluetoothRequirements(),
+                                      );
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.refresh),
+                                        Text(" Scan Again"),
+                                      ],
+                                    ),
                                   ),
-                                  Expanded(
-                                    child: ListView.builder(
-                                      shrinkWrap: true,
-                                      itemCount: state.results.length,
-                                      itemBuilder: (context, index) {
-                                        ScanResult result = state.results[index];
-                                        String title = "Unknown";
-                                        title = result.advertisementData.serviceUuids.isNotEmpty ? result.advertisementData.serviceUuids.first.toString() : title;
-                                        title = result.advertisementData.advName.isNotEmpty ? result.advertisementData.advName : title;
-                                        String remoteId = result.device.remoteId.toString();
-                                        return ListTile(
-                                          leading: Text("RSSI: ${result.rssi}" ),
-                                          title: Text(title),
-                                          subtitle: Text(remoteId),
-                                          trailing: FilledButton(
-                                            onPressed: () {
-                                              Device device = Device(name: title, remoteId: remoteId);
-                                              context.read<DevicesBloc>().add(AddDevice(device));
-                                            },
-                                            child: Text("Add Device")
-                                          )
-                                        );
-                                      },
-                                    )
-                                  )
-                                ],
-                              )
-                            );
+                                ),
+                                Expanded(
+                                  child: ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: state.results.length,
+                                    itemBuilder: (context, index) {
+                                      ScanResult result = state.results[index];
+                                      String title = "Unknown";
+                                      title =
+                                          result
+                                              .advertisementData
+                                              .serviceUuids
+                                              .isNotEmpty
+                                          ? result
+                                                .advertisementData
+                                                .serviceUuids
+                                                .first
+                                                .toString()
+                                          : title;
+                                      title =
+                                          result
+                                              .advertisementData
+                                              .advName
+                                              .isNotEmpty
+                                          ? result.advertisementData.advName
+                                          : title;
+                                      String remoteId = result.device.remoteId
+                                          .toString();
+                                      return ListTile(
+                                        leading: Text("RSSI: ${result.rssi}"),
+                                        title: Text(title),
+                                        subtitle: Text(remoteId),
+                                        trailing: FilledButton(
+                                          onPressed: () {
+                                            Device device = Device(
+                                              name: title,
+                                              remoteId: remoteId,
+                                            );
+                                            context.read<DevicesBloc>().add(
+                                              AddDevice(device),
+                                            );
+                                          },
+                                          child: Text("Add Device"),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         } else {
                           // if something unexpected goed wrong
-                          return Expanded(child: Text(
-                            "Error: Something went wrong! Unable to add devices.", 
-                            textAlign: TextAlign.center, 
-                            style: TextStyle(fontSize: 24, color: Colors.redAccent))
+                          return Expanded(
+                            child: Text(
+                              "Error: Something went wrong! Unable to add devices.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 24,
+                                color: Colors.redAccent,
+                              ),
+                            ),
                           );
                         }
                       },
                     ),
                   ],
-                )
-              )
-            )
+                ),
+              ),
+            ),
           ],
-        )
-      )
+        ),
+      ),
     );
   }
 }

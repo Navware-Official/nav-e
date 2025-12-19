@@ -1,6 +1,6 @@
-pub(crate) mod domain;  // Internal - domain layer
-pub(crate) mod application;  // Internal - CQRS layer
-pub(crate) mod infrastructure;  // Internal - adapters
+pub(crate) mod application; // Internal - CQRS layer
+pub(crate) mod domain; // Internal - domain layer
+pub(crate) mod infrastructure; // Internal - adapters
 
 // Private module - database migrations (not exposed via FFI)
 #[cfg_attr(not(target_family = "wasm"), path = "migrations/mod.rs")]

@@ -24,7 +24,7 @@ class RecenterFAB extends StatelessWidget {
           onPressed: () {
             // Enable follow user mode - MapWidget will handle camera movement
             context.read<MapBloc>().add(ToggleFollowUser(true));
-            
+
             // Move camera to current location if available
             if (location != null) {
               context.read<MapBloc>().add(MapMoved(location, 16.0));

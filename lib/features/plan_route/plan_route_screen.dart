@@ -17,7 +17,6 @@ import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart
 import 'package:nav_e/features/plan_route/widgets/route_top_panel.dart';
 import 'package:nav_e/features/plan_route/widgets/route_bottom_sheet.dart';
 
-
 class PlanRouteScreen extends StatefulWidget {
   final GeocodingResult destination;
 
@@ -60,27 +59,27 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
       if (_pickOnMap && _pickedStart != null) {
         startPos = _pickedStart!;
       } else {
-      try {
-        final locState = context.read<LocationBloc>().state;
-        if (locState.position != null) {
-          startPos = locState.position!;
-        } else {
-          // Fall back to map center if LocationBloc has no position yet.
+        try {
+          final locState = context.read<LocationBloc>().state;
+          if (locState.position != null) {
+            startPos = locState.position!;
+          } else {
+            // Fall back to map center if LocationBloc has no position yet.
+            try {
+              startPos = context.read<MapBloc>().state.center;
+            } catch (_) {
+              // keep default (dest)
+            }
+          }
+        } catch (_) {
+          // If LocationBloc isn't provided in this context, attempt MapBloc
+          // center and otherwise keep destination as a last resort.
           try {
             startPos = context.read<MapBloc>().state.center;
           } catch (_) {
-            // keep default (dest)
+            // keep dest
           }
         }
-      } catch (_) {
-        // If LocationBloc isn't provided in this context, attempt MapBloc
-        // center and otherwise keep destination as a last resort.
-        try {
-          startPos = context.read<MapBloc>().state.center;
-        } catch (_) {
-          // keep dest
-        }
-      }
       }
 
       // Use the new DDD/CQRS Rust API to calculate route
@@ -97,12 +96,13 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         final lon = (e[1] as num).toDouble();
         return LatLng(lat, lon);
       }).toList();
-      
+
       if (pts.length < 2) {
         // Not enough points to draw a line — surface this to the UI so the
         // user/developer can see that the computed route is too small.
         setState(() {
-          _computeError = 'Route contains only ${pts.length} waypoint(s); need at least 2 to display a line.';
+          _computeError =
+              'Route contains only ${pts.length} waypoint(s); need at least 2 to display a line.';
         });
       } else {
         // Clear any previous compute error when we have a valid route.
@@ -140,8 +140,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
       setState(() {
         _computeError = e.toString();
       });
-    }
-    finally {
+    } finally {
       setState(() {
         _computing = false;
       });
@@ -163,13 +162,15 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
     final String startLabel;
     if (_pickOnMap) {
       if (_pickedStart != null) {
-        startLabel = 'Picked: ${_pickedStart!.latitude.toStringAsFixed(5)}, ${_pickedStart!.longitude.toStringAsFixed(5)}';
+        startLabel =
+            'Picked: ${_pickedStart!.latitude.toStringAsFixed(5)}, ${_pickedStart!.longitude.toStringAsFixed(5)}';
       } else {
         startLabel = 'Tap map to pick start';
       }
     } else {
       if (userPos != null) {
-        startLabel = 'Current: ${userPos.latitude.toStringAsFixed(5)}, ${userPos.longitude.toStringAsFixed(5)}';
+        startLabel =
+            'Current: ${userPos.latitude.toStringAsFixed(5)}, ${userPos.longitude.toStringAsFixed(5)}';
       } else {
         startLabel = 'Current location';
       }
@@ -213,78 +214,80 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         ),
     ];
 
-  // Build the main scaffold composed from smaller widgets in the widgets/
-  // subfolder. This keeps layout code modular and easier to maintain.
+    // Build the main scaffold composed from smaller widgets in the widgets/
+    // subfolder. This keeps layout code modular and easier to maintain.
 
-  return Scaffold(
-    extendBodyBehindAppBar: true,
-    body: Stack(
-      children: [
-        // Map
-        Positioned.fill(
-          child: PlanRouteMap(
-            markers: markers,
-            polylines: _routePoints.isNotEmpty
-                ? [
-                    PolylineModel(
-                      id: 'route',
-                      points: _routePoints,
-                      colorArgb: (AppColors.blueRibbonDark02.a.toInt() << 24) |
-                                (AppColors.blueRibbonDark02.r.toInt() << 16) |
-                                (AppColors.blueRibbonDark02.g.toInt() << 8) |
-                                AppColors.blueRibbonDark02.b.toInt(),
-                      strokeWidth: 6.0,
-                    )
-                  ]
-                : const [],
-            onMapTap: (latlng) {
-              if (!_pickOnMap) return;
-              // set picked start and compute route immediately
-              setState(() {
-                _pickedStart = latlng;
-              });
-              _computeRoute();
-            },
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // Map
+          Positioned.fill(
+            child: PlanRouteMap(
+              markers: markers,
+              polylines: _routePoints.isNotEmpty
+                  ? [
+                      PolylineModel(
+                        id: 'route',
+                        points: _routePoints,
+                        colorArgb:
+                            (AppColors.blueRibbonDark02.a.toInt() << 24) |
+                            (AppColors.blueRibbonDark02.r.toInt() << 16) |
+                            (AppColors.blueRibbonDark02.g.toInt() << 8) |
+                            AppColors.blueRibbonDark02.b.toInt(),
+                        strokeWidth: 6.0,
+                      ),
+                    ]
+                  : const [],
+              onMapTap: (latlng) {
+                if (!_pickOnMap) return;
+                // set picked start and compute route immediately
+                setState(() {
+                  _pickedStart = latlng;
+                });
+                _computeRoute();
+              },
+            ),
           ),
-        ),
 
-  // Top panel
-  RouteTopPanel(
-    destination: dest,
-    pickOnMap: _pickOnMap,
-    onPickOnMapChanged: (v) {
-      setState(() {
-        _pickOnMap = v;
-        if (!v) _pickedStart = null; // clear any picked start when switching back
-      });
-      // When switching back to 'Current location', automatically recompute
-      // the route using the current GPS/map center to give immediate
-      // feedback (button will enter the computing/loading state).
-      if (!v) {
-        _computeRoute();
-      }
-    },
-    startLabel: startLabel,
-  ),
+          // Top panel
+          RouteTopPanel(
+            destination: dest,
+            pickOnMap: _pickOnMap,
+            onPickOnMapChanged: (v) {
+              setState(() {
+                _pickOnMap = v;
+                if (!v)
+                  _pickedStart =
+                      null; // clear any picked start when switching back
+              });
+              // When switching back to 'Current location', automatically recompute
+              // the route using the current GPS/map center to give immediate
+              // feedback (button will enter the computing/loading state).
+              if (!v) {
+                _computeRoute();
+              }
+            },
+            startLabel: startLabel,
+          ),
 
-  // Map control widgets (same as HomeView)
-  const RecenterFAB(),
-  const RotateNorthFAB(),
-  const MapControlsFAB(),
+          // Map control widgets (same as HomeView)
+          const RecenterFAB(),
+          const RotateNorthFAB(),
+          const MapControlsFAB(),
 
-  // Bottom sheet
-        RouteBottomSheet(
-          destination: dest,
-          computing: _computing,
-          computeError: _computeError,
-          routePoints: _routePoints,
-          distanceM: _distanceM,
-          durationS: _durationS,
-          onCompute: _computeRoute,
-        ),
-      ],
-    ),
-  );
+          // Bottom sheet
+          RouteBottomSheet(
+            destination: dest,
+            computing: _computing,
+            computeError: _computeError,
+            routePoints: _routePoints,
+            distanceM: _distanceM,
+            durationS: _durationS,
+            onCompute: _computeRoute,
+          ),
+        ],
+      ),
+    );
   }
-
 }

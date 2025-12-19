@@ -56,15 +56,15 @@ class NavState extends Equatable {
 
   @override
   List<Object?> get props => [
-        active,
-        routeId,
-        remainingDistanceM,
-        remainingSeconds,
-        nextCue,
-        progressPolyline,
-        speed,
-        lastPosition,
-        following,
-        lightweightMode,
-      ];
+    active,
+    routeId,
+    remainingDistanceM,
+    remainingSeconds,
+    nextCue,
+    progressPolyline,
+    speed,
+    lastPosition,
+    following,
+    lightweightMode,
+  ];
 }

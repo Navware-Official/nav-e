@@ -16,13 +16,12 @@ pub trait DomainEvent: Send + Sync {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 
 pub struct NavigationStartedEvent {
-    
     pub event_id: Uuid,
-    
+
     pub session_id: Uuid,
-    
+
     pub route_id: Uuid,
-    
+
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -41,12 +40,11 @@ impl NavigationStartedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 
 pub struct PositionUpdatedEvent {
-    
     pub event_id: Uuid,
-    
+
     pub session_id: Uuid,
     pub position: Position,
-    
+
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -65,13 +63,12 @@ impl PositionUpdatedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 
 pub struct WaypointReachedEvent {
-    
     pub event_id: Uuid,
-    
+
     pub session_id: Uuid,
     pub waypoint_index: usize,
     pub position: Position,
-    
+
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -91,13 +88,12 @@ impl WaypointReachedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 
 pub struct NavigationCompletedEvent {
-    
     pub event_id: Uuid,
-    
+
     pub session_id: Uuid,
     pub total_distance_meters: f64,
     pub total_duration_seconds: u32,
-    
+
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -117,11 +113,10 @@ impl NavigationCompletedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 
 pub struct DeviceConnectedEvent {
-    
     pub event_id: Uuid,
     pub device_id: String,
     pub device_type: DeviceType,
-    
+
     pub occurred_at: DateTime<Utc>,
 }
 
@@ -140,12 +135,11 @@ impl DeviceConnectedEvent {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 
 pub struct TrafficAlertDetectedEvent {
-    
     pub event_id: Uuid,
-    
+
     pub session_id: Uuid,
     pub traffic_event: TrafficEvent,
-    
+
     pub occurred_at: DateTime<Utc>,
 }
 

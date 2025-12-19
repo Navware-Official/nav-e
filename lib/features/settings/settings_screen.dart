@@ -19,9 +19,7 @@ class SettingsScreen extends StatelessWidget {
         ),
         title: Text('Settings'),
       ),
-      body: ListView(
-        children: [ThemeSettingsSection(), AppVersionSection()],
-      ),
+      body: ListView(children: [ThemeSettingsSection(), AppVersionSection()]),
     );
   }
 }

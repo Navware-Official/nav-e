@@ -1,8 +1,7 @@
 /// Base repository implementation for common CRUD operations
-/// 
+///
 /// This module provides a generic base repository that handles standard
 /// database operations, reducing boilerplate in concrete repositories.
-
 use anyhow::{Context, Result};
 use rusqlite::{Connection, Row};
 use std::marker::PhantomData;
@@ -11,38 +10,40 @@ use std::sync::{Arc, Mutex};
 use crate::domain::ports::Repository;
 
 /// Trait for entities that can be persisted to database
-/// 
+///
 /// Implement this trait to define how your entity maps to/from database rows.
 pub trait DatabaseEntity: Sized + Send + Sync {
     /// The ID type for this entity (typically i64)
     type Id;
-    
+
     /// The database table name
     fn table_name() -> &'static str;
-    
+
     /// Convert a database row to an entity instance
     fn from_row(row: &Row) -> rusqlite::Result<Self>;
-    
+
     /// Get column names for SELECT queries (comma-separated)
     fn column_names() -> &'static str;
-    
+
     /// Get column names for INSERT (excluding id)
     fn insert_columns() -> &'static str;
-    
+
     /// Get placeholders for INSERT (?, ?, ...)
     fn insert_placeholders() -> &'static str;
-    
+
     /// Bind entity values to INSERT statement (excluding id)
-    fn bind_insert(&self, stmt: &mut rusqlite::Statement, start_idx: usize) -> rusqlite::Result<()>;
-    
+    fn bind_insert(&self, stmt: &mut rusqlite::Statement, start_idx: usize)
+        -> rusqlite::Result<()>;
+
     /// Bind entity values to UPDATE statement (excluding id)
-    fn bind_update(&self, stmt: &mut rusqlite::Statement, start_idx: usize) -> rusqlite::Result<()>;
+    fn bind_update(&self, stmt: &mut rusqlite::Statement, start_idx: usize)
+        -> rusqlite::Result<()>;
 }
 
 /// Generic base repository implementation
-/// 
+///
 /// Provides standard CRUD operations for any entity implementing DatabaseEntity.
-/// 
+///
 /// # Example
 /// ```rust
 /// let repo = BaseRepository::<SavedPlace, i64>::new(db_conn);
@@ -66,7 +67,7 @@ where
             _phantom: PhantomData,
         }
     }
-    
+
     /// Get reference to database connection
     pub fn db(&self) -> &Arc<Mutex<Connection>> {
         &self.db
@@ -85,17 +86,19 @@ where
             T::column_names(),
             T::table_name()
         );
-        
-        let mut stmt = conn.prepare(&sql)
+
+        let mut stmt = conn
+            .prepare(&sql)
             .context("Failed to prepare get_all query")?;
-        
-        let entities = stmt.query_map([], T::from_row)?
+
+        let entities = stmt
+            .query_map([], T::from_row)?
             .collect::<rusqlite::Result<Vec<_>>>()
             .context("Failed to map rows to entities")?;
-        
+
         Ok(entities)
     }
-    
+
     fn get_by_id(&self, id: ID) -> Result<Option<T>> {
         let conn = self.db.lock().unwrap();
         let sql = format!(
@@ -103,19 +106,20 @@ where
             T::column_names(),
             T::table_name()
         );
-        
-        let mut stmt = conn.prepare(&sql)
+
+        let mut stmt = conn
+            .prepare(&sql)
             .context("Failed to prepare get_by_id query")?;
-        
+
         let result = stmt.query_row([id], T::from_row);
-        
+
         match result {
             Ok(entity) => Ok(Some(entity)),
             Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
             Err(e) => Err(e.into()),
         }
     }
-    
+
     fn insert(&self, entity: T) -> Result<ID> {
         let conn = self.db.lock().unwrap();
         let sql = format!(
@@ -124,24 +128,24 @@ where
             T::insert_columns(),
             T::insert_placeholders()
         );
-        
-        let mut stmt = conn.prepare(&sql)
+
+        let mut stmt = conn
+            .prepare(&sql)
             .context("Failed to prepare insert query")?;
-        
+
         entity.bind_insert(&mut stmt, 1)?;
-        stmt.raw_execute()
-            .context("Failed to execute insert")?;
-        
+        stmt.raw_execute().context("Failed to execute insert")?;
+
         let id = conn.last_insert_rowid();
-        
+
         // Convert i64 to ID type - this assumes ID implements From<i64>
         // For i64, this is a no-op. For other types, implement From trait.
         Ok(unsafe { std::mem::transmute_copy(&id) })
     }
-    
+
     fn update(&self, id: ID, entity: T) -> Result<()> {
         let conn = self.db.lock().unwrap();
-        
+
         // Build UPDATE SET clause dynamically based on insert columns
         let columns: Vec<&str> = T::insert_columns().split(", ").collect();
         let set_clause = columns
@@ -149,35 +153,31 @@ where
             .map(|col| format!("{} = ?", col))
             .collect::<Vec<_>>()
             .join(", ");
-        
-        let sql = format!(
-            "UPDATE {} SET {} WHERE id = ?",
-            T::table_name(),
-            set_clause
-        );
-        
-        let mut stmt = conn.prepare(&sql)
+
+        let sql = format!("UPDATE {} SET {} WHERE id = ?", T::table_name(), set_clause);
+
+        let mut stmt = conn
+            .prepare(&sql)
             .context("Failed to prepare update query")?;
-        
+
         entity.bind_update(&mut stmt, 1)?;
-        
+
         // Bind the ID at the end (after all entity fields)
         let param_count = columns.len();
         stmt.raw_bind_parameter(param_count + 1, id)?;
-        
-        stmt.raw_execute()
-            .context("Failed to execute update")?;
-        
+
+        stmt.raw_execute().context("Failed to execute update")?;
+
         Ok(())
     }
-    
+
     fn delete(&self, id: ID) -> Result<()> {
         let conn = self.db.lock().unwrap();
         let sql = format!("DELETE FROM {} WHERE id = ?", T::table_name());
-        
+
         conn.execute(&sql, [id])
             .context("Failed to delete entity")?;
-        
+
         Ok(())
     }
 }
@@ -224,14 +224,22 @@ mod tests {
             "?, ?, ?"
         }
 
-        fn bind_insert(&self, stmt: &mut rusqlite::Statement, start_idx: usize) -> rusqlite::Result<()> {
+        fn bind_insert(
+            &self,
+            stmt: &mut rusqlite::Statement,
+            start_idx: usize,
+        ) -> rusqlite::Result<()> {
             stmt.raw_bind_parameter(start_idx, &self.name)?;
             stmt.raw_bind_parameter(start_idx + 1, self.value)?;
             stmt.raw_bind_parameter(start_idx + 2, self.created_at)?;
             Ok(())
         }
 
-        fn bind_update(&self, stmt: &mut rusqlite::Statement, start_idx: usize) -> rusqlite::Result<()> {
+        fn bind_update(
+            &self,
+            stmt: &mut rusqlite::Statement,
+            start_idx: usize,
+        ) -> rusqlite::Result<()> {
             self.bind_insert(stmt, start_idx)
         }
     }
@@ -246,7 +254,8 @@ mod tests {
                 created_at INTEGER NOT NULL
             )",
             [],
-        ).unwrap();
+        )
+        .unwrap();
         Arc::new(Mutex::new(conn))
     }
 

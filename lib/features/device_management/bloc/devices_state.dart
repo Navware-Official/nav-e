@@ -2,7 +2,7 @@ part of 'devices_bloc.dart';
 
 sealed class DevicesState extends Equatable {
   const DevicesState();
-  
+
   @override
   List<Object?> get props => [];
 }
@@ -15,7 +15,7 @@ class DeviceLoadSuccess extends DevicesState {
   final List<Device> devices;
 
   const DeviceLoadSuccess(this.devices);
-  
+
   @override
   List<Object> get props => [devices];
 }
@@ -27,7 +27,7 @@ class DeviceOperationSuccess extends DevicesState {
   final Device? device;
 
   const DeviceOperationSuccess(this.message, this.device);
-  
+
   @override
   List<Object?> get props => [message, device];
 }
@@ -36,7 +36,7 @@ class DeviceOperationFailure extends DevicesState {
   final String message;
 
   const DeviceOperationFailure(this.message);
-  
+
   @override
   List<Object> get props => [message];
 }

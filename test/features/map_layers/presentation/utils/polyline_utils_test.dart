@@ -32,10 +32,7 @@ void main() {
     });
 
     test('throws on empty coordinate list', () {
-      expect(
-        () => PolylineUtils.calculateBounds([]),
-        throwsArgumentError,
-      );
+      expect(() => PolylineUtils.calculateBounds([]), throwsArgumentError);
     });
 
     test('handles negative coordinates', () {
@@ -68,10 +65,7 @@ void main() {
     });
 
     test('calculates center of two coordinates', () {
-      final coordinates = [
-        const LatLng(52.0, 13.0),
-        const LatLng(54.0, 15.0),
-      ];
+      final coordinates = [const LatLng(52.0, 13.0), const LatLng(54.0, 15.0)];
 
       final center = PolylineUtils.calculateCenter(coordinates);
 
@@ -89,10 +83,7 @@ void main() {
     });
 
     test('throws on empty coordinate list', () {
-      expect(
-        () => PolylineUtils.calculateCenter([]),
-        throwsArgumentError,
-      );
+      expect(() => PolylineUtils.calculateCenter([]), throwsArgumentError);
     });
   });
 
@@ -125,10 +116,7 @@ void main() {
     });
 
     test('returns input for two points', () {
-      final coordinates = [
-        const LatLng(52.0, 13.0),
-        const LatLng(52.2, 13.2),
-      ];
+      final coordinates = [const LatLng(52.0, 13.0), const LatLng(52.2, 13.2)];
 
       final simplified = PolylineUtils.simplify(coordinates, 0.01);
 
@@ -245,7 +233,10 @@ void main() {
       expect(bounds.southwest.latitude, lessThanOrEqualTo(center.latitude));
       expect(bounds.southwest.longitude, lessThanOrEqualTo(center.longitude));
       expect(bounds.northeast.latitude, greaterThanOrEqualTo(center.latitude));
-      expect(bounds.northeast.longitude, greaterThanOrEqualTo(center.longitude));
+      expect(
+        bounds.northeast.longitude,
+        greaterThanOrEqualTo(center.longitude),
+      );
     });
 
     test('simplified polyline can be encoded', () {

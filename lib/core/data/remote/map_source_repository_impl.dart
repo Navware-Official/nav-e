@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class MapSourceRepositoryImpl implements IMapSourceRepository {
   static const _configPath = 'assets/config/map_sources.json';
   static const _prefsKey = 'selected_map_source_id';
-  
+
   List<MapSource> _registry = [];
   Object _currentId = 'osm';
   bool _initialized = false;
@@ -21,16 +21,16 @@ class MapSourceRepositoryImpl implements IMapSourceRepository {
 
   Future<void> _initialize() async {
     if (_initialized) return;
-    
+
     try {
       // Load map sources from JSON
       final jsonString = await rootBundle.loadString(_configPath);
       final List<dynamic> jsonList = json.decode(jsonString);
       _registry = jsonList.map((json) => MapSource.fromJson(json)).toList();
-      
+
       // Load saved current ID
       await _loadCurrentId();
-      
+
       _initialized = true;
     } catch (e) {
       // Fallback to default OSM if loading fails

@@ -1,11 +1,11 @@
+use crate::domain::ports::Repository;
+use crate::infrastructure::base_repository::{BaseRepository, DatabaseEntity};
+use crate::migrations::{get_all_migrations, MigrationManager};
 /// SQLite database infrastructure for persistent storage
 use anyhow::{Context, Result};
-use rusqlite::{Connection, params, Row};
+use rusqlite::{params, Connection, Row};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use crate::migrations::{MigrationManager, get_all_migrations};
-use crate::infrastructure::base_repository::{DatabaseEntity, BaseRepository};
-use crate::domain::ports::Repository;
 
 pub struct Database {
     conn: Arc<Mutex<Connection>>,
@@ -17,17 +17,18 @@ impl Database {
         // Android automatically creates /data/data/<package>/files/ for apps
         let conn = Connection::open(&db_path)
             .with_context(|| format!("Unable to open database file: {}", db_path.display()))?;
-        
+
         let db = Self {
             conn: Arc::new(Mutex::new(conn)),
         };
-        
+
         // Run migrations
         let manager = MigrationManager::new(db.get_connection());
         let migrations = get_all_migrations();
-        manager.migrate(&migrations)
+        manager
+            .migrate(&migrations)
             .context("Failed to run database migrations")?;
-        
+
         Ok(db)
     }
 
@@ -84,7 +85,11 @@ impl DatabaseEntity for SavedPlaceEntity {
         "?, ?, ?, ?, ?, ?, ?, ?"
     }
 
-    fn bind_insert(&self, stmt: &mut rusqlite::Statement, start_idx: usize) -> rusqlite::Result<()> {
+    fn bind_insert(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        start_idx: usize,
+    ) -> rusqlite::Result<()> {
         stmt.raw_bind_parameter(start_idx, self.type_id)?;
         stmt.raw_bind_parameter(start_idx + 1, &self.source)?;
         stmt.raw_bind_parameter(start_idx + 2, self.remote_id.as_ref())?;
@@ -96,7 +101,11 @@ impl DatabaseEntity for SavedPlaceEntity {
         Ok(())
     }
 
-    fn bind_update(&self, stmt: &mut rusqlite::Statement, start_idx: usize) -> rusqlite::Result<()> {
+    fn bind_update(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        start_idx: usize,
+    ) -> rusqlite::Result<()> {
         self.bind_insert(stmt, start_idx)
     }
 }
@@ -153,7 +162,11 @@ impl DatabaseEntity for DeviceEntity {
         "?, ?, ?, ?, ?, ?, ?, ?, ?, ?"
     }
 
-    fn bind_insert(&self, stmt: &mut rusqlite::Statement, start_idx: usize) -> rusqlite::Result<()> {
+    fn bind_insert(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        start_idx: usize,
+    ) -> rusqlite::Result<()> {
         stmt.raw_bind_parameter(start_idx, &self.remote_id)?;
         stmt.raw_bind_parameter(start_idx + 1, &self.name)?;
         stmt.raw_bind_parameter(start_idx + 2, &self.device_type)?;
@@ -167,7 +180,11 @@ impl DatabaseEntity for DeviceEntity {
         Ok(())
     }
 
-    fn bind_update(&self, stmt: &mut rusqlite::Statement, start_idx: usize) -> rusqlite::Result<()> {
+    fn bind_update(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        start_idx: usize,
+    ) -> rusqlite::Result<()> {
         self.bind_insert(stmt, start_idx)
     }
 }
@@ -230,7 +247,7 @@ impl DeviceRepository {
         let mut stmt = conn.prepare(
             "SELECT id, remote_id, name, device_type, connection_type, paired, 
                     last_connected, firmware_version, battery_level, created_at, updated_at 
-             FROM devices WHERE remote_id = ?"
+             FROM devices WHERE remote_id = ?",
         )?;
 
         let result = stmt.query_row([remote_id], |row| DeviceEntity::from_row(row));

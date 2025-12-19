@@ -22,13 +22,15 @@ class NavBloc extends Bloc<NavEvent, NavState> {
   void _onStart(NavStart event, Emitter<NavState> emit) {
     final dist = _computeTotalDistance(event.routePoints);
     final secs = null; // leave ETA empty for now
-    emit(state.copyWith(
-      active: true,
-      routeId: event.routeId,
-      remainingDistanceM: dist,
-      remainingSeconds: secs,
-      progressPolyline: event.routePoints,
-    ));
+    emit(
+      state.copyWith(
+        active: true,
+        routeId: event.routeId,
+        remainingDistanceM: dist,
+        remainingSeconds: secs,
+        progressPolyline: event.routePoints,
+      ),
+    );
     _startCuePolling();
   }
 
@@ -88,12 +90,18 @@ class NavBloc extends Bloc<NavEvent, NavState> {
 
         if (json == null || json.isEmpty) return;
         // parse minimal cue structure
-        final Map<String, dynamic> obj = jsonDecode(json) as Map<String, dynamic>;
+        final Map<String, dynamic> obj =
+            jsonDecode(json) as Map<String, dynamic>;
         final cue = NavCue(
-          id: obj['id']?.toString() ?? DateTime.now().millisecondsSinceEpoch.toString(),
+          id:
+              obj['id']?.toString() ??
+              DateTime.now().millisecondsSinceEpoch.toString(),
           instruction: obj['instruction']?.toString() ?? '',
           distanceToCueM: (obj['distance_to_cue_m'] as num?)?.toDouble() ?? 0.0,
-          location: LatLng((obj['location']?[0] as num?)?.toDouble() ?? 0.0, (obj['location']?[1] as num?)?.toDouble() ?? 0.0),
+          location: LatLng(
+            (obj['location']?[0] as num?)?.toDouble() ?? 0.0,
+            (obj['location']?[1] as num?)?.toDouble() ?? 0.0,
+          ),
           maneuver: obj['maneuver']?.toString() ?? '',
         );
         add(CueFromNative(cue));

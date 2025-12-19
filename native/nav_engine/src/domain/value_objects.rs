@@ -16,7 +16,10 @@ impl Position {
         if !(-180.0..=180.0).contains(&longitude) {
             anyhow::bail!("Longitude must be between -180 and 180");
         }
-        Ok(Self { latitude, longitude })
+        Ok(Self {
+            latitude,
+            longitude,
+        })
     }
 
     pub fn distance_to(&self, other: &Position) -> f64 {

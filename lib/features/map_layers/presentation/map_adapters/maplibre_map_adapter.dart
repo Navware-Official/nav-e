@@ -7,7 +7,7 @@ import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 import 'package:nav_e/features/map_layers/presentation/map_adapters/maplibre_widget.dart';
 
 /// MapLibre implementation for all map types (vector and raster tiles)
-/// 
+///
 /// This adapter uses MapLibre GL for rendering all map types, which provides:
 /// - Vector tiles (MVT/PBF) for better performance and smaller data transfer
 /// - Raster tiles (PNG/JPG) for satellite imagery and standard maps
@@ -19,11 +19,9 @@ class MapLibreMapAdapter implements MapAdapter {
   LatLng _currentCenter;
   double _currentZoom;
 
-  MapLibreMapAdapter({
-    LatLng? initialCenter,
-    double? initialZoom,
-  })  : _currentCenter = initialCenter ?? const LatLng(52.3791, 4.9),
-        _currentZoom = initialZoom ?? 13.0;
+  MapLibreMapAdapter({LatLng? initialCenter, double? initialZoom})
+    : _currentCenter = initialCenter ?? const LatLng(52.3791, 4.9),
+      _currentZoom = initialZoom ?? 13.0;
 
   @override
   LatLng get currentCenter => _currentCenter;
@@ -63,17 +61,14 @@ class MapLibreMapAdapter implements MapAdapter {
     // Convert MarkerModel to MapLibreMarker
     final mapLibreMarkers = markers
         .map(
-          (m) => MapLibreMarker(
-            id: m.id,
-            position: m.position,
-            icon: m.icon,
-          ),
+          (m) => MapLibreMarker(id: m.id, position: m.position, icon: m.icon),
         )
         .toList();
 
     // Determine if source is a style.json URL or raster tile URL
-    final isStyleJson = source?.urlTemplate.toLowerCase().contains('style.json') ?? false;
-    
+    final isStyleJson =
+        source?.urlTemplate.toLowerCase().contains('style.json') ?? false;
+
     return MapLibreWidget(
       initialCenter: center,
       initialZoom: zoom,

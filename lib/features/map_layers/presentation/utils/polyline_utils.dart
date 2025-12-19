@@ -42,14 +42,11 @@ class PolylineUtils {
       sumLng += coord.longitude;
     }
 
-    return LatLng(
-      sumLat / coordinates.length,
-      sumLng / coordinates.length,
-    );
+    return LatLng(sumLat / coordinates.length, sumLng / coordinates.length);
   }
 
   /// Simplify a polyline using the Ramer-Douglas-Peucker algorithm
-  /// 
+  ///
   /// [coordinates] - The list of coordinates to simplify
   /// [tolerance] - The tolerance in degrees (smaller = more detail)
   static List<LatLng> simplify(List<LatLng> coordinates, double tolerance) {

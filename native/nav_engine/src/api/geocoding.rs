@@ -9,14 +9,15 @@ use crate::domain::value_objects::*;
 
 pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
     eprintln!("[GEOCODING RUST] Function called with query: {}", query);
-    
+
     let rt = match tokio::runtime::Builder::new_current_thread()
         .enable_all()
-        .build() {
+        .build()
+    {
         Ok(rt) => {
             eprintln!("[GEOCODING RUST] Runtime created successfully");
             rt
-        },
+        }
         Err(e) => {
             eprintln!("[GEOCODING RUST ERROR] Failed to build runtime: {}", e);
             return Err(anyhow::anyhow!("Failed to build tokio runtime: {}", e));
@@ -42,7 +43,7 @@ pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
                 eprintln!("[GEOCODING RUST ERROR] Failed to build client: {}", e);
                 e
             })?;
-        
+
         eprintln!("[GEOCODING RUST] Sending request...");
         let response = client
             .get(&url)
@@ -60,7 +61,10 @@ pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
             eprintln!("[GEOCODING RUST ERROR] Failed to read response text: {}", e);
             e
         })?;
-        eprintln!("[GEOCODING RUST] Response body length: {} bytes", response_text.len());
+        eprintln!(
+            "[GEOCODING RUST] Response body length: {} bytes",
+            response_text.len()
+        );
         eprintln!("[GEOCODING RUST] Response body: {}", response_text);
 
         let data: Vec<serde_json::Value> = serde_json::from_str(&response_text)
@@ -77,15 +81,16 @@ pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
             .filter_map(|item| {
                 let lat = item["lat"].as_str()?.parse::<f64>().ok()?;
                 let lon = item["lon"].as_str()?.parse::<f64>().ok()?;
-                
+
                 let display_name = item["display_name"].as_str()?.to_string();
                 let osm_type = item["osm_type"].as_str().map(|s| s.to_string());
                 let osm_id = item["osm_id"].as_i64();
-                
+
                 // Extract address details if available
                 let address = &item["address"];
                 let name = item["name"].as_str().map(|s| s.to_string());
-                let city = address["city"].as_str()
+                let city = address["city"]
+                    .as_str()
                     .or(address["town"].as_str())
                     .or(address["village"].as_str())
                     .map(|s| s.to_string());
@@ -105,16 +110,18 @@ pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
             .collect();
 
         eprintln!("[GEOCODING RUST] Returning {} results", results.len());
-        let json_result = serde_json::to_string(&results)
-            .map_err(|e| {
-                eprintln!("[GEOCODING RUST ERROR] Failed to serialize results: {}", e);
-                e
-            })?;
-        eprintln!("[GEOCODING RUST] JSON response length: {}", json_result.len());
-        
+        let json_result = serde_json::to_string(&results).map_err(|e| {
+            eprintln!("[GEOCODING RUST ERROR] Failed to serialize results: {}", e);
+            e
+        })?;
+        eprintln!(
+            "[GEOCODING RUST] JSON response length: {}",
+            json_result.len()
+        );
+
         Ok(json_result)
     });
-    
+
     eprintln!("[GEOCODING RUST] Returning result from function");
     result
 }

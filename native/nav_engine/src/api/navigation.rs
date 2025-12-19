@@ -2,16 +2,29 @@
 use anyhow::Result;
 use std::sync::Arc;
 
-use super::{helpers::*, dto::*};
-use crate::application::{commands::*, handlers::*, queries::*, traits::{CommandHandler, QueryHandler}};
-use crate::domain::{entities::*, value_objects::*, ports::{DeviceCommunicationPort, ControlCommand}};
+use super::{dto::*, helpers::*};
+use crate::application::{
+    commands::*,
+    handlers::*,
+    queries::*,
+    traits::{CommandHandler, QueryHandler},
+};
+use crate::domain::{
+    entities::*,
+    ports::{ControlCommand, DeviceCommunicationPort},
+    value_objects::*,
+};
 use async_trait::async_trait;
 
 // Mock device communication for now
 pub struct MockDeviceComm;
 #[async_trait]
 impl DeviceCommunicationPort for MockDeviceComm {
-    async fn send_route_summary(&self, _device_id: String, _session: &NavigationSession) -> Result<()> {
+    async fn send_route_summary(
+        &self,
+        _device_id: String,
+        _session: &NavigationSession,
+    ) -> Result<()> {
         Ok(())
     }
     async fn send_route_blob(&self, _device_id: String, _route: &Route) -> Result<()> {
@@ -23,7 +36,11 @@ impl DeviceCommunicationPort for MockDeviceComm {
     async fn send_traffic_alert(&self, _device_id: String, _event: &TrafficEvent) -> Result<()> {
         Ok(())
     }
-    async fn send_control_command(&self, _device_id: String, _command: ControlCommand) -> Result<()> {
+    async fn send_control_command(
+        &self,
+        _device_id: String,
+        _command: ControlCommand,
+    ) -> Result<()> {
         Ok(())
     }
 }
@@ -42,8 +59,8 @@ pub fn start_navigation_session(
             .map(|(lat, lon)| Position::new(lat, lon).map_err(|e| anyhow::anyhow!(e)))
             .collect();
 
-        let current_pos =
-            Position::new(current_position.0, current_position.1).map_err(|e| anyhow::anyhow!(e))?;
+        let current_pos = Position::new(current_position.0, current_position.1)
+            .map_err(|e| anyhow::anyhow!(e))?;
 
         let device_comm = Arc::new(MockDeviceComm);
 
