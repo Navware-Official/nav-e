@@ -69,81 +69,83 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                 itemBuilder: (context, index) {
                   final place = places[index];
                   return Dismissible(
-                  key: ValueKey('place_${place.id}_$index'),
-                  direction: DismissDirection.endToStart,
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  confirmDismiss: (_) async {
-                    return await showDialog<bool>(
-                      context: context,
-                      builder: (_) => AlertDialog(
-                        title: const Text('Delete place'),
-                        content: Text('Remove "${place.name}"?'),
-                        actions: [
-                        TextButton(
-                          onPressed: () =>
-                            Navigator.pop(context, false),
-                          child: const Text('Cancel'),
+                    key: ValueKey('place_${place.id}_$index'),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: const Icon(Icons.delete, color: Colors.white),
+                    ),
+                    confirmDismiss: (_) async {
+                      return await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: const Text('Delete place'),
+                              content: Text('Remove "${place.name}"?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: const Text('Cancel'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text('Delete'),
+                                ),
+                              ],
+                            ),
+                          ) ??
+                          false;
+                    },
+                    onDismissed: (_) async {
+                      if (place.id != null) {
+                        final messenger = ScaffoldMessenger.of(context);
+                        await context.read<SavedPlacesCubit>().deletePlace(
+                          place.id!,
+                        );
+                        if (mounted) {
+                          messenger.showSnackBar(
+                            SnackBar(content: Text('Deleted "${place.name}"')),
+                          );
+                        }
+                      }
+                    },
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          left: BorderSide(color: Colors.grey, width: 1),
+                          right: BorderSide(color: Colors.grey, width: 1),
                         ),
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('Delete'),
-                        ),
-                        ],
                       ),
-                      ) ??
-                      false;
-                  },
-                  onDismissed: (_) async {
-                    if (place.id != null) {
-                    final messenger = ScaffoldMessenger.of(context);
-                    await context.read<SavedPlacesCubit>().deletePlace(
-                      place.id!,
-                    );
-                    if (mounted) {
-                      messenger.showSnackBar(
-                      SnackBar(content: Text('Deleted "${place.name}"')),
-                      );
-                    }
-                    }
-                  },
-                  child: Container(
-                    decoration: const BoxDecoration(
-                    border: Border(
-                      left: BorderSide(color: Colors.grey, width: 1),
-                      right: BorderSide(color: Colors.grey, width: 1),
+                      child: ListTile(
+                        leading: const Icon(Icons.place),
+                        title: Text(place.name),
+                        subtitle: Text(
+                          [
+                            if (place.address != null &&
+                                place.address!.isNotEmpty)
+                              place.address!,
+                            '${place.lat.toStringAsFixed(5)}, ${place.lon.toStringAsFixed(5)}',
+                          ].join('\n'),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: AppTypography.subFamily,
+                          ),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.visibility),
+                          tooltip: 'Preview',
+                          onPressed: () => _showPreview(context, place),
+                        ),
+                        onTap: () => _showPreview(context, place),
+                      ),
                     ),
-                    ),
-                    child: ListTile(
-                    leading: const Icon(Icons.place),
-                    title: Text(place.name),
-                    subtitle: Text(
-                      [
-                      if (place.address != null &&
-                        place.address!.isNotEmpty)
-                        place.address!,
-                      '${place.lat.toStringAsFixed(5)}, ${place.lon.toStringAsFixed(5)}',
-                      ].join('\n'),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontFamily: AppTypography.subFamily),
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.visibility),
-                      tooltip: 'Preview',
-                      onPressed: () => _showPreview(context, place),
-                    ),
-                    onTap: () => _showPreview(context, place),
-                    ),
-                  ),
                   );
                 },
-                );
-              }
+              );
+            }
             return const SizedBox.shrink();
           },
         ),

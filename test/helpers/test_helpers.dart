@@ -13,7 +13,7 @@ class TestHelpers {
   /// Sets up method channel mocks for platform-specific services
   static void setupMethodChannelMocks() {
     TestWidgetsFlutterBinding.ensureInitialized();
-    
+
     // Mock for SharedPreferences
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -23,7 +23,8 @@ class TestHelpers {
               return <String, dynamic>{};
             }
             return null;
-          });
+          },
+        );
 
     // Mock for Geolocator
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -40,7 +41,8 @@ class TestHelpers {
               default:
                 return null;
             }
-          });
+          },
+        );
   }
 
   /// Cleanup method channels after tests
@@ -48,10 +50,12 @@ class TestHelpers {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('plugins.flutter.io/shared_preferences'),
-          null);
+          null,
+        );
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel('flutter.baseflow.com/geolocator'),
-          null);
+          null,
+        );
   }
 }

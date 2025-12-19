@@ -104,19 +104,22 @@ void main() {
       blocTest<MapBloc, MapState>(
         'should emit ready state with map sources when initialization succeeds',
         build: () {
-          when(() => mockMapSourceRepository.getCurrent())
-              .thenAnswer((_) async => testMapSource1);
-          when(() => mockMapSourceRepository.getAll())
-              .thenAnswer((_) async => testMapSources);
+          when(
+            () => mockMapSourceRepository.getCurrent(),
+          ).thenAnswer((_) async => testMapSource1);
+          when(
+            () => mockMapSourceRepository.getAll(),
+          ).thenAnswer((_) async => testMapSources);
           return MapBloc(mockMapSourceRepository);
         },
         act: (bloc) => bloc.add(MapInitialized()),
         expect: () => [
-          predicate<MapState>((state) => 
-            state.isReady == true &&
-            state.source == testMapSource1 &&
-            state.available.length == 2 &&
-            state.error == null
+          predicate<MapState>(
+            (state) =>
+                state.isReady == true &&
+                state.source == testMapSource1 &&
+                state.available.length == 2 &&
+                state.error == null,
           ),
         ],
         verify: (_) {
@@ -128,15 +131,15 @@ void main() {
       blocTest<MapBloc, MapState>(
         'should emit ready state with error when initialization fails',
         build: () {
-          when(() => mockMapSourceRepository.getCurrent())
-              .thenThrow(Exception('Failed to load sources'));
+          when(
+            () => mockMapSourceRepository.getCurrent(),
+          ).thenThrow(Exception('Failed to load sources'));
           return MapBloc(mockMapSourceRepository);
         },
         act: (bloc) => bloc.add(MapInitialized()),
         expect: () => [
-          predicate<MapState>((state) => 
-            state.isReady == true &&
-            state.error != null
+          predicate<MapState>(
+            (state) => state.isReady == true && state.error != null,
           ),
         ],
       );
@@ -148,9 +151,9 @@ void main() {
         build: () => mapBloc,
         act: (bloc) => bloc.add(MapMoved(const LatLng(50.0, 60.0), 15.0)),
         expect: () => [
-          predicate<MapState>((state) => 
-            state.center == const LatLng(50.0, 60.0) &&
-            state.zoom == 15.0
+          predicate<MapState>(
+            (state) =>
+                state.center == const LatLng(50.0, 60.0) && state.zoom == 15.0,
           ),
         ],
       );
@@ -186,25 +189,28 @@ void main() {
       blocTest<MapBloc, MapState>(
         'should update map source when change succeeds',
         build: () {
-          when(() => mockMapSourceRepository.setCurrent(any()))
-              .thenAnswer((_) async => {});
-          when(() => mockMapSourceRepository.getCurrent())
-              .thenAnswer((_) async => testMapSource2);
+          when(
+            () => mockMapSourceRepository.setCurrent(any()),
+          ).thenAnswer((_) async => {});
+          when(
+            () => mockMapSourceRepository.getCurrent(),
+          ).thenAnswer((_) async => testMapSource2);
           return MapBloc(mockMapSourceRepository);
         },
         act: (bloc) => bloc.add(MapSourceChanged('satellite')),
         expect: () => [
-          predicate<MapState>((state) => 
-            state.loadingSource == true &&
-            state.error == null
+          predicate<MapState>(
+            (state) => state.loadingSource == true && state.error == null,
           ),
-          predicate<MapState>((state) => 
-            state.source == testMapSource2 &&
-            state.loadingSource == false
+          predicate<MapState>(
+            (state) =>
+                state.source == testMapSource2 && state.loadingSource == false,
           ),
         ],
         verify: (_) {
-          verify(() => mockMapSourceRepository.setCurrent('satellite')).called(1);
+          verify(
+            () => mockMapSourceRepository.setCurrent('satellite'),
+          ).called(1);
           verify(() => mockMapSourceRepository.getCurrent()).called(1);
         },
       );
@@ -212,19 +218,18 @@ void main() {
       blocTest<MapBloc, MapState>(
         'should emit error state when source change fails',
         build: () {
-          when(() => mockMapSourceRepository.setCurrent(any()))
-              .thenThrow(Exception('Failed to change source'));
+          when(
+            () => mockMapSourceRepository.setCurrent(any()),
+          ).thenThrow(Exception('Failed to change source'));
           return MapBloc(mockMapSourceRepository);
         },
         act: (bloc) => bloc.add(MapSourceChanged('invalid')),
         expect: () => [
-          predicate<MapState>((state) => 
-            state.loadingSource == true &&
-            state.error == null
+          predicate<MapState>(
+            (state) => state.loadingSource == true && state.error == null,
           ),
-          predicate<MapState>((state) => 
-            state.loadingSource == false &&
-            state.error != null
+          predicate<MapState>(
+            (state) => state.loadingSource == false && state.error != null,
           ),
         ],
       );

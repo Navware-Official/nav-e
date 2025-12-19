@@ -71,7 +71,12 @@ pub struct Route {
 }
 
 impl Route {
-    pub fn new(waypoints: Vec<Waypoint>, polyline: Vec<Position>, distance_meters: f64, duration_seconds: u32) -> Self {
+    pub fn new(
+        waypoints: Vec<Waypoint>,
+        polyline: Vec<Position>,
+        distance_meters: f64,
+        duration_seconds: u32,
+    ) -> Self {
         Self {
             id: Uuid::new_v4(),
             waypoints,
@@ -101,7 +106,12 @@ pub struct Device {
 }
 
 impl Device {
-    pub fn new(id: String, name: String, device_type: DeviceType, capabilities: DeviceCapabilities) -> Self {
+    pub fn new(
+        id: String,
+        name: String,
+        device_type: DeviceType,
+        capabilities: DeviceCapabilities,
+    ) -> Self {
         let now = Utc::now();
         Self {
             id,

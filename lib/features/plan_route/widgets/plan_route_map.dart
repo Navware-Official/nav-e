@@ -21,9 +21,6 @@ class PlanRouteMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MapSection(
-      extraMarkers: markers,
-      onMapTap: onMapTap,
-    );
+    return MapSection(extraMarkers: markers, onMapTap: onMapTap);
   }
 }

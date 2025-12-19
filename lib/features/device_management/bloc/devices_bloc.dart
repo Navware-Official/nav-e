@@ -8,7 +8,7 @@ part 'devices_state.dart';
 
 class DevicesBloc extends Bloc<DevicesEvent, DevicesState> {
   final IDeviceRepository deviceRepository;
-  
+
   DevicesBloc(this.deviceRepository) : super(DeviceInitial()) {
     on<LoadDevices>(_loadDevices);
     on<AddDevice>(_addDevice);
@@ -17,7 +17,10 @@ class DevicesBloc extends Bloc<DevicesEvent, DevicesState> {
     on<SearchDevices>(_searchDevices);
   }
 
-  Future<void> _loadDevices(LoadDevices event, Emitter<DevicesState> emit) async {
+  Future<void> _loadDevices(
+    LoadDevices event,
+    Emitter<DevicesState> emit,
+  ) async {
     emit(DeviceLoadInProgress());
 
     try {
@@ -33,15 +36,21 @@ class DevicesBloc extends Bloc<DevicesEvent, DevicesState> {
 
     try {
       // Check if device with same remote ID already exists
-      final exists = await deviceRepository.existsByRemoteId(event.device.remoteId);
+      final exists = await deviceRepository.existsByRemoteId(
+        event.device.remoteId,
+      );
       if (exists) {
-        emit(const DeviceOperationFailure("Device with this remote ID already exists"));
+        emit(
+          const DeviceOperationFailure(
+            "Device with this remote ID already exists",
+          ),
+        );
         return;
       }
 
       final id = await deviceRepository.insert(event.device);
       final addedDevice = await deviceRepository.getById(id);
-      
+
       if (addedDevice != null) {
         emit(DeviceOperationSuccess("Device added successfully", addedDevice));
       } else {
@@ -52,33 +61,48 @@ class DevicesBloc extends Bloc<DevicesEvent, DevicesState> {
     }
   }
 
-  Future<void> _updateDevice(UpdateDevice event, Emitter<DevicesState> emit) async {
+  Future<void> _updateDevice(
+    UpdateDevice event,
+    Emitter<DevicesState> emit,
+  ) async {
     emit(DeviceOperationInProgress());
 
     try {
       final rowsAffected = await deviceRepository.update(event.device);
-      
+
       if (rowsAffected > 0) {
         final updatedDevice = await deviceRepository.getById(event.device.id!);
         if (updatedDevice != null) {
-          emit(DeviceOperationSuccess("Device updated successfully", updatedDevice));
+          emit(
+            DeviceOperationSuccess(
+              "Device updated successfully",
+              updatedDevice,
+            ),
+          );
         } else {
-          emit(const DeviceOperationFailure("Failed to retrieve updated device"));
+          emit(
+            const DeviceOperationFailure("Failed to retrieve updated device"),
+          );
         }
       } else {
-        emit(const DeviceOperationFailure("Device not found or no changes made"));
+        emit(
+          const DeviceOperationFailure("Device not found or no changes made"),
+        );
       }
     } catch (e) {
       emit(DeviceOperationFailure("Failed to update device: ${e.toString()}"));
     }
   }
 
-  Future<void> _deleteDevice(DeleteDevice event, Emitter<DevicesState> emit) async {
+  Future<void> _deleteDevice(
+    DeleteDevice event,
+    Emitter<DevicesState> emit,
+  ) async {
     emit(DeviceOperationInProgress());
 
     try {
       final rowsAffected = await deviceRepository.delete(event.deviceId);
-      
+
       if (rowsAffected > 0) {
         emit(const DeviceOperationSuccess("Device deleted successfully", null));
       } else {
@@ -89,7 +113,10 @@ class DevicesBloc extends Bloc<DevicesEvent, DevicesState> {
     }
   }
 
-  Future<void> _searchDevices(SearchDevices event, Emitter<DevicesState> emit) async {
+  Future<void> _searchDevices(
+    SearchDevices event,
+    Emitter<DevicesState> emit,
+  ) async {
     emit(DeviceLoadInProgress());
 
     try {

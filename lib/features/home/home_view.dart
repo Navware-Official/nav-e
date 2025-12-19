@@ -84,12 +84,7 @@ class _HomeViewState extends State<HomeView> {
 
               final mapState = context.read<MapBloc>().state;
 
-              focusMapOnPreview(
-                context,
-                state,
-                mapState,
-                desiredZoom: 14,
-              );
+              focusMapOnPreview(context, state, mapState, desiredZoom: 14);
 
               RouteParamsHandler.clearPreviewParams(context);
             },
@@ -101,9 +96,7 @@ class _HomeViewState extends State<HomeView> {
             final markers = markersForPreview(state);
             return Stack(
               children: [
-                MapSection(
-                  extraMarkers: markers,
-                ),
+                MapSection(extraMarkers: markers),
 
                 const RecenterFAB(),
                 const RotateNorthFAB(),

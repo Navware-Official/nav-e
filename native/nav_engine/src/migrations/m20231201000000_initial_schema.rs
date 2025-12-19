@@ -47,12 +47,14 @@ impl Migration for InitialSchema {
     }
 
     fn down(&self) -> Option<&str> {
-        Some("
+        Some(
+            "
         DROP INDEX IF EXISTS idx_devices_name;
         DROP INDEX IF EXISTS idx_devices_remote_id;
         DROP TABLE IF EXISTS devices;
         DROP INDEX IF EXISTS idx_saved_places_created_at;
         DROP TABLE IF EXISTS saved_places;
-        ")
+        ",
+        )
     }
 }

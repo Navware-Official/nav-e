@@ -1,34 +1,33 @@
 /// API module - Feature-based organization
-/// 
+///
 /// This module provides the API surface organized by feature/domain.
 /// Clean, type-safe, and follows domain-driven design principles.
-
 pub mod dto;
 pub mod helpers;
 
 // Feature modules - public for FRB-generated code but not re-exported from crate
-pub(crate) mod routes;
-pub(crate) mod navigation;
-pub(crate) mod geocoding;
-pub(crate) mod saved_places;
-pub(crate) mod devices;
 pub(crate) mod device_comm;
+pub(crate) mod devices;
+pub(crate) mod geocoding;
+pub(crate) mod navigation;
+pub(crate) mod routes;
+pub(crate) mod saved_places;
 
 // Re-export all public APIs
-pub use routes::*;
-pub use navigation::*;
-pub use geocoding::*;
-pub use saved_places::*;
-pub use devices::*;
 pub use device_comm::*;
+pub use devices::*;
+pub use geocoding::*;
+pub use navigation::*;
+pub use routes::*;
+pub use saved_places::*;
 
-use std::sync::{Arc, OnceLock};
 use crate::infrastructure::{
+    database::{Database, DeviceRepository, SavedPlacesRepository},
     geocoding_adapter::PhotonGeocodingService,
     in_memory_repo::InMemoryNavigationRepository,
     osrm_adapter::OsrmRouteService,
-    database::{Database, SavedPlacesRepository, DeviceRepository},
 };
+use std::sync::{Arc, OnceLock};
 
 // ============================================================================
 // Global Application Context - Internal Only, FRB-compatible
@@ -50,9 +49,9 @@ impl AppContext {
     fn new_with_db_path(db_path: String) -> Self {
         let db = Database::new(std::path::PathBuf::from(db_path))
             .expect("Failed to initialize database");
-        
+
         let db_conn = db.get_connection();
-        
+
         Self {
             route_service: Arc::new(OsrmRouteService::new(
                 "https://router.project-osrm.org".to_string(),
@@ -70,7 +69,9 @@ impl AppContext {
 static APP_CONTEXT: OnceLock<AppContext> = OnceLock::new();
 
 pub(crate) fn get_context() -> &'static AppContext {
-    APP_CONTEXT.get().expect("Database not initialized. Call initialize_database() first.")
+    APP_CONTEXT
+        .get()
+        .expect("Database not initialized. Call initialize_database() first.")
 }
 
 /// Initialize the database with a platform-specific path

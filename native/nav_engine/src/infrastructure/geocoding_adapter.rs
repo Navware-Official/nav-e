@@ -3,7 +3,6 @@ use crate::domain::{ports::GeocodingService, value_objects::Position};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 
-
 pub struct NominatimGeocodingService {
     base_url: String,
     client: reqwest::Client,
@@ -15,11 +14,8 @@ impl NominatimGeocodingService {
             .user_agent("NavE Navigation App/1.0")
             .build()
             .expect("Failed to create HTTP client");
-        
-        Self {
-            base_url,
-            client,
-        }
+
+        Self { base_url, client }
     }
 }
 
@@ -85,16 +81,18 @@ impl GeocodingService for NominatimGeocodingService {
         // Fallback: build address from parts
         let address_obj = &data["address"];
         let mut parts = Vec::new();
-        
+
         if let Some(road) = address_obj["road"].as_str() {
             parts.push(road.to_string());
         }
         if let Some(house_number) = address_obj["house_number"].as_str() {
             parts.insert(0, house_number.to_string());
         }
-        if let Some(city) = address_obj["city"].as_str()
+        if let Some(city) = address_obj["city"]
+            .as_str()
             .or(address_obj["town"].as_str())
-            .or(address_obj["village"].as_str()) {
+            .or(address_obj["village"].as_str())
+        {
             parts.push(city.to_string());
         }
         if let Some(country) = address_obj["country"].as_str() {
@@ -102,7 +100,10 @@ impl GeocodingService for NominatimGeocodingService {
         }
 
         if parts.is_empty() {
-            Ok(format!("{:.6}, {:.6}", position.latitude, position.longitude))
+            Ok(format!(
+                "{:.6}, {:.6}",
+                position.latitude, position.longitude
+            ))
         } else {
             Ok(parts.join(", "))
         }

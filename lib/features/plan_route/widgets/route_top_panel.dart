@@ -46,13 +46,19 @@ class RouteTopPanel extends StatelessWidget {
                   children: [
                     Text(
                       startLabel ?? 'Current location',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       destination.displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
                     ),
                   ],
                 ),
@@ -78,10 +84,7 @@ class RouteTopPanel extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.share),
-                onPressed: () {},
-              ),
+              IconButton(icon: const Icon(Icons.share), onPressed: () {}),
             ],
           ),
         ),

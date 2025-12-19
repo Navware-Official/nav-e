@@ -16,7 +16,10 @@ class ThemeSettingsSection extends StatelessWidget {
           children: [
             const Padding(
               padding: EdgeInsets.fromLTRB(16, 24, 16, 8),
-              child: Text('Theme', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              child: Text(
+                'Theme',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
             ),
             // ignore: deprecated_member_use
             RadioListTile<AppThemeMode>(

@@ -32,7 +32,7 @@ pub fn save_place(
     command_with_id(|| {
         let ctx = super::get_context();
         let now = chrono::Utc::now().timestamp_millis();
-        
+
         let place = SavedPlaceEntity {
             id: None,
             type_id,
@@ -44,7 +44,7 @@ pub fn save_place(
             lon,
             created_at: now,
         };
-        
+
         eprintln!("[RUST SAVE] Inserting into database...");
         let result = ctx.saved_places_repo.insert(place);
         match &result {

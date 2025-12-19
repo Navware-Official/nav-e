@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -139,11 +138,11 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                           const SizedBox(width: 8),
                           OutlinedButton.icon(
                             onPressed: () {
-                                final uri = Uri(
-                                  path: '/plan-route',
-                                  queryParameters: widget.route.toPathParams(),
-                                ).toString();
-                                context.push(uri);
+                              final uri = Uri(
+                                path: '/plan-route',
+                                queryParameters: widget.route.toPathParams(),
+                              ).toString();
+                              context.push(uri);
                             },
                             icon: const Icon(Icons.navigation),
                             label: const Text('Plan route'),
@@ -221,13 +220,19 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                             ),
                             onTap: () {
                               // Refocus map on location
-                              context.goNamed('home', queryParameters: {
-                                'lat': widget.route.position.latitude.toStringAsFixed(6),
-                                'lon': widget.route.position.longitude.toStringAsFixed(6),
-                                'label': widget.route.displayName,
-                                if (widget.route.id != null) 'placeId': widget.route.id!,
-                                'zoom': '14',
-                              });
+                              context.goNamed(
+                                'home',
+                                queryParameters: {
+                                  'lat': widget.route.position.latitude
+                                      .toStringAsFixed(6),
+                                  'lon': widget.route.position.longitude
+                                      .toStringAsFixed(6),
+                                  'label': widget.route.displayName,
+                                  if (widget.route.id != null)
+                                    'placeId': widget.route.id!,
+                                  'zoom': '14',
+                                },
+                              );
                             },
                           ),
                           if (widget.route.address != null)
@@ -237,13 +242,19 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                               subtitle: widget.route.displayName,
                               onTap: () {
                                 // Refocus map on location
-                                context.goNamed('home', queryParameters: {
-                                  'lat': widget.route.position.latitude.toStringAsFixed(6),
-                                  'lon': widget.route.position.longitude.toStringAsFixed(6),
-                                  'label': widget.route.displayName,
-                                  if (widget.route.id != null) 'placeId': widget.route.id!,
-                                  'zoom': '14',
-                                });
+                                context.goNamed(
+                                  'home',
+                                  queryParameters: {
+                                    'lat': widget.route.position.latitude
+                                        .toStringAsFixed(6),
+                                    'lon': widget.route.position.longitude
+                                        .toStringAsFixed(6),
+                                    'label': widget.route.displayName,
+                                    if (widget.route.id != null)
+                                      'placeId': widget.route.id!,
+                                    'zoom': '14',
+                                  },
+                                );
                               },
                             ),
                         ],

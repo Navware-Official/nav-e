@@ -1,10 +1,9 @@
+use crate::domain::{entities::*, value_objects::*};
 /// Data Transfer Objects (DTOs) for Flutter <-> Rust boundary
-/// 
+///
 /// These DTOs define the serialization format for complex types
 /// passed across the FFI boundary via JSON.
-
 use serde::{Deserialize, Serialize};
-use crate::domain::{entities::*, value_objects::*};
 
 // ============================================================================
 // Route DTOs
@@ -69,15 +68,10 @@ pub(crate) fn route_to_dto(route: Route) -> RouteDto {
 
     RouteDto {
         id: route.id.to_string(),
-        waypoints: route
-            .waypoints
-            .into_iter()
-            .map(waypoint_to_dto)
-            .collect(),
+        waypoints: route.waypoints.into_iter().map(waypoint_to_dto).collect(),
         distance_meters: route.distance_meters,
         duration_seconds: route.duration_seconds,
-        polyline_json: serde_json::to_string(&polyline_coords)
-            .unwrap_or_else(|_| "[]".to_string()),
+        polyline_json: serde_json::to_string(&polyline_coords).unwrap_or_else(|_| "[]".to_string()),
     }
 }
 

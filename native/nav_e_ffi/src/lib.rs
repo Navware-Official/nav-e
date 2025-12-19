@@ -1,11 +1,11 @@
 mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be accurate, and you can change it according to your needs. */
 // FFI wrapper crate for nav_engine
-// 
+//
 // This crate provides a thin Flutter Rust Bridge wrapper around the nav_engine crate.
 // All functions are simple pass-through wrappers that delegate to nav_engine's API.
 
-use flutter_rust_bridge::frb;
 use anyhow::Result;
+use flutter_rust_bridge::frb;
 
 // ============================================================================
 // Initialization API
@@ -43,11 +43,7 @@ pub fn start_navigation_session(
 
 /// Update current position during navigation
 #[frb]
-pub fn update_navigation_position(
-    session_id: String,
-    latitude: f64,
-    longitude: f64,
-) -> Result<()> {
+pub fn update_navigation_position(session_id: String, latitude: f64, longitude: f64) -> Result<()> {
     nav_engine::api::update_navigation_position(session_id, latitude, longitude)
 }
 
@@ -132,14 +128,14 @@ pub fn delete_saved_place(id: i64) -> Result<()> {
 // ============================================================================
 
 /// Send route data to a connected device via Bluetooth
-/// 
+///
 /// # Arguments
 /// * `device_id` - The device ID (from saved devices)
 /// * `route_json` - JSON string containing route waypoints and metadata
-/// 
+///
 /// # Returns
 /// Result indicating success or failure
-/// 
+///
 /// # Note
 /// Currently returns a stub implementation. Full device communication
 /// will be implemented using device_comm crate and protobuf protocol.

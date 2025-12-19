@@ -13,11 +13,7 @@ class MapWidget extends StatefulWidget {
   final List<MarkerModel> markers;
   final void Function(LatLng latlng)? onMapTap;
 
-  const MapWidget({
-    super.key,
-    required this.markers,
-    this.onMapTap,
-  });
+  const MapWidget({super.key, required this.markers, this.onMapTap});
 
   @override
   State<MapWidget> createState() => _MapWidgetState();
@@ -51,8 +47,7 @@ class _MapWidgetState extends State<MapWidget> {
 
     return BlocConsumer<MapBloc, MapState>(
       buildWhen: (prev, curr) =>
-          prev.source != curr.source ||
-          prev.isReady != curr.isReady,
+          prev.source != curr.source || prev.isReady != curr.isReady,
       listenWhen: (prev, curr) =>
           curr.isReady &&
           (prev.center != curr.center ||

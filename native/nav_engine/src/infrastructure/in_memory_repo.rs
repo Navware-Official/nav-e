@@ -7,7 +7,6 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 use uuid::Uuid;
 
-
 pub struct InMemoryNavigationRepository {
     sessions: Arc<RwLock<HashMap<Uuid, NavigationSession>>>,
 }

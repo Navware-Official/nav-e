@@ -10,11 +10,7 @@ class MapSection extends StatelessWidget {
   final List<MarkerModel> extraMarkers;
   final void Function(LatLng latlng)? onMapTap;
 
-  const MapSection({
-    super.key,
-    required this.extraMarkers,
-    this.onMapTap,
-  });
+  const MapSection({super.key, required this.extraMarkers, this.onMapTap});
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +26,6 @@ class MapSection extends StatelessWidget {
         ),
     ];
 
-    return MapWidget(
-      markers: markers,
-      onMapTap: onMapTap,
-    );
+    return MapWidget(markers: markers, onMapTap: onMapTap);
   }
 }

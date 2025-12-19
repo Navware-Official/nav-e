@@ -60,7 +60,7 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
   @override
   void didUpdateWidget(MapLibreWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    
+
     // Reload style if source parameters changed
     if (oldWidget.styleUrl != widget.styleUrl ||
         oldWidget.rasterTileUrl != widget.rasterTileUrl) {
@@ -68,12 +68,12 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
         _styleFuture = _loadStyleString();
       });
     }
-    
+
     // Update polylines if they changed
     if (widget.polylines != oldWidget.polylines) {
       _syncPolylines();
     }
-    
+
     // Update markers if they changed
     if (widget.markers != oldWidget.markers) {
       _syncMarkers();
@@ -85,27 +85,29 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
     // Custom style URL (HTTP/HTTPS or asset://)
     if (widget.styleUrl != null) {
       final styleUrl = widget.styleUrl!;
-      
+
       // Handle asset:// protocol by loading from asset bundle
       if (styleUrl.startsWith('asset://')) {
         try {
           final assetPath = styleUrl.replaceFirst('asset://', '');
-          final styleJson = await DefaultAssetBundle.of(context).loadString(assetPath);
+          final styleJson = await DefaultAssetBundle.of(
+            context,
+          ).loadString(assetPath);
           return styleJson;
         } catch (e) {
           debugPrint('[MapLibreWidget] Failed to load asset style: $e');
           return ml.MapLibreStyles.demo;
         }
       }
-      
+
       return styleUrl;
     }
-    
+
     // Raster tile URL - generate MapLibre style JSON
     if (widget.rasterTileUrl != null) {
       return _generateRasterTileStyle(widget.rasterTileUrl!);
     }
-    
+
     // Fallback to demo style
     return ml.MapLibreStyles.demo;
   }
@@ -121,7 +123,7 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
           'tileSize': 256,
           'minzoom': widget.minZoom,
           'maxzoom': widget.maxZoom,
-        }
+        },
       },
       'layers': [
         {
@@ -130,8 +132,8 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
           'source': 'raster-tiles',
           'minzoom': widget.minZoom,
           'maxzoom': widget.maxZoom,
-        }
-      ]
+        },
+      ],
     });
   }
 
@@ -145,11 +147,11 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
             child: Text('Error loading map style: ${snapshot.error}'),
           );
         }
-        
+
         if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         return ml.MapLibreMap(
           styleString: snapshot.data!,
           initialCameraPosition: ml.CameraPosition(
@@ -161,11 +163,11 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
           ),
           onMapCreated: _handleMapCreated,
           onCameraIdle: _handleCameraIdle,
-          onMapClick: widget.onMapTap != null 
-          ? (point, coordinates) => widget.onMapTap!(
-                LatLng(coordinates.latitude, coordinates.longitude),
-              )
-          : null,
+          onMapClick: widget.onMapTap != null
+              ? (point, coordinates) => widget.onMapTap!(
+                  LatLng(coordinates.latitude, coordinates.longitude),
+                )
+              : null,
           trackCameraPosition: true,
           myLocationEnabled: false,
           compassEnabled: true,
@@ -182,17 +184,17 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
   void _handleMapCreated(ml.MapLibreMapController nativeController) async {
     _nativeController = nativeController;
     _controller = MapLibreMapController._(nativeController);
-    
+
     // Initialize map overlays
     await _syncPolylines();
     await _syncMarkers();
-    
+
     widget.onMapCreated?.call(_controller!);
   }
 
   void _handleCameraIdle() {
     if (_nativeController == null) return;
-    
+
     final position = _nativeController!.cameraPosition;
     if (position != null && widget.onCameraMove != null) {
       widget.onCameraMove!(
@@ -277,7 +279,7 @@ class MapLibreMapController {
   MapLibreMapController._(this._native);
 
   // ========== Camera Controls ==========
-  
+
   /// Instantly moves the camera to the specified position and zoom level.
   void moveCamera(LatLng center, double zoom) {
     try {
@@ -289,7 +291,9 @@ class MapLibreMapController {
       );
     } catch (e) {
       // Silently ignore if map isn't ready yet
-      debugPrint('[MapLibreMapController] moveCamera failed (map not ready): $e');
+      debugPrint(
+        '[MapLibreMapController] moveCamera failed (map not ready): $e',
+      );
     }
   }
 
@@ -305,7 +309,9 @@ class MapLibreMapController {
       );
     } catch (e) {
       // Silently ignore if map isn't ready yet
-      debugPrint('[MapLibreMapController] animateCamera failed (map not ready): $e');
+      debugPrint(
+        '[MapLibreMapController] animateCamera failed (map not ready): $e',
+      );
     }
   }
 
@@ -341,7 +347,9 @@ class MapLibreMapController {
       );
     } catch (e) {
       // Silently ignore if map isn't ready yet
-      debugPrint('[MapLibreMapController] fitBounds failed (map not ready): $e');
+      debugPrint(
+        '[MapLibreMapController] fitBounds failed (map not ready): $e',
+      );
     }
   }
 
@@ -405,7 +413,9 @@ class MapLibreMapController {
   }) async {
     return await _native.addLine(
       ml.LineOptions(
-        geometry: points.map((p) => ml.LatLng(p.latitude, p.longitude)).toList(),
+        geometry: points
+            .map((p) => ml.LatLng(p.latitude, p.longitude))
+            .toList(),
         lineColor: _colorToHex(color),
         lineWidth: width,
         lineOpacity: opacity,
@@ -423,7 +433,9 @@ class MapLibreMapController {
     await _native.updateLine(
       line,
       ml.LineOptions(
-        geometry: newPoints.map((p) => ml.LatLng(p.latitude, p.longitude)).toList(),
+        geometry: newPoints
+            .map((p) => ml.LatLng(p.latitude, p.longitude))
+            .toList(),
       ),
     );
   }
@@ -465,7 +477,7 @@ class MapLibrePolyline {
     required this.color,
     this.width = 4.0,
   });
-  
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -487,12 +499,8 @@ class MapLibreMarker {
   final LatLng position;
   final Widget? icon;
 
-  const MapLibreMarker({
-    required this.id,
-    required this.position,
-    this.icon,
-  });
-  
+  const MapLibreMarker({required this.id, required this.position, this.icon});
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||

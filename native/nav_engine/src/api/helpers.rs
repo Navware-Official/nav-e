@@ -1,16 +1,15 @@
 /// API helper functions to reduce boilerplate in FFI boundary
-/// 
+///
 /// These helpers provide consistent error handling and serialization
 /// patterns across all API functions.
-
 use anyhow::Result;
 use serde::Serialize;
 
 /// Helper for synchronous repository queries that return JSON
-/// 
+///
 /// # Example
 /// ```rust
-/// 
+///
 /// pub fn get_all_places() -> Result<String> {
 ///     query_json(|| get_context().places_repo.get_all())
 /// }
@@ -25,10 +24,10 @@ where
 }
 
 /// Helper for synchronous repository commands that return an ID
-/// 
+///
 /// # Example
 /// ```rust
-/// 
+///
 /// pub fn save_place(name: String, lat: f64, lon: f64) -> Result<i64> {
 ///     command_with_id(|| {
 ///         let place = SavedPlace { name, lat, lon, /* ... */ };
@@ -44,10 +43,10 @@ where
 }
 
 /// Helper for synchronous repository commands that return nothing
-/// 
+///
 /// # Example
 /// ```rust
-/// 
+///
 /// pub fn delete_place(id: i64) -> Result<()> {
 ///     command(|| get_context().places_repo.delete(id))
 /// }
@@ -60,12 +59,12 @@ where
 }
 
 /// Helper for asynchronous operations that return JSON
-/// 
+///
 /// Handles tokio runtime creation and async operation execution.
-/// 
+///
 /// # Example
 /// ```rust
-/// 
+///
 /// pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
 ///     query_json_async(|| async {
 ///         let positions = waypoints_to_positions(waypoints)?;
@@ -83,16 +82,16 @@ where
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()?;
-    
+
     let result = rt.block_on(operation())?;
     Ok(serde_json::to_string(&result)?)
 }
 
 /// Helper for asynchronous operations that return nothing
-/// 
+///
 /// # Example
 /// ```rust
-/// 
+///
 /// pub fn start_background_sync() -> Result<()> {
 ///     command_async(|| async {
 ///         get_context().sync_service.start().await
@@ -107,7 +106,7 @@ where
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()?;
-    
+
     rt.block_on(operation())
 }
 
@@ -140,9 +139,8 @@ mod tests {
 
     #[test]
     fn test_query_json_error() {
-        let result: Result<String> = query_json(|| {
-            Err::<TestData, _>(anyhow::anyhow!("Test error"))
-        });
+        let result: Result<String> =
+            query_json(|| Err::<TestData, _>(anyhow::anyhow!("Test error")));
 
         assert!(result.is_err());
         assert_eq!(result.unwrap_err().to_string(), "Test error");

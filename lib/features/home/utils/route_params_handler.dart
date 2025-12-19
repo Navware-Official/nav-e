@@ -11,7 +11,7 @@ class RouteParamsHandler {
   String? _lastUriString;
   String? _lastHandledRouteKey;
   bool _handlingRoute = false;
-  bool _mapReady = false;                            
+  bool _mapReady = false;
 
   /// Initializes route parameter handling for the given context.
   void initialize(BuildContext context) {
@@ -29,20 +29,20 @@ class RouteParamsHandler {
       if (!context.mounted) return;
       final uri = GoRouterState.of(context).uri;
       final currentUriString = uri.toString();
-      
+
       // Skip if URI hasn't changed
       if (_lastUriString == currentUriString) return;
-      
+
       final previousUriString = _lastUriString;
       _lastUriString = currentUriString;
-      
+
       _handleRouteParams(context, uri);
       _handlePolylineCleanup(context, uri, previousUriString);
     };
     router.routerDelegate.addListener(_routerListener!);
   }
 
-  /// Updates the map ready state.                                        
+  /// Updates the map ready state.
   void setMapReady(bool ready) {
     _mapReady = ready;
   }
@@ -85,7 +85,7 @@ class RouteParamsHandler {
       if (!context.mounted) return;
 
       _lastHandledRouteKey = key;
-      
+
       // Trigger location preview
       context.read<PreviewCubit>().showCoords(
         lat: lat,
@@ -105,9 +105,10 @@ class RouteParamsHandler {
     String? previousUriString,
   ) {
     // Only clear polylines when returning to plain home route
-    final isPlainHomeRoute = currentUri.path == '/' && currentUri.queryParameters.isEmpty;
-    final comingFromPlanRoute = previousUriString != null && 
-                                 previousUriString.contains('/plan-route');
+    final isPlainHomeRoute =
+        currentUri.path == '/' && currentUri.queryParameters.isEmpty;
+    final comingFromPlanRoute =
+        previousUriString != null && previousUriString.contains('/plan-route');
 
     if (isPlainHomeRoute && comingFromPlanRoute) {
       try {
@@ -134,7 +135,12 @@ class RouteParamsHandler {
   }
 
   /// Generates a unique key for route parameters to avoid duplicate processing.
-  String _generateRouteKey(double lat, double lon, String label, String? placeId) {
+  String _generateRouteKey(
+    double lat,
+    double lon,
+    String label,
+    String? placeId,
+  ) {
     return '${lat.toStringAsFixed(6)},${lon.toStringAsFixed(6)}|$label|${placeId ?? ''}';
   }
 

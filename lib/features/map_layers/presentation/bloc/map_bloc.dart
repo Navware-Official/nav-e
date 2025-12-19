@@ -11,9 +11,13 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   final IMapSourceRepository sources;
 
   MapBloc(this.sources)
-      : super(
-          MapState(center: const LatLng(52.3791, 4.9), zoom: 13.0, isReady: false),
-        ) {
+    : super(
+        MapState(
+          center: const LatLng(52.3791, 4.9),
+          zoom: 13.0,
+          isReady: false,
+        ),
+      ) {
     on<MapInitialized>((event, emit) async {
       try {
         final current = await sources.getCurrent();

@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help codegen build-native build-android build-android-all clean-native fmt test ci migrate-new migrate-status full-rebuild android-dev rust-only
+.PHONY: help codegen build-native build-android build-android-all clean-native fmt fmt-rust fmt-flutter test ci migrate-new migrate-status full-rebuild android-dev rust-only
 
 help:
 	@echo "Workflow commands:"
@@ -14,7 +14,9 @@ help:
 	@echo "  make build-android     # Build Android native libs for arm64 and copy to android/app/src/main/jniLibs"
 	@echo "  make build-android-all # Build Android native libs for common ABIs and copy to jniLibs"
 	@echo "  make clean-native      # cargo clean in native/nav_engine"
-	@echo "  make fmt               # cargo fmt in native/nav_engine (rustfmt required)"
+	@echo "  make fmt               # Format both Rust and Flutter/Dart code"
+	@echo "  make fmt-rust          # Format Rust code only"
+	@echo "  make fmt-flutter       # Format Flutter/Dart code only"
 	@echo "  make test              # run flutter test"
 	@echo "  make ci                # run codegen + build-native (for CI)"
 	@echo "  make migrate-new       # Create a new database migration file with timestamp"
@@ -53,10 +55,24 @@ clean-android:
 	@flutter run
 	@echo "Android clean completed."
 
-fmt:
+## Format Rust code
+fmt-rust:
 	@command -v rustfmt >/dev/null 2>&1 || { echo "rustfmt not found. Install with: rustup component add rustfmt"; exit 1; }
+	@echo "Formatting Rust code..."
 	@cd native/nav_e_ffi && cargo fmt
 	@cd native/nav_engine && cargo fmt
+	@echo "✓ Rust code formatted"
+
+## Format Flutter/Dart code
+fmt-flutter:
+	@command -v dart >/dev/null 2>&1 || { echo "dart not found. Install Flutter SDK"; exit 1; }
+	@echo "Formatting Flutter/Dart code..."
+	@dart format .
+	@echo "✓ Flutter/Dart code formatted"
+
+## Format both Rust and Flutter code
+fmt: fmt-rust fmt-flutter
+	@echo "✓ All code formatted"
 
 test:
 	@echo "Running Flutter tests..."

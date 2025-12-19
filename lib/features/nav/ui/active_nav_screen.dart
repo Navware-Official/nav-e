@@ -15,7 +15,11 @@ class ActiveNavScreen extends StatefulWidget {
   final String routeId;
   final List<LatLng> routePoints;
 
-  const ActiveNavScreen({super.key, required this.routeId, required this.routePoints});
+  const ActiveNavScreen({
+    super.key,
+    required this.routeId,
+    required this.routePoints,
+  });
 
   @override
   State<ActiveNavScreen> createState() => _ActiveNavScreenState();
@@ -35,15 +39,22 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
       _navBloc.add(SetFollowMode(true));
       // publish route polyline to MapBloc and request auto-fit
       try {
-        context.read<MapBloc>().add(ReplacePolylines(
-          widget.routePoints.isNotEmpty
-              ? [
-                  // convert to model
-                  PolylineModel(id: widget.routeId, points: widget.routePoints, colorArgb: 0xFF2196F3, strokeWidth: 4.0)
-                ]
-              : const [],
-          fit: true,
-        ));
+        context.read<MapBloc>().add(
+          ReplacePolylines(
+            widget.routePoints.isNotEmpty
+                ? [
+                    // convert to model
+                    PolylineModel(
+                      id: widget.routeId,
+                      points: widget.routePoints,
+                      colorArgb: 0xFF2196F3,
+                      strokeWidth: 4.0,
+                    ),
+                  ]
+                : const [],
+            fit: true,
+          ),
+        );
       } catch (_) {}
     });
   }
@@ -66,9 +77,16 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
           // publish progress polyline updates to the MapBloc (lightweight)
           try {
             if (state.progressPolyline.isNotEmpty) {
-              context.read<MapBloc>().add(ReplacePolylines([
-                PolylineModel(id: '${widget.routeId}-prog', points: state.progressPolyline, colorArgb: 0xFF64B5F6, strokeWidth: 6.0)
-              ], fit: false));
+              context.read<MapBloc>().add(
+                ReplacePolylines([
+                  PolylineModel(
+                    id: '${widget.routeId}-prog',
+                    points: state.progressPolyline,
+                    colorArgb: 0xFF64B5F6,
+                    strokeWidth: 6.0,
+                  ),
+                ], fit: false),
+              );
             }
           } catch (_) {}
         },
@@ -76,11 +94,7 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
           extendBodyBehindAppBar: true,
           body: Stack(
             children: [
-              Positioned.fill(
-                child: const MapWidget(
-                  markers: [],
-                ),
-              ),
+              Positioned.fill(child: const MapWidget(markers: [])),
               // minimal top banner for turns / next cue
               const Positioned(
                 top: 12,

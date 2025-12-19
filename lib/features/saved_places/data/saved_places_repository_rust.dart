@@ -10,7 +10,7 @@ class SavedPlacesRepositoryRust implements ISavedPlacesRepository {
   Future<List<SavedPlace>> getAll() async {
     final json = rust.getAllSavedPlaces();
     final List<dynamic> data = jsonDecode(json);
-    
+
     return data.map((item) => _fromRustJson(item)).toList();
   }
 
@@ -18,7 +18,7 @@ class SavedPlacesRepositoryRust implements ISavedPlacesRepository {
   Future<SavedPlace?> getById(int id) async {
     final json = rust.getSavedPlaceById(id: id);
     if (json == 'null') return null;
-    
+
     final data = jsonDecode(json);
     return _fromRustJson(data);
   }

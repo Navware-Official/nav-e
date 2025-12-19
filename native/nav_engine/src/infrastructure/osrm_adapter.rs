@@ -3,7 +3,6 @@ use crate::domain::{entities::Route, ports::RouteService, value_objects::*};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 
-
 pub struct OsrmRouteService {
     base_url: String,
     client: reqwest::Client,
@@ -44,11 +43,17 @@ impl RouteService for OsrmRouteService {
             .send()
             .await
             .context("Failed to send OSRM request")?;
-        
-        eprintln!("[RUST OSRM] Received response with status: {}", response.status());
-        
+
+        eprintln!(
+            "[RUST OSRM] Received response with status: {}",
+            response.status()
+        );
+
         if !response.status().is_success() {
-            let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
+            let error_text = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
             eprintln!("[RUST OSRM] Error response: {}", error_text);
             anyhow::bail!("OSRM returned error status: {}", error_text);
         }
@@ -57,7 +62,7 @@ impl RouteService for OsrmRouteService {
             .json()
             .await
             .context("Failed to parse OSRM response")?;
-        
+
         eprintln!("[RUST OSRM] Parsed response successfully");
 
         // Parse response
@@ -73,9 +78,10 @@ impl RouteService for OsrmRouteService {
         let geometry = route_data["geometry"]
             .as_str()
             .context("Missing geometry")?;
-        let decoded = polyline::decode_polyline(geometry, 5)
-            .context("Failed to decode polyline")?;
-        let polyline: Vec<Position> = decoded.into_iter()
+        let decoded =
+            polyline::decode_polyline(geometry, 5).context("Failed to decode polyline")?;
+        let polyline: Vec<Position> = decoded
+            .into_iter()
             .map(|coord| Position::new(coord.y, coord.x).unwrap())
             .collect();
 
@@ -93,7 +99,11 @@ impl RouteService for OsrmRouteService {
         ))
     }
 
-    async fn recalculate_from_position(&self, route: &Route, current_position: Position) -> Result<Route> {
+    async fn recalculate_from_position(
+        &self,
+        route: &Route,
+        current_position: Position,
+    ) -> Result<Route> {
         // Find nearest point on route and recalculate from there
         // Simplified: just recalculate entire route with current position as start
         let mut waypoints = vec![current_position];
