@@ -1,35 +1,61 @@
 area:map:
-  - "lib/features/map_layers/**"
+  - changed-files:
+    - any-glob-to-any-file: "lib/features/map_layers/**"
+
 area:search:
-  - "lib/features/search/**"
+  - changed-files:
+    - any-glob-to-any-file: "lib/features/search/**"
+
 area:settings:
-  - "lib/features/settings/**"
+  - changed-files:
+    - any-glob-to-any-file: "lib/features/settings/**"
+
 area:core:
-  - "lib/core/**"
-  - "lib/shared/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "lib/core/**"
+      - "lib/shared/**"
+
 area:ci:
-  - ".github/workflows/**"
-  - ".github/labeler.yml"
-  - ".github/PULL_REQUEST_TEMPLATE.md"
-  - "analysis_options.yaml"
-  - "pubspec.yaml"
-  - "pubspec.lock"
+  - changed-files:
+    - any-glob-to-any-file:
+      - ".github/workflows/**"
+      - ".github/labeler.yml"
+      - ".github/PULL_REQUEST_TEMPLATE.md"
+      - "analysis_options.yaml"
+      - "pubspec.yaml"
+      - "pubspec.lock"
+
 area:docs:
-  - "README.md"
-  - "SECURITY.MD"
-  - "CONTRIBUTING.MD"
-  - "CHANGELOG.MD"
-  - "docs/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "README.md"
+      - "SECURITY.MD"
+      - "CONTRIBUTING.MD"
+      - "CHANGELOG.MD"
+      - "docs/**"
+
 area:tests:
-  - "test/**"
-  - "integration_test/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "test/**"
+      - "integration_test/**"
+
 area:examples:
-  - "example/**"
+  - changed-files:
+    - any-glob-to-any-file: "example/**"
+
 area:navigation:
-  - "lib/features/navigation/**"
-  - "lib/data/repositories/navigation/**"
-  - "lib/data/services/navigation/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "lib/features/navigation/**"
+      - "lib/data/repositories/navigation/**"
+      - "lib/data/services/navigation/**"
+
 platform:android:
-  - "android/**"
+  - changed-files:
+    - any-glob-to-any-file: "android/**"
+
 platform:ios:
-  - "ios/**"
+  - changed-files:
+    - any-glob-to-any-file: "ios/**"

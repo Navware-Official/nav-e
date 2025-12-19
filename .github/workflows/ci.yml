@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
 jobs:
-  lint-test-build:
+  flutter-checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,5 +21,42 @@ jobs:
         run: dart analyze
       - name: Tests
         run: flutter test --coverage
-      - name: Build sanity (debug APK)
-        run: flutter build apk --debug
+  
+  rust-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install apt packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev build-essential clang
+      
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+          components: rustfmt, clippy
+      
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            native/nav_engine/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Rust format check
+        working-directory: native/nav_engine
+        run: cargo fmt -- --check
+      
+      - name: Rust clippy
+        working-directory: native/nav_engine
+        run: cargo clippy -- -D warnings
+      
+      - name: Rust tests
+        working-directory: native/nav_engine
+        run: cargo test

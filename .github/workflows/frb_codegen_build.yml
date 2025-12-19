@@ -3,8 +3,18 @@ name: FRB Codegen & Native Build
 on:
   push:
     branches: [ main, master ]
+    paths:
+      - 'native/**'
+      - 'flutter_rust_bridge.yaml'
+      - 'Makefile'
+      - '.github/workflows/frb_codegen_build.yml'
   pull_request:
     branches: [ main, master ]
+    paths:
+      - 'native/**'
+      - 'flutter_rust_bridge.yaml'
+      - 'Makefile'
+      - '.github/workflows/frb_codegen_build.yml'
 
 jobs:
   codegen-and-build:
@@ -19,6 +29,12 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libssl-dev build-essential clang
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
 
       - name: Setup Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -37,6 +53,10 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+
+      - name: Install flutter_rust_bridge_codegen
+        run: |
+          cargo install flutter_rust_bridge_codegen --version 2.11.1
 
       - name: Run codegen via Makefile
         working-directory: ${{ github.workspace }}
