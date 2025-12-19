@@ -67,6 +67,11 @@ native/nav_engine/src/frb_generated.web.rs
 lib/bridge/**
 lib/bridge/**/*
 
-# FFI Generated bindings (generated on merge to main)
-lib/bridge/generated/
+# FFI Generated bindings - Dart side
+lib/bridge/frb_generated.dart
+lib/bridge/frb_generated.io.dart
+lib/bridge/lib.dart
 
+# FFI Generated bindings - Rust side
+native/nav_e_ffi/src/frb_generated.rs
+native/nav_e_ffi/src/frb_generated.web.rs
