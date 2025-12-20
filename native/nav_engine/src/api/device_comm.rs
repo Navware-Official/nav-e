@@ -80,7 +80,7 @@ pub fn send_route_to_device(device_id: i64, route_json: String) -> Result<()> {
         .enumerate()
         .filter_map(|(i, wp)| {
             let arr = wp.as_array()?;
-            let lat = arr.get(0)?.as_f64()?;
+            let lat = arr.first()?.as_f64()?;
             let lon = arr.get(1)?.as_f64()?;
             Some(device_comm::proto::Waypoint {
                 lat,
@@ -135,8 +135,8 @@ pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
     let waypoints = route["waypoints"]
         .as_array()
         .ok_or_else(|| anyhow::anyhow!("Route missing waypoints array"))?;
-    let distance_m = route["distance_m"].as_f64().unwrap_or(0.0) as u32;
-    let duration_s = route["duration_s"].as_f64().unwrap_or(0.0) as u32;
+    let _distance_m = route["distance_m"].as_f64().unwrap_or(0.0) as u32;
+    let _duration_s = route["duration_s"].as_f64().unwrap_or(0.0) as u32;
     let polyline = route["polyline"].as_str().unwrap_or("").to_string();
 
     // Convert waypoints to protobuf format
@@ -145,7 +145,7 @@ pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
         .enumerate()
         .filter_map(|(i, wp)| {
             let arr = wp.as_array()?;
-            let lat = arr.get(0)?.as_f64()?;
+            let lat = arr.first()?.as_f64()?;
             let lon = arr.get(1)?.as_f64()?;
             Some(proto::Waypoint {
                 lat,

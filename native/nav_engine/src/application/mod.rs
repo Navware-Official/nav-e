@@ -7,4 +7,4 @@ pub mod traits;
 
 // Re-export common traits and helpers
 pub use service_helpers::ServiceRegistry;
-pub use traits::{CommandHandler, QueryHandler, SyncCommandHandler, SyncQueryHandler};
+pub use traits::{CommandHandler, QueryHandler};
