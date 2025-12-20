@@ -257,9 +257,10 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
             onPickOnMapChanged: (v) {
               setState(() {
                 _pickOnMap = v;
-                if (!v)
+                if (!v) {
                   _pickedStart =
                       null; // clear any picked start when switching back
+                }
               });
               // When switching back to 'Current location', automatically recompute
               // the route using the current GPS/map center to give immediate
