@@ -1,68 +1,68 @@
 area:map:
   - changed-files:
-    - any-glob-to-any-file: "lib/features/map_layers/**"
+      - any-glob-to-any-file: "lib/features/map_layers/**"
 
 area:search:
   - changed-files:
-    - any-glob-to-any-file: "lib/features/search/**"
+      - any-glob-to-any-file: "lib/features/search/**"
 
 area:settings:
   - changed-files:
-    - any-glob-to-any-file: "lib/features/settings/**"
+      - any-glob-to-any-file: "lib/features/settings/**"
 
 area:core:
   - changed-files:
-    - any-glob-to-any-file:
-      - "lib/core/**"
-      - "lib/shared/**"
+      - any-glob-to-any-file:
+          - "lib/core/**"
+          - "lib/shared/**"
 
 area:ci:
   - changed-files:
-    - any-glob-to-any-file:
-      - ".github/workflows/**"
-      - ".github/labeler.yml"
-      - ".github/PULL_REQUEST_TEMPLATE.md"
-      - "analysis_options.yaml"
-      - "pubspec.yaml"
-      - "pubspec.lock"
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/labeler.yml"
+          - ".github/PULL_REQUEST_TEMPLATE.md"
+          - "analysis_options.yaml"
+          - "pubspec.yaml"
+          - "pubspec.lock"
 
 area:docs:
   - changed-files:
-    - any-glob-to-any-file:
-      - "README.md"
-      - "SECURITY.MD"
-      - "CONTRIBUTING.MD"
-      - "CHANGELOG.MD"
-      - "docs/**"
+      - any-glob-to-any-file:
+          - "README.md"
+          - "SECURITY.MD"
+          - "CONTRIBUTING.MD"
+          - "CHANGELOG.MD"
+          - "docs/**"
 
 area:tests:
   - changed-files:
-    - any-glob-to-any-file:
-      - "test/**"
-      - "integration_test/**"
+      - any-glob-to-any-file:
+          - "test/**"
+          - "integration_test/**"
 
 area:examples:
   - changed-files:
-    - any-glob-to-any-file: "example/**"
+      - any-glob-to-any-file: "example/**"
 
 area:navigation:
   - changed-files:
-    - any-glob-to-any-file:
-      - "lib/features/navigation/**"
-      - "lib/data/repositories/navigation/**"
-      - "lib/data/services/navigation/**"
+      - any-glob-to-any-file:
+          - "lib/features/navigation/**"
+          - "lib/data/repositories/navigation/**"
+          - "lib/data/services/navigation/**"
 
 area:rust:
   - changed-files:
-    - any-glob-to-any-file:
-      - "native/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
+      - any-glob-to-any-file:
+          - "native/**"
+          - "Cargo.toml"
+          - "Cargo.lock"
 
 platform:android:
   - changed-files:
-    - any-glob-to-any-file: "android/**"
+      - any-glob-to-any-file: "android/**"
 
 platform:ios:
   - changed-files:
-    - any-glob-to-any-file: "ios/**"
+      - any-glob-to-any-file: "ios/**"

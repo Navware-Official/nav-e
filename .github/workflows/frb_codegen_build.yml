@@ -8,12 +8,12 @@ on:
       - 'flutter_rust_bridge.yaml'
       - 'Makefile'
       - '.github/workflows/frb_codegen_build.yml'
+  workflow_call:
 
 jobs:
   codegen-and-build:
     name: Generate FRB bindings and build native crate
     runs-on: ubuntu-latest
-    environment: ci
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,7 +21,7 @@ jobs:
       - name: Install apt packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev build-essential clang
+          sudo apt-get install -y pkg-config libssl-dev build-essential clang protobuf-compiler
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -43,9 +43,16 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             native/nav_engine/target
+            native/device_comm/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+
+      - name: Cache flutter_rust_bridge_codegen
+        uses: actions/cache@v4
+        with:
+          path: ~/.cargo/bin/flutter_rust_bridge_codegen
+          key: ${{ runner.os }}-frb-codegen-2.11.1
 
       - name: Install flutter_rust_bridge_codegen
         run: |
@@ -61,26 +68,16 @@ jobs:
         run: |
           make build-native
 
-      - name: Commit generated bindings
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add lib/bridge/
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: regenerate FFI bindings [skip ci]"
-            git push
-          else
-            echo "No changes to FFI bindings"
-          fi
-
       - name: Upload FRB bindings artifact
         uses: actions/upload-artifact@v4
         with:
           name: frb-bindings
-          path: lib/bridge
+          path: lib/bridge/
+          retention-days: 1
 
       - name: Upload native libs artifact
         uses: actions/upload-artifact@v4
         with:
           name: native-libs
           path: native/nav_engine/target/release
+          retention-days: 1
