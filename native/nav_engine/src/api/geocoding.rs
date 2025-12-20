@@ -1,12 +1,11 @@
 /// Geocoding APIs
 use anyhow::{Context, Result};
 
-use super::{dto::*, helpers::*};
+use super::dto::*;
 use crate::application::{handlers::*, queries::*, traits::QueryHandler};
 use crate::domain::value_objects::*;
 
 /// Search for locations by address/name
-
 pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
     eprintln!("[GEOCODING RUST] Function called with query: {}", query);
 

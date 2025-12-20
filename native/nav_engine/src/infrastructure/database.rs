@@ -3,7 +3,7 @@ use crate::infrastructure::base_repository::{BaseRepository, DatabaseEntity};
 use crate::migrations::{get_all_migrations, MigrationManager};
 /// SQLite database infrastructure for persistent storage
 use anyhow::{Context, Result};
-use rusqlite::{params, Connection, Row};
+use rusqlite::{Connection, Row};
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
@@ -250,7 +250,7 @@ impl DeviceRepository {
              FROM devices WHERE remote_id = ?",
         )?;
 
-        let result = stmt.query_row([remote_id], |row| DeviceEntity::from_row(row));
+        let result = stmt.query_row([remote_id], DeviceEntity::from_row);
 
         match result {
             Ok(device) => Ok(Some(device)),

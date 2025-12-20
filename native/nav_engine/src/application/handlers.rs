@@ -4,10 +4,8 @@ use crate::domain::{entities::*, events::*, ports::*, value_objects::*};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
-use uuid::Uuid;
 
 /// Command handler for StartNavigationCommand
-
 pub struct StartNavigationHandler {
     route_service: Arc<dyn RouteService>,
     navigation_repo: Arc<dyn NavigationRepository>,
@@ -64,7 +62,6 @@ impl CommandHandler<StartNavigationCommand, NavigationSession> for StartNavigati
 }
 
 /// Command handler for UpdatePositionCommand
-
 pub struct UpdatePositionHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
     device_comm: Arc<dyn DeviceCommunicationPort>,
@@ -119,7 +116,6 @@ impl CommandHandler<UpdatePositionCommand, ()> for UpdatePositionHandler {
 }
 
 /// Command handler for PauseNavigationCommand
-
 pub struct PauseNavigationHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -147,7 +143,6 @@ impl CommandHandler<PauseNavigationCommand, ()> for PauseNavigationHandler {
 }
 
 /// Command handler for ResumeNavigationCommand
-
 pub struct ResumeNavigationHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -175,7 +170,6 @@ impl CommandHandler<ResumeNavigationCommand, ()> for ResumeNavigationHandler {
 }
 
 /// Command handler for StopNavigationCommand
-
 pub struct StopNavigationHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -214,7 +208,6 @@ impl CommandHandler<StopNavigationCommand, ()> for StopNavigationHandler {
 }
 
 /// Query handler for GetActiveSessionQuery
-
 pub struct GetActiveSessionHandler {
     navigation_repo: Arc<dyn NavigationRepository>,
 }
@@ -233,7 +226,6 @@ impl QueryHandler<GetActiveSessionQuery, Option<NavigationSession>> for GetActiv
 }
 
 /// Query handler for CalculateRouteQuery
-
 pub struct CalculateRouteHandler {
     route_service: Arc<dyn RouteService>,
 }
@@ -252,7 +244,6 @@ impl QueryHandler<CalculateRouteQuery, Route> for CalculateRouteHandler {
 }
 
 /// Query handler for GeocodeQuery
-
 pub struct GeocodeHandler {
     geocoding_service: Arc<dyn GeocodingService>,
 }
@@ -271,7 +262,6 @@ impl QueryHandler<GeocodeQuery, Vec<Position>> for GeocodeHandler {
 }
 
 /// Query handler for ReverseGeocodeQuery
-
 pub struct ReverseGeocodeHandler {
     geocoding_service: Arc<dyn GeocodingService>,
 }

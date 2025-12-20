@@ -17,6 +17,9 @@ help:
 	@echo "  make fmt               # Format both Rust and Flutter/Dart code"
 	@echo "  make fmt-rust          # Format Rust code only"
 	@echo "  make fmt-flutter       # Format Flutter/Dart code only"
+	@echo "  make lint              # Run linters on both Rust and Flutter code"
+	@echo "  make lint-rust         # Run clippy on Rust code"
+	@echo "  make lint-flutter      # Run dart analyze on Flutter code"
 	@echo "  make test              # run flutter test"
 	@echo "  make ci                # run codegen + build-native (for CI)"
 	@echo "  make migrate-new       # Create a new database migration file with timestamp"
@@ -73,6 +76,25 @@ fmt-flutter:
 ## Format both Rust and Flutter code
 fmt: fmt-rust fmt-flutter
 	@echo "✓ All code formatted"
+
+## Run linters on Rust code
+lint-rust:
+	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
+	@echo "Running clippy on Rust code..."
+	@cd native/nav_engine && cargo clippy -- -D warnings
+	@cd native/nav_e_ffi && cargo clippy --allow-staged
+	@echo "✓ Rust linting passed"
+
+## Run linters on Flutter code
+lint-flutter:
+	@command -v dart >/dev/null 2>&1 || { echo "dart not found. Install Flutter SDK"; exit 1; }
+	@echo "Running dart analyze..."
+	@dart analyze
+	@echo "✓ Flutter linting passed"
+
+## Run all linters
+lint: lint-rust lint-flutter
+	@echo "✓ All linting checks passed"
 
 test:
 	@echo "Running Flutter tests..."

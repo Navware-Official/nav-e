@@ -2,11 +2,9 @@
 use anyhow::Result;
 
 use super::{dto::*, helpers::*};
-use crate::application::queries::*;
 use crate::domain::value_objects::Position;
 
 /// Calculate a route between waypoints
-
 pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
     eprintln!(
         "[RUST ROUTE] Calculating route with {} waypoints",

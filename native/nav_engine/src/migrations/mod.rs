@@ -221,7 +221,7 @@ impl MigrationManager {
 
         let applied = self.get_applied_versions()?;
 
-        println!("\n{:<20} {:<10} {}", "Version", "Status", "Description");
+        println!("\n{:<20} {:<10} Description", "Version", "Status");
         println!("{}", "-".repeat(70));
 
         for migration in migrations {
