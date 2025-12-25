@@ -11,7 +11,6 @@ class RoutePreviewWidget extends StatefulWidget {
 }
 
 class _RoutePreviewWidgetState extends State<RoutePreviewWidget> {
-
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -31,10 +30,7 @@ class _RoutePreviewWidgetState extends State<RoutePreviewWidget> {
               ),
             ],
             border: Border(
-              top: BorderSide(
-                color: AppColors.lightGray,
-                width: 3
-              ),
+              top: BorderSide(color: AppColors.lightGray, width: 3),
             ),
           ),
           child: Column(
@@ -66,7 +62,11 @@ class _RoutePreviewWidgetState extends State<RoutePreviewWidget> {
                           icon: const Icon(Icons.share),
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Share feature not implemented yet')),
+                              const SnackBar(
+                                content: Text(
+                                  'Share feature not implemented yet',
+                                ),
+                              ),
                             );
                           },
                         ),

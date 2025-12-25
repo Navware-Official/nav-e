@@ -1,112 +1,133 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
+import 'package:nav_e/core/data/map_adapter.dart';
+import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
+import 'package:nav_e/features/map_layers/presentation/map_adapters/maplibre_map_adapter.dart';
 
-class MapWidget extends StatelessWidget {
-  final MapController mapController;
-  final List<Marker> markers;
-  final void Function(dynamic position, bool hasGesture)? onMapInteraction;
+class MapWidget extends StatefulWidget {
+  final List<MarkerModel> markers;
+  final void Function(LatLng latlng)? onMapTap;
 
-  const MapWidget({
-    super.key,
-    required this.mapController,
-    required this.markers,
-    this.onMapInteraction,
-  });
+  const MapWidget({super.key, required this.markers, this.onMapTap});
+
+  @override
+  State<MapWidget> createState() => _MapWidgetState();
+}
+
+class _MapWidgetState extends State<MapWidget> {
+  MapAdapter? _adapter;
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  void _ensureAdapter(MapState state) {
+    // Create adapter if not yet created
+    if (_adapter == null) {
+      _adapter = MapLibreMapAdapter();
+      debugPrint('[MapWidget] MapLibre adapter created');
+    }
+  }
+
+  @override
+  void dispose() {
+    _adapter?.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final mapBloc = context.read<MapBloc>();
 
     return BlocConsumer<MapBloc, MapState>(
+      buildWhen: (prev, curr) =>
+          prev.source != curr.source || prev.isReady != curr.isReady,
       listenWhen: (prev, curr) =>
           curr.isReady &&
-          (prev.center != curr.center || prev.zoom != curr.zoom),
+          (prev.center != curr.center ||
+              prev.zoom != curr.zoom ||
+              prev.polylines != curr.polylines ||
+              curr.autoFit),
       listener: (context, state) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           if (!context.mounted) return;
-          mapController.move(state.center, state.zoom);
+          // Only move the camera automatically when the map is in follow-user
+          // mode, or when an explicit auto-fit was requested. This prevents
+          // overriding user gestures (panning/zooming) which caused jitter.
+          if (state.autoFit && state.polylines.isNotEmpty) {
+            try {
+              final coords = state.polylines.expand((p) => p.points).toList();
+              final mq = MediaQuery.of(context);
+              final pad = EdgeInsets.only(
+                left: 12,
+                right: 12,
+                top: mq.padding.top + 88,
+                bottom: mq.padding.bottom + 220,
+              );
+              // Use adapter instead of direct controller
+              _adapter?.fitBounds(
+                coordinates: coords,
+                padding: pad,
+                maxZoom: 17,
+              );
+            } catch (e) {
+              // ignore
+            } finally {
+              // inform bloc that autoFit has been handled
+              context.read<MapBloc>().add(MapAutoFitDone());
+            }
+          } else if (state.followUser) {
+            // Only move the camera to follow the user when followUser flag is true.
+            // Use adapter instead of direct controller
+            if (_adapter != null &&
+                (_adapter!.currentCenter != state.center ||
+                    _adapter!.currentZoom != state.zoom)) {
+              _adapter!.moveCamera(state.center, state.zoom);
+            }
+          }
         });
       },
       builder: (context, state) {
-        final src = state.source;
+        // Ensure adapter is created
+        _ensureAdapter(state);
 
-        return RepaintBoundary(
-          child: FlutterMap(
-            mapController: mapController,
-            options: MapOptions(
-              initialCenter: state.center,
-              initialZoom: state.zoom,
-              onMapReady: () {
-                if (!state.isReady) {
-                  mapBloc.add(MapInitialized());
-                }
-              },
-              onPositionChanged: (pos, hasGesture) {
-                if (!context.mounted) return;
+        if (_adapter == null) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-                if (hasGesture) {
-                  mapBloc.add(ToggleFollowUser(false));
-                }
-                final c = pos.center, z = pos.zoom;
-                if (c != state.center || z != state.zoom) {
-                  mapBloc.add(MapMoved(c, z));
-                }
-                onMapInteraction?.call(pos, hasGesture);
-              },
-            ),
-            children: [
-              if (src != null)
-                TileLayer(
-                  urlTemplate: _withQueryParams(
-                    src.urlTemplate,
-                    src.queryParams,
-                  ),
-                  subdomains: src.subdomains,
-                  minZoom: src.minZoom.toDouble(),
-                  maxZoom: src.maxZoom.toDouble(),
-                  userAgentPackageName: 'nav_e.navware',
-                  additionalOptions: Map<String, String>.from(
-                    src.queryParams ?? const {},
-                  ),
-                  tileProvider: NetworkTileProvider(
-                    headers: Map<String, String>.from(src.headers ?? const {}),
-                  ),
-                ),
-
-              MarkerLayer(markers: markers),
-
-              if (src?.attribution != null)
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Padding(
-                    padding: const EdgeInsets.all(6),
-                    child: RichAttributionWidget(
-                      attributions: [TextSourceAttribution(src!.attribution!)],
-                      alignment: AttributionAlignment.bottomRight,
-                    ),
-                  ),
-                ),
-            ],
+        return KeyedSubtree(
+          key: const ValueKey('maplibre_map'),
+          child: _adapter!.buildMap(
+            source: state.source,
+            center: state.center,
+            zoom: state.zoom,
+            markers: widget.markers,
+            polylines: [...state.polylines],
+            onMapReady: () {
+              if (!state.isReady) {
+                mapBloc.add(MapInitialized());
+              }
+            },
+            onPositionChanged: (center, zoom) {
+              if (center != state.center || zoom != state.zoom) {
+                mapBloc.add(MapMoved(center, zoom));
+              }
+            },
+            onUserGesture: (hasGesture) {
+              if (hasGesture) {
+                mapBloc.add(ToggleFollowUser(false));
+              }
+            },
+            onMapTap: widget.onMapTap,
           ),
         );
       },
     );
-  }
-
-  String _withQueryParams(String template, Map<String, String>? qp) {
-    if (qp == null || qp.isEmpty) return template;
-    final sep = template.contains('?') ? '&' : '?';
-    final suffix = qp.entries
-        .map(
-          (e) =>
-              '${Uri.encodeQueryComponent(e.key)}=${Uri.encodeQueryComponent(e.value)}',
-        )
-        .join('&');
-    return '$template$sep$suffix';
   }
 }

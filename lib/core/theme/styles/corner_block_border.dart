@@ -42,13 +42,13 @@ class CornerBlockBorder extends OutlinedBorder {
     // Calculate corner block dimensions
     final half = side.width / 2;
     final s = side.width + blockOvershoot * 2;
-    
+
     // Paint for border lines
     final borderPaint = Paint()
       ..color = side.color
       ..style = PaintingStyle.stroke
       ..strokeWidth = side.width;
-    
+
     // Paint for corner blocks (light gray fill)
     final cornerFill = Paint()
       ..color = AppColors.lightGray
@@ -87,21 +87,21 @@ class CornerBlockBorder extends OutlinedBorder {
       Offset(tr.left, rect.top),
       borderPaint,
     );
-    
+
     // Bottom line
     canvas.drawLine(
       Offset(bl.right, rect.bottom),
       Offset(br.left, rect.bottom),
       borderPaint,
     );
-    
+
     // Left line
     canvas.drawLine(
       Offset(rect.left, tl.bottom),
       Offset(rect.left, bl.top),
       borderPaint,
     );
-    
+
     // Right line
     canvas.drawLine(
       Offset(rect.right, tr.bottom),

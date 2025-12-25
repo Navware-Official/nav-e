@@ -28,7 +28,10 @@ class SearchScreen extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: 'Enter an address or place',
                       prefixIcon: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: AppColors.capeCodDark02),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: AppColors.capeCodDark02,
+                        ),
                         onPressed: () {
                           Navigator.pop(context);
                         },

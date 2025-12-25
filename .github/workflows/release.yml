@@ -9,13 +9,14 @@ on:
         description: 'Mark as pre-release'
         type: boolean
         default: false
-        
-permissions:
-  contents: write
 
 jobs:
+  generate-bindings:
+    uses: ./.github/workflows/frb_codegen_build.yml
+
   release:
     runs-on: ubuntu-latest
+    needs: generate-bindings
     environment: release
     steps:
       - name: Checkout code
@@ -51,12 +52,42 @@ jobs:
           fi
           
           echo "✅ All validation checks passed"
+      
+      - name: Install apt packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pkg-config libssl-dev build-essential clang
           
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with: 
           channel: stable
           cache: true
+      
+      - name: Setup Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          override: true
+      
+      - name: Setup Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: r25c
+      
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            native/nav_engine/target
+          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+      
+      - name: Install flutter_rust_bridge_codegen
+        run: |
+          cargo install flutter_rust_bridge_codegen --version 2.11.1
           
       - name: Run quality checks
         run: |
@@ -87,6 +118,12 @@ jobs:
             static const bool isPrerelease = ${{ github.event.inputs.prerelease }};
           }
           EOF
+
+      - name: Download FRB bindings
+        uses: actions/download-artifact@v4
+        with:
+          name: frb-bindings
+          path: lib/bridge/
           
       - name: Build release artifacts
         run: |

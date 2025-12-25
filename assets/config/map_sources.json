@@ -1,0 +1,38 @@
+[
+  {
+    "id": "osm",
+    "name": "OpenStreetMap",
+    "urlTemplate": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+    "maxZoom": 19,
+    "headers": {
+      "User-Agent": "nav-e/1.0 (info@navware.org)"
+    },
+    "attribution": "© OpenStreetMap contributors"
+  },
+  {
+    "id": "satellite",
+    "name": "Esri Satellite",
+    "urlTemplate": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    "maxZoom": 19,
+    "headers": {
+      "User-Agent": "nav-e/1.0"
+    },
+    "attribution": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+  },
+  {
+    "id": "vector-demo",
+    "name": "Vector Demo (MapLibre)",
+    "urlTemplate": "https://demotiles.maplibre.org/style.json",
+    "maxZoom": 22,
+    "attribution": "© MapLibre, © OpenStreetMap contributors",
+    "description": "MapLibre demo vector tiles style"
+  },
+  {
+    "id": "custom",
+    "name": "Custom Style",
+    "urlTemplate": "asset://assets/styles/custom_style.json",
+    "maxZoom": 22,
+    "attribution": "© OpenStreetMap contributors",
+    "description": "Nav-E custom vector style"
+  }
+]
