@@ -116,10 +116,14 @@ mod tests {
                 Waypoint {
                     position: Position::new(40.7128, -74.0060).unwrap(),
                     name: Some("Start".to_string()),
+                    arrival_time: None,
+                    is_visited: false,
                 },
                 Waypoint {
                     position: Position::new(34.0522, -118.2437).unwrap(),
                     name: Some("End".to_string()),
+                    arrival_time: None,
+                    is_visited: false,
                 },
             ],
             polyline: vec![

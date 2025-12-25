@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// Base trait for domain events (internal use only, not exposed to FFI)
-
 pub trait DomainEvent: Send + Sync {
     fn event_id(&self) -> Uuid;
     fn occurred_at(&self) -> DateTime<Utc>;

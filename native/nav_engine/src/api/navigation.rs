@@ -46,7 +46,6 @@ impl DeviceCommunicationPort for MockDeviceComm {
 }
 
 /// Start a new navigation session
-
 pub fn start_navigation_session(
     waypoints: Vec<(f64, f64)>,
     current_position: (f64, f64),
@@ -82,7 +81,6 @@ pub fn start_navigation_session(
 }
 
 /// Update current position during navigation
-
 pub fn update_navigation_position(session_id: String, latitude: f64, longitude: f64) -> Result<()> {
     command_async(|| async {
         let ctx = super::get_context();
@@ -102,7 +100,6 @@ pub fn update_navigation_position(session_id: String, latitude: f64, longitude: 
 }
 
 /// Get the currently active navigation session
-
 pub fn get_active_session() -> Result<Option<String>> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
@@ -118,7 +115,6 @@ pub fn get_active_session() -> Result<Option<String>> {
 }
 
 /// Pause active navigation
-
 pub fn pause_navigation(session_id: String) -> Result<()> {
     command_async(|| async {
         let ctx = super::get_context();
@@ -134,7 +130,6 @@ pub fn pause_navigation(session_id: String) -> Result<()> {
 }
 
 /// Resume paused navigation
-
 pub fn resume_navigation(session_id: String) -> Result<()> {
     command_async(|| async {
         let ctx = super::get_context();
@@ -150,7 +145,6 @@ pub fn resume_navigation(session_id: String) -> Result<()> {
 }
 
 /// Stop and complete navigation session
-
 pub fn stop_navigation(session_id: String) -> Result<()> {
     command_async(|| async {
         let ctx = super::get_context();

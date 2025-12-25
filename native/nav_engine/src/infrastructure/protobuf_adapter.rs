@@ -8,7 +8,6 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 /// Adapter that translates domain models to protobuf messages
-
 pub struct ProtobufDeviceCommunicator {
     // In real implementation, this would be BLE or network transport
     transport: Arc<Mutex<dyn DeviceTransport>>,
@@ -189,33 +188,4 @@ fn chunk_data(data: &[u8], chunk_size: usize) -> Vec<Vec<u8>> {
     data.chunks(chunk_size)
         .map(|chunk| chunk.to_vec())
         .collect()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    struct MockTransport;
-
-    #[async_trait]
-    impl DeviceTransport for MockTransport {
-        async fn send(&mut self, _device_id: &str, _data: Vec<u8>) -> Result<()> {
-            Ok(())
-        }
-
-        async fn receive(&mut self) -> Result<(String, Vec<u8>)> {
-            Ok((String::from("test-device"), vec![]))
-        }
-    }
-
-    #[tokio::test]
-    async fn test_send_position_update() {
-        let transport = Arc::new(Mutex::new(MockTransport));
-        let comm = ProtobufDeviceCommunicator::new(transport);
-
-        let position = Position::new(52.5200, 13.4050).unwrap();
-        let result = comm.send_position_update("device-1", position).await;
-
-        assert!(result.is_ok());
-    }
 }

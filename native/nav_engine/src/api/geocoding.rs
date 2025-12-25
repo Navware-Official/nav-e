@@ -126,7 +126,6 @@ pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
 }
 
 /// Reverse geocode coordinates to address
-
 pub fn reverse_geocode(latitude: f64, longitude: f64) -> Result<String> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()

@@ -42,6 +42,7 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
+            native/nav_e_ffi/target
             native/nav_engine/target
             native/device_comm/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
@@ -49,14 +50,16 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Cache flutter_rust_bridge_codegen
+        id: cache-frb
         uses: actions/cache@v4
         with:
           path: ~/.cargo/bin/flutter_rust_bridge_codegen
           key: ${{ runner.os }}-frb-codegen-2.11.1
 
       - name: Install flutter_rust_bridge_codegen
+        if: steps.cache-frb.outputs.cache-hit != 'true'
         run: |
-          cargo install flutter_rust_bridge_codegen --version 2.11.1
+          cargo install flutter_rust_bridge_codegen --version 2.11.1 --locked
 
       - name: Run codegen via Makefile
         working-directory: ${{ github.workspace }}
@@ -79,5 +82,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: native-libs
-          path: native/nav_engine/target/release
+          path: native/nav_e_ffi/target/release
           retention-days: 1
