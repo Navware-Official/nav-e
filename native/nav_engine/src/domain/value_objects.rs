@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Value Objects - Immutable objects defined by their attributes
 use serde::{Deserialize, Serialize};
 

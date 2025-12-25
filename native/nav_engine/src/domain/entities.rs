@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Domain Entities - Core business objects with identity
 use crate::domain::value_objects::*;
 use chrono::{DateTime, Utc};

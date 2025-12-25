@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Command and Query Handlers - Application logic
 use crate::application::{commands::*, queries::*, traits::*};
 use crate::domain::{entities::*, events::*, ports::*, value_objects::*};
