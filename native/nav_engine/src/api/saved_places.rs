@@ -6,19 +6,16 @@ use crate::domain::ports::Repository;
 use crate::infrastructure::database::SavedPlaceEntity;
 
 /// Get all saved places as JSON array
-
 pub fn get_all_saved_places() -> Result<String> {
     query_json(|| super::get_context().saved_places_repo.get_all())
 }
 
 /// Get a saved place by ID as JSON object
-
 pub fn get_saved_place_by_id(id: i64) -> Result<String> {
     query_json(|| super::get_context().saved_places_repo.get_by_id(id))
 }
 
 /// Save a new place and return the assigned ID
-
 pub fn save_place(
     name: String,
     address: Option<String>,
@@ -56,7 +53,6 @@ pub fn save_place(
 }
 
 /// Delete a saved place by ID
-
 pub fn delete_saved_place(id: i64) -> Result<()> {
     command(|| super::get_context().saved_places_repo.delete(id))
 }

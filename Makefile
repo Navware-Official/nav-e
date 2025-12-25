@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help codegen build-native build-android build-android-all clean-native fmt fmt-rust fmt-flutter test ci migrate-new migrate-status full-rebuild android-dev rust-only
+.PHONY: help codegen build-native build-android build-android-all clean-native clean-android fmt fmt-rust fmt-flutter lint-rust fix-rust cs-fix test ci migrate-new migrate-status full-rebuild android-dev rust-only
 
 help:
 	@echo "Workflow commands:"
@@ -52,11 +52,9 @@ clean-native:
 	@cd native/nav_e_ffi && cargo clean
 	@cd native/nav_engine && cargo clean
 
-clean-android:
-	make clean-native
-	@make build-android
-	@flutter run
-	@echo "Android clean completed."
+clean-android: clean-native
+	@rm -rf android/app/src/main/jniLibs/* 2>/dev/null || true
+	@echo "Android artifacts cleaned. Rebuild with 'make build-android'."
 
 ## Format Rust code
 fmt-rust:
@@ -80,10 +78,34 @@ fmt: fmt-rust fmt-flutter
 ## Run linters on Rust code
 lint-rust:
 	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
-	@echo "Running clippy on Rust code..."
-	@cd native/nav_engine && cargo clippy -- -D warnings
-	@cd native/nav_e_ffi && cargo clippy --allow-staged
+	@echo "Running clippy on nav_engine (fail on warnings)..."
+	@cd native/nav_engine && cargo clippy --all-targets --all-features -- -D warnings
+	@echo "Running clippy on nav_e_ffi (allow warnings; FRB cfg may be noisy)..."
+	@cd native/nav_e_ffi && cargo clippy --all-targets --all-features -- -A warnings || { echo "⚠ nav_e_ffi clippy failed; see output above"; exit 1; }
 	@echo "✓ Rust linting passed"
+
+fix-rust:
+	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
+	@echo "Fixing Rust code with clippy suggestions..."
+	@cd native/nav_engine && cargo clippy --fix --allow-dirty --allow-staged
+	@cd native/nav_e_ffi && cargo clippy --fix --allow-dirty --allow-staged
+	@echo "✓ Rust code fixed where possible"
+
+cs-fix:
+	@echo "Running cargo clippy --fix on Rust code..."
+	@make fix-rust
+	@echo "✓ Code style fixes applied"
+	@echo "Runing dart format on Flutter/Dart code..."
+	@make fmt-flutter
+	@echo "✓ Code style fixes applied"
+
+cs-check:
+	@echo "Running cargo clippy on Rust code..."
+	@make lint-rust
+	@echo "✓ Code style checks passed"
+	@echo "Running dart analyze on Flutter/Dart code..."
+	@make lint-flutter
+	@echo "✓ Code style checks passed"
 
 ## Run linters on Flutter code
 lint-flutter:
