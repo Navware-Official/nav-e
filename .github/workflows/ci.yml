@@ -40,6 +40,11 @@ jobs:
   
   rust-checks:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        crate_dir:
+          - native/nav_engine
+          - native/device_comm
     steps:
       - uses: actions/checkout@v4
       
@@ -67,13 +72,13 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
       
       - name: Rust format check
-        working-directory: native/nav_engine
+        working-directory: ${{ matrix.crate_dir }}
         run: cargo fmt -- --check
       
       - name: Rust clippy
-        working-directory: native/nav_engine
+        working-directory: ${{ matrix.crate_dir }}
         run: cargo clippy -- -D warnings
       
       - name: Rust tests
-        working-directory: native/nav_engine
+        working-directory: ${{ matrix.crate_dir }}
         run: cargo test

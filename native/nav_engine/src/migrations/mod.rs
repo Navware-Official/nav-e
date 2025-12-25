@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 /// Database migration system inspired by Symfony/Doctrine
 ///
 /// Features:

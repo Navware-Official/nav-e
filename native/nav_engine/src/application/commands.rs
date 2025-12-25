@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Commands - Write operations (CQRS)
 use crate::domain::value_objects::*;
 use serde::{Deserialize, Serialize};

@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Service helpers for reducing boilerplate in handlers
 use crate::domain::ports::*;
 use anyhow::Result;

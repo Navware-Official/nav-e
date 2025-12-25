@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Queries - Read operations (CQRS)
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

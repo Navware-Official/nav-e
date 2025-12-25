@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crc32fast::Hasher;
 use prost::Message as ProstMessage;
 use uuid::Uuid;
@@ -75,7 +76,7 @@ pub fn chunk_message(
 ) -> Result<Vec<Frame>> {
     let payload = serialize_proto_message(msg)?;
     let chunk_size = (mtu - FRAME_OVERHEAD).min(512);
-    let total_chunks = (payload.len() + chunk_size - 1) / chunk_size;
+    let total_chunks = payload.len().div_ceil(chunk_size);
     
     let mut frames = Vec::new();
     
@@ -204,6 +205,7 @@ impl Default for FrameAssembler {
 }
 
 /// Helper to create a RouteSummary from route data
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn create_route_summary(
     route_id: Uuid,
     distance_m: u32,
@@ -307,6 +309,7 @@ pub(crate) fn create_waypoint_update(
 }
 
 /// Helper to create DeviceCapabilities
+#[allow(clippy::too_many_arguments)]
 pub(crate) fn create_device_capabilities(
     device_id: String,
     firmware_version: String,

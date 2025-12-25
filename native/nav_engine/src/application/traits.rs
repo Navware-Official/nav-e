@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Generic handler traits for CQRS pattern
 use anyhow::Result;
 use async_trait::async_trait;

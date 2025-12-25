@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 /// Base repository implementation for common CRUD operations
 ///
 /// This module provides a generic base repository that handles standard

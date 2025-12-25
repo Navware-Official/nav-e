@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Protobuf Adapter - Device communication using Protocol Buffers
 use crate::domain::{entities::*, ports::*, value_objects::*};
 use anyhow::{Context, Result};

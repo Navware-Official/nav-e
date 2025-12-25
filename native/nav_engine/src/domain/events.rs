@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Domain Events - Events that represent something that happened in the domain
 use crate::domain::{entities::*, value_objects::*};
 use chrono::{DateTime, Utc};

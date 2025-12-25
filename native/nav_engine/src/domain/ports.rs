@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 // Ports - Interfaces for external dependencies (Hexagonal Architecture)
 use crate::domain::{entities::*, value_objects::*};
 use anyhow::Result;
