@@ -159,8 +159,8 @@ mod tests {
         assert!(result.is_ok());
     }
 
-    #[tokio::test]
-    async fn test_query_json_async_success() {
+    #[test]
+    fn test_query_json_async_success() {
         let result = query_json_async(|| async {
             Ok(TestData {
                 id: 2,
