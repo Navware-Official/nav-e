@@ -75,3 +75,6 @@ lib/bridge/lib.dart
 # FFI Generated bindings - Rust side
 native/nav_e_ffi/src/frb_generated.rs
 native/nav_e_ffi/src/frb_generated.web.rs
+
+# Misc
+.github/copilot-instructions.md
