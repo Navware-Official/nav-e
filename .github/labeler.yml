@@ -1,0 +1,52 @@
+"area:map":
+  - "map/**"
+  - "lib/map/**"
+  - "assets/maps/**"
+
+"area:ui":
+  - "lib/ui/**"
+  - "widgets/**"
+  - "assets/icons/**"
+
+"area:core":
+  - "lib/core/**"
+  - "src/**"
+  - "include/**"
+  - "CMakeLists.txt"
+
+"area:android":
+  - "android/**"
+  - "gradle/**"
+
+"area:ios":
+  - "ios/**"
+  - "Runner/**"
+
+"area:build":
+  - ".github/workflows/**"
+  - "build/**"
+  - "CMakeLists.txt"
+  - "pubspec.yaml"
+
+"area:docs":
+  - "docs/**"
+  - "README.md"
+  - "CHANGELOG.md"
+
+"area:tests":
+  - "test/**"
+  - "tests/**"
+
+"area:deps":
+  - "pubspec.yaml"
+  - "third_party/**"
+  - "package-lock.json"
+  - "CMakeLists.txt"
+
+"type:bug":
+  - "bugfix/**"
+  - "fix/**"
+
+"type:feature":
+  - "feature/**"
+  - "feat/**"
