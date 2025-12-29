@@ -23,19 +23,19 @@ pub type Result<T> = std::result::Result<T, DeviceError>;
 pub enum DeviceError {
     #[error("Serialization error: {0}")]
     Serialization(#[from] prost::EncodeError),
-    
+
     #[error("Deserialization error: {0}")]
     Deserialization(#[from] prost::DecodeError),
-    
+
     #[error("CRC mismatch: expected {expected:08x}, got {actual:08x}")]
     CrcMismatch { expected: u32, actual: u32 },
-    
+
     #[error("Invalid frame: {0}")]
     InvalidFrame(String),
-    
+
     #[error("Missing sequence: {0}")]
     MissingSequence(u32),
-    
+
     #[error("Timeout waiting for ACK")]
     Timeout,
 }
@@ -77,12 +77,12 @@ pub fn chunk_message(
     let payload = serialize_proto_message(msg)?;
     let chunk_size = (mtu - FRAME_OVERHEAD).min(512);
     let total_chunks = payload.len().div_ceil(chunk_size);
-    
+
     let mut frames = Vec::new();
-    
+
     for (seq, chunk) in payload.chunks(chunk_size).enumerate() {
         let crc = calculate_crc32(chunk);
-        
+
         let frame = Frame {
             magic: FRAME_MAGIC,
             msg_type,
@@ -95,10 +95,10 @@ pub fn chunk_message(
             payload: chunk.to_vec(),
             crc32: crc,
         };
-        
+
         frames.push(frame);
     }
-    
+
     Ok(frames)
 }
 
@@ -117,16 +117,17 @@ impl FrameAssembler {
             route_id: None,
         }
     }
-    
+
     /// Add a frame to the assembler
     pub fn add_frame(&mut self, frame: Frame) -> Result<()> {
         // Validate magic number
         if frame.magic != FRAME_MAGIC {
-            return Err(DeviceError::InvalidFrame(
-                format!("Invalid magic: {:08x}", frame.magic)
-            ));
+            return Err(DeviceError::InvalidFrame(format!(
+                "Invalid magic: {:08x}",
+                frame.magic
+            )));
         }
-        
+
         // Verify CRC
         let calculated_crc = calculate_crc32(&frame.payload);
         if calculated_crc != frame.crc32 {
@@ -135,20 +136,22 @@ impl FrameAssembler {
                 actual: calculated_crc,
             });
         }
-        
+
         // Store route_id and total_seqs from first frame
         if self.route_id.is_none() {
-            self.route_id = Some(Uuid::from_slice(&frame.route_id)
-                .map_err(|e| DeviceError::InvalidFrame(e.to_string()))?);
+            self.route_id = Some(
+                Uuid::from_slice(&frame.route_id)
+                    .map_err(|e| DeviceError::InvalidFrame(e.to_string()))?,
+            );
             self.total_seqs = Some(frame.total_seqs);
         }
-        
+
         // Add payload
         self.frames.insert(frame.seq_no, frame.payload);
-        
+
         Ok(())
     }
-    
+
     /// Check if all frames have been received
     pub fn is_complete(&self) -> bool {
         if let Some(total) = self.total_seqs {
@@ -157,7 +160,7 @@ impl FrameAssembler {
             false
         }
     }
-    
+
     /// Get missing sequence numbers
     pub fn missing_sequences(&self) -> Vec<u32> {
         if let Some(total) = self.total_seqs {
@@ -168,18 +171,18 @@ impl FrameAssembler {
             vec![]
         }
     }
-    
+
     /// Assemble the complete message
     pub fn assemble(&self) -> Result<Vec<u8>> {
         if !self.is_complete() {
             return Err(DeviceError::InvalidFrame(
-                "Not all frames received".to_string()
+                "Not all frames received".to_string(),
             ));
         }
-        
+
         let total = self.total_seqs.unwrap();
         let mut result = Vec::new();
-        
+
         for seq in 0..total {
             if let Some(payload) = self.frames.get(&seq) {
                 result.extend_from_slice(payload);
@@ -187,10 +190,10 @@ impl FrameAssembler {
                 return Err(DeviceError::MissingSequence(seq));
             }
         }
-        
+
         Ok(result)
     }
-    
+
     pub fn reset(&mut self) {
         self.frames.clear();
         self.total_seqs = None;
@@ -244,7 +247,9 @@ pub(crate) fn create_control(
     Control {
         header: Some(create_header(1)),
         r#type: control_type,
-        route_id: route_id.map(|id| id.as_bytes().to_vec()).unwrap_or_default(),
+        route_id: route_id
+            .map(|id| id.as_bytes().to_vec())
+            .unwrap_or_default(),
         status_code,
         message_text,
         seq_no: 0,
@@ -373,19 +378,19 @@ mod tests {
             600,
             (52.0, 4.0, 52.5, 4.5),
         );
-        
+
         let msg = proto::Message {
             payload: Some(proto::message::Payload::RouteSummary(summary)),
         };
-        
+
         let frames = chunk_message(&msg, &route_id, 1, DEFAULT_MTU).unwrap();
         assert!(!frames.is_empty());
-        
+
         let mut assembler = FrameAssembler::new();
         for frame in frames {
             assembler.add_frame(frame).unwrap();
         }
-        
+
         assert!(assembler.is_complete());
         let reassembled = assembler.assemble().unwrap();
         let original = serialize_proto_message(&msg).unwrap();
@@ -400,7 +405,7 @@ mod tests {
             200,
             "OK".to_string(),
         );
-        
+
         assert_eq!(control.status_code, 200);
         assert_eq!(control.message_text, "OK");
     }

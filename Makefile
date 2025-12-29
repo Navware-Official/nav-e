@@ -62,6 +62,7 @@ fmt-rust:
 	@echo "Formatting Rust code..."
 	@cd native/nav_e_ffi && cargo fmt
 	@cd native/nav_engine && cargo fmt
+	@cd native/device_comm && cargo fmt
 	@echo "✓ Rust code formatted"
 
 ## Format Flutter/Dart code
@@ -89,6 +90,7 @@ fix-rust:
 	@echo "Fixing Rust code with clippy suggestions..."
 	@cd native/nav_engine && cargo clippy --fix --allow-dirty --allow-staged
 	@cd native/nav_e_ffi && cargo clippy --fix --allow-dirty --allow-staged
+	@cd native/device_comm && cargo clippy --fix --allow-dirty --allow-staged
 	@echo "✓ Rust code fixed where possible"
 
 cs-fix:
