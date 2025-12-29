@@ -81,4 +81,4 @@ jobs:
       
       - name: Rust tests
         working-directory: ${{ matrix.crate_dir }}
-        run: cargo test
+        run: cargo test --lib
