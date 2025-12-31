@@ -4,7 +4,7 @@ This directory contains Architecture Decision Records (ADRs) for the nav-e navig
 
 ## What is an ADR?
 
-An Architecture Decision Record (ADR) documents an important architectural decision made along with its context and consequences. ADRs help us:
+An Architecture Decision Record (ADR) document an important architectural decision made along with its context and consequences. ADRs help us:
 
 - **Capture the "why"** behind architectural choices
 - **Preserve context** for future maintainers
