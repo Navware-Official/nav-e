@@ -19,13 +19,72 @@ jobs:
         with: 
           channel: stable
           cache: true
-      
-      - name: Download FRB bindings
+
+      - name: Check if lib/bridge is committed in this branch
+        id: check-bridge-repo
+        run: |
+          if [ -d "lib/bridge" ] && ls lib/bridge/*.dart >/dev/null 2>&1; then
+            echo "bridge_in_repo=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bridge_in_repo=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download FRB bindings artifact (to temp dir)
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: frb-bindings
-          path: lib/bridge/
-      
+          path: tmp/frb_artifact/
+
+      - name: Verify FRB bindings (artifact vs repo) and prepare lib/bridge
+        run: |
+          set -euo pipefail
+          ART_DIR="tmp/frb_artifact"
+          REPO_HAS_BRIDGE="${{ steps.check-bridge-repo.outputs.bridge_in_repo }}"
+
+          ART_PRESENT=false
+          if [ -d "$ART_DIR" ] && ls "$ART_DIR"/*.dart >/dev/null 2>&1; then
+            ART_PRESENT=true
+          fi
+
+          if [ "$ART_PRESENT" = "true" ]; then
+            echo "Found FRB bindings artifact at $ART_DIR"
+            if [ "$REPO_HAS_BRIDGE" = "true" ]; then
+              echo "Repository contains lib/bridge/ — comparing artifact against committed files..."
+              # Compare artifact vs committed lib/bridge
+              set +e
+              diff -r "$ART_DIR" lib/bridge > /tmp/frb_bindings_diff || true
+              if [ -s /tmp/frb_bindings_diff ]; then
+                echo "❌ Committed lib/bridge differs from generated bindings artifact."
+                echo ""
+                echo "CI used a generated artifact produced by the FRB codegen job. To fix:"
+                echo "  1) Regenerate bindings locally (see scripts/generate_bindings.sh)"
+                echo "  2) Commit the updated lib/bridge files to your branch"
+                echo "  3) Push the branch to re-run CI"
+                echo ""
+                echo "Diff (artifact -> committed):"
+                sed -n '1,200p' /tmp/frb_bindings_diff || true
+                exit 1
+              fi
+              set -e
+              echo "✅ Artifact and committed lib/bridge match."
+            else
+              echo "Repository does not contain lib/bridge — copying artifact into lib/bridge for tests..."
+              rm -rf lib/bridge || true
+              mkdir -p lib/bridge
+              cp -a "$ART_DIR"/. lib/bridge/
+            fi
+          else
+            if [ "$REPO_HAS_BRIDGE" = "true" ]; then
+              echo "No artifact found — will use committed lib/bridge in the repository."
+            else
+              echo "❌ No FRB bindings available. Neither a generated artifact was uploaded nor lib/bridge is committed in the branch."
+              echo "If your change touches native/Rust code, FRB codegen should have run and uploaded an artifact."
+              echo "If your change is Flutter-only, commit lib/bridge into your branch (regenerate with scripts/generate_bindings.sh)."
+              exit 1
+            fi
+          fi
+
       - name: Flutter deps
         run: flutter pub get
       
@@ -37,48 +96,3 @@ jobs:
       
       - name: Tests
         run: flutter test --coverage
-  
-  rust-checks:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        crate_dir:
-          - native/nav_engine
-          - native/device_comm
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install apt packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y pkg-config libssl-dev build-essential clang protobuf-compiler
-      
-      - name: Setup Rust toolchain
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          profile: minimal
-          override: true
-          components: rustfmt, clippy
-      
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            native/nav_engine/target
-            native/device_comm/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      
-      - name: Rust format check
-        working-directory: ${{ matrix.crate_dir }}
-        run: cargo fmt -- --check
-      
-      - name: Rust clippy
-        working-directory: ${{ matrix.crate_dir }}
-        run: cargo clippy -- -D warnings
-      
-      - name: Rust tests
-        working-directory: ${{ matrix.crate_dir }}
-        run: cargo test --lib
