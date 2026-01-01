@@ -14,9 +14,9 @@ jobs:
     needs: generate-bindings
     steps:
       - uses: actions/checkout@v4
-      
+          
       - uses: subosito/flutter-action@v2
-        with: 
+        with:
           channel: stable
           cache: true
 
@@ -39,40 +39,46 @@ jobs:
       - name: Verify FRB bindings (artifact vs repo) and prepare lib/bridge
         run: |
           set -euo pipefail
-          ART_DIR="tmp/frb_artifact"
-          REPO_HAS_BRIDGE="${{ steps.check-bridge-repo.outputs.bridge_in_repo }}"
 
-          ART_PRESENT=false
-          if [ -d "$ART_DIR" ] && ls "$ART_DIR"/*.dart >/dev/null 2>&1; then
-            ART_PRESENT=true
+          DLD_DIR="tmp/frb_artifact"
+          # artifact was uploaded from lib/bridge/ so downloaded tree will normally be DLD_DIR/lib/bridge/...
+          ART_BRIDGE_DIR=""
+          if [ -d "$DLD_DIR/lib/bridge" ]; then
+            ART_BRIDGE_DIR="$DLD_DIR/lib/bridge"
+          elif [ -d "$DLD_DIR" ] && ls "$DLD_DIR"/*.dart >/dev/null 2>&1; then
+            # fallback: downloaded files at top-level (rare)
+            ART_BRIDGE_DIR="$DLD_DIR"
           fi
 
-          if [ "$ART_PRESENT" = "true" ]; then
-            echo "Found FRB bindings artifact at $ART_DIR"
+          REPO_HAS_BRIDGE="${{ steps.check-bridge-repo.outputs.bridge_in_repo }}"
+
+          if [ -n "$ART_BRIDGE_DIR" ] && ls "$ART_BRIDGE_DIR"/*.dart >/dev/null 2>&1; then
+            echo "Found FRB bindings in artifact at $ART_BRIDGE_DIR"
             if [ "$REPO_HAS_BRIDGE" = "true" ]; then
               echo "Repository contains lib/bridge/ — comparing artifact against committed files..."
-              # Compare artifact vs committed lib/bridge
+              TMP_DIFF=$(mktemp)
               set +e
-              diff -r "$ART_DIR" lib/bridge > /tmp/frb_bindings_diff || true
-              if [ -s /tmp/frb_bindings_diff ]; then
+              diff -ru "$ART_BRIDGE_DIR" lib/bridge > "$TMP_DIFF" || true
+              set -e
+              if [ -s "$TMP_DIFF" ]; then
                 echo "❌ Committed lib/bridge differs from generated bindings artifact."
                 echo ""
-                echo "CI used a generated artifact produced by the FRB codegen job. To fix:"
-                echo "  1) Regenerate bindings locally (see scripts/generate_bindings.sh)"
-                echo "  2) Commit the updated lib/bridge files to your branch"
-                echo "  3) Push the branch to re-run CI"
+                echo "To fix locally:"
+                echo "  ./scripts/generate_bindings.sh"
+                echo "  git add lib/bridge"
+                echo "  git commit -m \"chore: regenerate flutter-rust-bridge bindings\""
                 echo ""
-                echo "Diff (artifact -> committed):"
-                sed -n '1,200p' /tmp/frb_bindings_diff || true
+                echo "Diff (artifact -> committed) (first 200 lines):"
+                sed -n '1,200p' "$TMP_DIFF" || true
+                rm -f "$TMP_DIFF"
                 exit 1
               fi
-              set -e
               echo "✅ Artifact and committed lib/bridge match."
             else
               echo "Repository does not contain lib/bridge — copying artifact into lib/bridge for tests..."
               rm -rf lib/bridge || true
               mkdir -p lib/bridge
-              cp -a "$ART_DIR"/. lib/bridge/
+              cp -a "$ART_BRIDGE_DIR"/. lib/bridge/
             fi
           else
             if [ "$REPO_HAS_BRIDGE" = "true" ]; then
@@ -80,19 +86,28 @@ jobs:
             else
               echo "❌ No FRB bindings available. Neither a generated artifact was uploaded nor lib/bridge is committed in the branch."
               echo "If your change touches native/Rust code, FRB codegen should have run and uploaded an artifact."
-              echo "If your change is Flutter-only, commit lib/bridge into your branch (regenerate with scripts/generate_bindings.sh)."
+              echo "If your change is Flutter-only, generate lib/bridge locally and commit it (./scripts/generate_bindings.sh)."
               exit 1
             fi
           fi
 
       - name: Flutter deps
         run: flutter pub get
-      
+
       - name: Format check (exclude generated)
-        run: dart format --output=none --set-exit-if-changed $(find lib -name '*.dart' ! -path 'lib/bridge/*')
-      
+        run: |
+          set -euo pipefail
+          # find .dart files excluding lib/bridge, handle spaces safely
+          mapfile -d '' FILES < <(find lib -name '*.dart' ! -path 'lib/bridge/*' -print0)
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "No Dart files to format-check (excluding lib/bridge)."
+          else
+            # Pass files safely to dart format
+            printf '%s\0' "${FILES[@]}" | xargs -0 dart format --output=none --set-exit-if-changed
+          fi
+
       - name: Analyze
         run: dart analyze
-      
+
       - name: Tests
         run: flutter test --coverage
