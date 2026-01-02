@@ -15,12 +15,7 @@ class Device extends Equatable {
   });
 
   /// Creates a new Device instance with updated values
-  Device copyWith({
-    int? id,
-    String? name,
-    String? model,
-    String? remoteId,
-  }) {
+  Device copyWith({int? id, String? name, String? model, String? remoteId}) {
     return Device(
       id: id ?? this.id,
       name: name ?? this.name,

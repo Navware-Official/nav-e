@@ -14,3 +14,6 @@ What does this change?
 - [ ] `dart analyze` passes
 - [ ] Tests added/updated
 - [ ] Builds locally (`flutter build apk --debug`)
+
+> [!NOTE]
+> FFI bindings are auto-generated on merge to main. Don't commit `lib/bridge/generated/` files.

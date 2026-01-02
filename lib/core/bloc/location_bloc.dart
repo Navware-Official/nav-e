@@ -16,17 +16,9 @@ class LocationState {
   final double? heading;
   final bool tracking;
 
-  LocationState({
-    this.position,
-    this.heading,
-    this.tracking = false,
-  });
+  LocationState({this.position, this.heading, this.tracking = false});
 
-  LocationState copyWith({
-    LatLng? position,
-    double? heading,
-    bool? tracking,
-  }) {
+  LocationState copyWith({LatLng? position, double? heading, bool? tracking}) {
     return LocationState(
       position: position ?? this.position,
       heading: heading ?? this.heading,
@@ -45,7 +37,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   }
 
   Future<void> _startTracking(
-    StartLocationTracking event, Emitter<LocationState> emit) async {
+    StartLocationTracking event,
+    Emitter<LocationState> emit,
+  ) async {
     final permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
@@ -72,7 +66,9 @@ class LocationBloc extends Bloc<LocationEvent, LocationState> {
   }
 
   Future<void> _stopTracking(
-      StopLocationTracking event, Emitter<LocationState> emit) async {
+    StopLocationTracking event,
+    Emitter<LocationState> emit,
+  ) async {
     await _subscription?.cancel();
     emit(state.copyWith(tracking: false));
   }

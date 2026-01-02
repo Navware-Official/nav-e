@@ -5,12 +5,7 @@ class SearchBarWidget extends StatelessWidget {
   final VoidCallback? onTap;
   final String? hintText;
 
-  const SearchBarWidget({
-    super.key,
-    this.onChanged,
-    this.onTap,
-    this.hintText,
-  });
+  const SearchBarWidget({super.key, this.onChanged, this.onTap, this.hintText});
 
   @override
   Widget build(BuildContext context) {

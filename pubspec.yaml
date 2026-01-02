@@ -32,8 +32,8 @@ dependencies:
     sdk: flutter
   cupertino_icons: ^1.0.8
   flutter_bloc: ^9.1.1
-  go_router: ^16.2.1
-  flutter_map: ^8.2.1
+  go_router: ^14.0.0
+  maplibre_gl: ^0.24.1
   latlong2: ^0.9.1
   geolocator: ^14.0.2
   shared_preferences: ^2.5.3
@@ -42,10 +42,15 @@ dependencies:
   stream_transform: ^2.1.1
   flutter_blue_plus: ^1.35.5
   permission_handler: ^12.0.1
-  sqflite: ^2.4.2
   equatable: ^2.0.7
   path: ^1.9.0
+  path_provider: ^2.1.5
+  flutter_rust_bridge: 2.11.1
+  package_info_plus: ^8.3.1
+  protobuf: ^6.0.0
 
+  collection: any
+  uuid: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -62,7 +67,9 @@ dev_dependencies:
   test: ^1.26.2
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
-  sqflite_common_ffi: ^2.3.3
+  protoc_plugin: ^25.0.0
+  freezed: ^2.4.5
+  build_runner: ^2.4.6
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -93,6 +100,8 @@ flutter:
   assets:
     - assets/img/house_cat.jpeg
     - assets/sql/init.sql
+    - assets/styles/custom_style.json
+    - assets/config/map_sources.json
 
 # The following section specifies the launcher_icons configuration 
 flutter_launcher_icons:

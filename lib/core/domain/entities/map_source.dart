@@ -28,6 +28,44 @@ class MapSource {
     this.queryParams,
     this.isWms = false,
   });
+
+  factory MapSource.fromJson(Map<String, dynamic> json) {
+    return MapSource(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      urlTemplate: json['urlTemplate'] as String,
+      subdomains: json['subdomains'] != null
+          ? List<String>.from(json['subdomains'] as List)
+          : const [],
+      minZoom: json['minZoom'] as int? ?? 0,
+      maxZoom: json['maxZoom'] as int? ?? 19,
+      attribution: json['attribution'] as String?,
+      headers: json['headers'] != null
+          ? Map<String, String>.from(json['headers'] as Map)
+          : null,
+      queryParams: json['queryParams'] != null
+          ? Map<String, String>.from(json['queryParams'] as Map)
+          : null,
+      isWms: json['isWms'] as bool? ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      if (description != null) 'description': description,
+      'urlTemplate': urlTemplate,
+      if (subdomains.isNotEmpty) 'subdomains': subdomains,
+      'minZoom': minZoom,
+      'maxZoom': maxZoom,
+      if (attribution != null) 'attribution': attribution,
+      if (headers != null) 'headers': headers,
+      if (queryParams != null) 'queryParams': queryParams,
+      if (isWms) 'isWms': isWms,
+    };
+  }
 }
 
 ({int x, int y}) tileXY(double lat, double lon, int z) {

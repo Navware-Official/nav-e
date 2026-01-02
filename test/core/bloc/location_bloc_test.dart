@@ -84,18 +84,20 @@ void main() {
           const platform = MethodChannel('flutter.baseflow.com/geolocator');
           TestWidgetsFlutterBinding.ensureInitialized();
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-              .setMockMethodCallHandler(platform, (MethodCall methodCall) async {
-            switch (methodCall.method) {
-              case 'checkPermission':
-                return 0; // LocationPermission.denied
-              case 'requestPermission':
-                return 1; // LocationPermission.deniedForever
-              case 'isLocationServiceEnabled':
-                return true;
-              default:
-                return null;
-            }
-          });
+              .setMockMethodCallHandler(platform, (
+                MethodCall methodCall,
+              ) async {
+                switch (methodCall.method) {
+                  case 'checkPermission':
+                    return 0; // LocationPermission.denied
+                  case 'requestPermission':
+                    return 1; // LocationPermission.deniedForever
+                  case 'isLocationServiceEnabled':
+                    return true;
+                  default:
+                    return null;
+                }
+              });
           return LocationBloc();
         },
         act: (bloc) => bloc.add(StartLocationTracking()),
