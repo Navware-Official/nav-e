@@ -1,14 +1,14 @@
 # GitHub PR Labeler Configuration (v5 syntax)
 # See: https://github.com/actions/labeler#common-examples
 
-"area:map":
+area:map:
   - changed-files:
       - any-glob-to-any-file:
           - "lib/features/map_layers/**"
           - "lib/core/data/map_adapter.dart"
           - "assets/config/map_sources.json"
 
-"area:ui":
+area:ui:
   - changed-files:
       - any-glob-to-any-file:
           - "lib/widgets/**"
@@ -16,20 +16,20 @@
           - "assets/icons/**"
           - "assets/fonts/**"
 
-"area:core":
+area:core:
   - changed-files:
       - any-glob-to-any-file:
           - "lib/core/**"
           - "lib/main.dart"
           - "lib/app/**"
 
-"area:navigation":
+area:navigation:
   - changed-files:
       - any-glob-to-any-file:
           - "lib/features/nav/**"
           - "lib/features/plan_route/**"
 
-"area:rust":
+area:rust:
   - changed-files:
       - any-glob-to-any-file:
           - "native/**"
@@ -37,17 +37,17 @@
           - "Cargo.toml"
           - "Cargo.lock"
 
-"area:android":
+area:android:
   - changed-files:
       - any-glob-to-any-file:
           - "android/**"
 
-"area:ios":
+area:ios:
   - changed-files:
       - any-glob-to-any-file:
           - "ios/**"
 
-"area:build":
+area:build:
   - changed-files:
       - any-glob-to-any-file:
           - ".github/workflows/**"
@@ -56,7 +56,7 @@
           - "pubspec.yaml"
           - "scripts/**"
 
-"area:docs":
+area:docs:
   - changed-files:
       - any-glob-to-any-file:
           - "docs/**"
@@ -64,12 +64,12 @@
           - "CONTRIBUTING.MD"
           - ".github/copilot-instructions.md"
 
-"area:tests":
+area:tests:
   - changed-files:
       - any-glob-to-any-file:
           - "test/**"
 
-"area:device-comm":
+area:device-comm:
   - changed-files:
       - any-glob-to-any-file:
           - "lib/features/device_comm/**"
@@ -77,7 +77,7 @@
           - "native/device_comm/**"
           - "proto/navigation.proto"
 
-"area:database":
+area:database:
   - changed-files:
       - any-glob-to-any-file:
           - "assets/sql/**"
