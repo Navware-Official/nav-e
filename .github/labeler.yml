@@ -1,52 +1,85 @@
+# GitHub PR Labeler Configuration (v5 syntax)
+# See: https://github.com/actions/labeler#common-examples
+
 "area:map":
-  - "map/**"
-  - "lib/map/**"
-  - "assets/maps/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "lib/features/map_layers/**"
+      - "lib/core/data/map_adapter.dart"
+      - "assets/config/map_sources.json"
 
 "area:ui":
-  - "lib/ui/**"
-  - "widgets/**"
-  - "assets/icons/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "lib/widgets/**"
+      - "lib/core/theme/**"
+      - "assets/icons/**"
+      - "assets/fonts/**"
 
 "area:core":
-  - "lib/core/**"
-  - "src/**"
-  - "include/**"
-  - "CMakeLists.txt"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "lib/core/**"
+      - "lib/main.dart"
+      - "lib/app/**"
+
+"area:navigation":
+  - changed-files:
+    - any-glob-to-any-file:
+      - "lib/features/nav/**"
+      - "lib/features/plan_route/**"
+
+"area:rust":
+  - changed-files:
+    - any-glob-to-any-file:
+      - "native/**"
+      - "proto/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
 
 "area:android":
-  - "android/**"
-  - "gradle/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "android/**"
 
 "area:ios":
-  - "ios/**"
-  - "Runner/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "ios/**"
 
 "area:build":
-  - ".github/workflows/**"
-  - "build/**"
-  - "CMakeLists.txt"
-  - "pubspec.yaml"
+  - changed-files:
+    - any-glob-to-any-file:
+      - ".github/workflows/**"
+      - "Makefile"
+      - "flutter_rust_bridge.yaml"
+      - "pubspec.yaml"
+      - "scripts/**"
 
 "area:docs":
-  - "docs/**"
-  - "README.md"
-  - "CHANGELOG.md"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "docs/**"
+      - "README.md"
+      - "CONTRIBUTING.MD"
+      - ".github/copilot-instructions.md"
 
 "area:tests":
-  - "test/**"
-  - "tests/**"
+  - changed-files:
+    - any-glob-to-any-file:
+      - "test/**"
 
-"area:deps":
-  - "pubspec.yaml"
-  - "third_party/**"
-  - "package-lock.json"
-  - "CMakeLists.txt"
+"area:device-comm":
+  - changed-files:
+    - any-glob-to-any-file:
+      - "lib/features/device_comm/**"
+      - "lib/features/device_management/**"
+      - "native/device_comm/**"
+      - "proto/navigation.proto"
 
-"type:bug":
-  - "bugfix/**"
-  - "fix/**"
-
-"type:feature":
-  - "feature/**"
-  - "feat/**"
+"area:database":
+  - changed-files:
+    - any-glob-to-any-file:
+      - "assets/sql/**"
+      - "lib/features/saved_places/**"
+      - "native/nav_engine/src/infrastructure/persistence/**"
