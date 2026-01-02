@@ -1,35 +1,85 @@
-area:map:
-  - "lib/features/map_layers/**"
-area:search:
-  - "lib/features/search/**"
-area:settings:
-  - "lib/features/settings/**"
-area:core:
-  - "lib/core/**"
-  - "lib/shared/**"
-area:ci:
-  - ".github/workflows/**"
-  - ".github/labeler.yml"
-  - ".github/PULL_REQUEST_TEMPLATE.md"
-  - "analysis_options.yaml"
-  - "pubspec.yaml"
-  - "pubspec.lock"
-area:docs:
-  - "README.md"
-  - "SECURITY.MD"
-  - "CONTRIBUTING.MD"
-  - "CHANGELOG.MD"
-  - "docs/**"
-area:tests:
-  - "test/**"
-  - "integration_test/**"
-area:examples:
-  - "example/**"
-area:navigation:
-  - "lib/features/navigation/**"
-  - "lib/data/repositories/navigation/**"
-  - "lib/data/services/navigation/**"
-platform:android:
-  - "android/**"
-platform:ios:
-  - "ios/**"
+# GitHub PR Labeler Configuration (v5 syntax)
+# See: https://github.com/actions/labeler#common-examples
+
+"area:map":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/features/map_layers/**"
+          - "lib/core/data/map_adapter.dart"
+          - "assets/config/map_sources.json"
+
+"area:ui":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/widgets/**"
+          - "lib/core/theme/**"
+          - "assets/icons/**"
+          - "assets/fonts/**"
+
+"area:core":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/core/**"
+          - "lib/main.dart"
+          - "lib/app/**"
+
+"area:navigation":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/features/nav/**"
+          - "lib/features/plan_route/**"
+
+"area:rust":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "native/**"
+          - "proto/**"
+          - "Cargo.toml"
+          - "Cargo.lock"
+
+"area:android":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "android/**"
+
+"area:ios":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ios/**"
+
+"area:build":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - "Makefile"
+          - "flutter_rust_bridge.yaml"
+          - "pubspec.yaml"
+          - "scripts/**"
+
+"area:docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "README.md"
+          - "CONTRIBUTING.MD"
+          - ".github/copilot-instructions.md"
+
+"area:tests":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "test/**"
+
+"area:device-comm":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/features/device_comm/**"
+          - "lib/features/device_management/**"
+          - "native/device_comm/**"
+          - "proto/navigation.proto"
+
+"area:database":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "assets/sql/**"
+          - "lib/features/saved_places/**"
+          - "native/nav_engine/src/infrastructure/persistence/**"

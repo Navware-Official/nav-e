@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
 
 import 'package:nav_e/app/app_router.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
-import 'package:nav_e/core/data/local/database_helper.dart';
+import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_bloc.dart';
 
-import 'package:nav_e/core/data/remote/geocoding_api_client.dart';
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
 import 'package:nav_e/core/domain/repositories/device_repository.dart';
-import 'package:nav_e/features/device_management/data/device_repository_impl.dart';
+import 'package:nav_e/features/device_management/data/device_repository_rust.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
-import 'package:nav_e/features/saved_places/data/saved_places_repository_impl.dart';
-import 'package:nav_e/features/search/data/geocoding_repository_impl.dart';
+import 'package:nav_e/features/saved_places/data/saved_places_repository_rust.dart';
+import 'package:nav_e/features/search/data/geocoding_repository_frb_typed_impl.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 
 import 'package:nav_e/core/data/remote/map_source_repository_impl.dart';
@@ -23,16 +21,27 @@ import 'package:nav_e/core/domain/repositories/map_source_repository.dart';
 
 import 'package:nav_e/core/theme/app_theme.dart';
 import 'package:nav_e/core/theme/theme_cubit.dart';
+import 'package:nav_e/bridge/frb_generated.dart';
+import 'package:nav_e/bridge/lib.dart' as rust_api;
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final geocodingRepo = GeocodingRepositoryImpl(
-    GeocodingApiClient(http.Client()),
-  );
+
+  // Initialize Flutter Rust Bridge
+  await RustBridge.init();
+
+  // Get the application documents directory and initialize the database
+  final appDir = await getApplicationDocumentsDirectory();
+  final dbPath = path.join(appDir.path, 'nav_e.db');
+  await rust_api.initializeDatabase(dbPath: dbPath);
+
+  final geocodingRepo = GeocodingRepositoryFrbTypedImpl();
+
   final mapSourceRepo = MapSourceRepositoryImpl();
-  final db = await DatabaseHelper.instance.database;
-  final savedPlacesRepo = SavedPlacesRepositoryImpl(db);
-  final deviceRepo = DeviceRepositoryImpl(db);
+  final savedPlacesRepo = SavedPlacesRepositoryRust();
+  final deviceRepo = DeviceRepositoryRust();
 
   runApp(
     MultiRepositoryProvider(
@@ -58,9 +67,8 @@ Future<void> main() async {
           BlocProvider(
             create: (ctx) => DevicesBloc(ctx.read<IDeviceRepository>()),
           ),
-          BlocProvider(
-            create: (_) => BluetoothBloc(DatabaseHelper.instance),
-          ),
+          BlocProvider(create: (_) => BluetoothBloc()),
+          BlocProvider(create: (_) => DeviceCommBloc()),
         ],
         child: BlocBuilder<ThemeCubit, AppThemeMode>(
           builder: (context, mode) {

@@ -1,30 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/app/app_nav.dart';
-
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/extensions/geocoding_to_saved.dart';
+import 'package:nav_e/features/home/utils/route_params_handler.dart';
+import 'package:nav_e/features/home/widgets/bottom_search_bar_widget.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
-
-import 'package:nav_e/features/home/widgets/bottom_navigation_bar.dart'
-    show BottomNavigationBarWidget;
 import 'package:nav_e/features/location_preview/location_preview_widget.dart';
-import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.dart';
-import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
-import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.dart';
-import 'package:nav_e/features/home/widgets/search_overlay_widget.dart'
-    show SearchOverlayWidget;
-import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
-import 'package:nav_e/features/map_layers/presentation/utils/map_helpers.dart';
-
-import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
-import 'package:nav_e/features/saved_places/utils/saved_places_utils.dart';
+import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
+import 'package:nav_e/features/map_layers/presentation/utils/map_helpers.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
-import 'package:nav_e/widgets/side_menu_drawer.dart';
+import 'package:nav_e/features/saved_places/utils/saved_places_utils.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({
@@ -47,77 +40,19 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  final MapController _mapController = MapController();
-  bool _mapReady = false;
-
-  // Hanler for route changes
-  VoidCallback? _routerListener;
-  String? _lastUriString;
-  String? _lastHandledRouteKey;
-  bool _handlingRoute = false;
+  final _routeHandler = RouteParamsHandler();
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      final uri = GoRouterState.of(context).uri;
-      _lastUriString = uri.toString();
-      _handleRouteParams(uri);
-    });
-
-    final router = GoRouter.of(context);
-    _routerListener ??= () {
-      final uri = GoRouterState.of(context).uri;
-      final s = uri.toString();
-      if (_lastUriString == s) return;
-      _lastUriString = s;
-      _handleRouteParams(uri);
-    };
-    router.routerDelegate.addListener(_routerListener!);
+    _routeHandler.initialize(context);
   }
 
-  Future<void> _handleRouteParams(Uri uri) async {
-    if (_handlingRoute) return;
-
-    final qp = uri.queryParameters;
-    final lat = double.tryParse(qp['lat'] ?? '');
-    final lon = double.tryParse(qp['lon'] ?? '');
-    final label = qp['label'];
-
-    if (lat == null || lon == null || label == null) {
-      debugPrint('[HomeView] Missing lat/lon/label. Skip.');
-      return;
-    }
-
-    final key =
-        '${lat.toStringAsFixed(6)},${lon.toStringAsFixed(6)}|$label|${qp['placeId'] ?? ''}';
-    if (_lastHandledRouteKey == key) return;
-
-    _handlingRoute = true;
-    try {
-      while (mounted && !_mapReady) {
-        await Future.delayed(const Duration(milliseconds: 30));
-      }
-      if (!mounted) return;
-
-      _lastHandledRouteKey = key;
-      context.read<PreviewCubit>().showCoords(
-        lat: lat,
-        lon: lon,
-        label: label,
-        placeId: qp['placeId'],
-      );
-    } finally {
-      _handlingRoute = false;
-    }
-  }
-
-  void _clearPreviewParams(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.goNamed('home', queryParameters: const {});
-    });
+  @override
+  void dispose() {
+    _routeHandler.removeListener(context);
+    _routeHandler.dispose();
+    super.dispose();
   }
 
   @override
@@ -130,23 +65,16 @@ class _HomeViewState extends State<HomeView> {
         listeners: [
           BlocListener<MapBloc, MapState>(
             listenWhen: (p, c) => p.isReady != c.isReady,
-            listener: (_, s) {
-              _mapReady = s.isReady;
-              if (_mapReady) {
-                setZoomIfProvided(_mapController, widget.zoomParam, _mapReady);
-              }
+            listener: (context, s) {
+              _routeHandler.setMapReady(s.isReady);
             },
           ),
           BlocListener<LocationBloc, LocationState>(
             listenWhen: (p, c) =>
                 c.position != p.position || c.heading != p.heading,
             listener: (context, s) {
-              final follow = context.read<MapBloc>().state.followUser;
-              if (_mapReady && follow && s.position != null) {
-                _mapController.move(s.position!, 16.0);
-                final h = s.heading;
-                if (h != null && h.isFinite) _mapController.rotate(h);
-              }
+              // Camera movement is now handled by MapWidget based on followUser state
+              // No need to manually move controller here
             },
           ),
           BlocListener<PreviewCubit, PreviewState>(
@@ -156,15 +84,9 @@ class _HomeViewState extends State<HomeView> {
 
               final mapState = context.read<MapBloc>().state;
 
-              focusMapOnPreview(
-                context,
-                _mapController,
-                state,
-                mapState,
-                desiredZoom: 14,
-              );
+              focusMapOnPreview(context, state, mapState, desiredZoom: 14);
 
-              _clearPreviewParams(context);
+              RouteParamsHandler.clearPreviewParams(context);
             },
           ),
         ],
@@ -174,27 +96,11 @@ class _HomeViewState extends State<HomeView> {
             final markers = markersForPreview(state);
             return Stack(
               children: [
-                MapSection(
-                  mapController: _mapController,
-                  extraMarkers: markers,
-                ),
+                MapSection(extraMarkers: markers),
 
-                SearchOverlayWidget(
-                  onResultSelected: (r) {
-                    FocusScope.of(context).unfocus();
-                    AppNav.homeWithCoords(
-                      lat: r.lat,
-                      lon: r.lon,
-                      label: r.displayName,
-                      placeId: r.id,
-                      zoom: 14,
-                    );
-                  },
-                ),
-
-                RecenterFAB(mapController: _mapController),
-                RotateNorthFAB(mapController: _mapController),
-                MapControlsFAB(),
+                const RecenterFAB(),
+                const RotateNorthFAB(),
+                const MapControlsFAB(),
 
                 if (state is LocationPreviewShowing)
                   LocationPreviewWidget(
@@ -230,13 +136,24 @@ class _HomeViewState extends State<HomeView> {
                       }
                     },
                   ),
+
+                BottomSearchBarWidget(
+                  onResultSelected: (r) {
+                    FocusScope.of(context).unfocus();
+                    AppNav.homeWithCoords(
+                      lat: r.lat,
+                      lon: r.lon,
+                      label: r.displayName,
+                      placeId: r.id,
+                      zoom: 14,
+                    );
+                  },
+                ),
               ],
             );
           },
         ),
       ),
-      drawer: const SideMenuDrawerWidget(),
-      bottomNavigationBar: const BottomNavigationBarWidget(),
     );
   }
 }

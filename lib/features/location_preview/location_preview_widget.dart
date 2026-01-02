@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,6 +6,7 @@ import 'package:nav_e/core/domain/entities/geocoding_result.dart'
 import 'package:nav_e/core/theme/typography.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_state.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nav_e/widgets/subtext.widget.dart';
 
 class LocationPreviewWidget extends StatefulWidget {
@@ -138,16 +138,14 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                           const SizedBox(width: 8),
                           OutlinedButton.icon(
                             onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Navigate feature not implemented yet',
-                                  ),
-                                ),
-                              );
+                              final uri = Uri(
+                                path: '/plan-route',
+                                queryParameters: widget.route.toPathParams(),
+                              ).toString();
+                              context.push(uri);
                             },
                             icon: const Icon(Icons.navigation),
-                            label: const Text('Navigate'),
+                            label: const Text('Plan route'),
                           ),
                           const Spacer(),
                           Container(
@@ -220,12 +218,44 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                                 );
                               },
                             ),
+                            onTap: () {
+                              // Refocus map on location
+                              context.goNamed(
+                                'home',
+                                queryParameters: {
+                                  'lat': widget.route.position.latitude
+                                      .toStringAsFixed(6),
+                                  'lon': widget.route.position.longitude
+                                      .toStringAsFixed(6),
+                                  'label': widget.route.displayName,
+                                  if (widget.route.id != null)
+                                    'placeId': widget.route.id!,
+                                  'zoom': '14',
+                                },
+                              );
+                            },
                           ),
                           if (widget.route.address != null)
                             _InfoTile(
                               icon: Icons.place_outlined,
                               title: 'Address',
                               subtitle: widget.route.displayName,
+                              onTap: () {
+                                // Refocus map on location
+                                context.goNamed(
+                                  'home',
+                                  queryParameters: {
+                                    'lat': widget.route.position.latitude
+                                        .toStringAsFixed(6),
+                                    'lon': widget.route.position.longitude
+                                        .toStringAsFixed(6),
+                                    'label': widget.route.displayName,
+                                    if (widget.route.id != null)
+                                      'placeId': widget.route.id!,
+                                    'zoom': '14',
+                                  },
+                                );
+                              },
                             ),
                         ],
                       ),
@@ -250,12 +280,14 @@ class _InfoTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     this.trailing,
+    this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final Widget? trailing;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -267,6 +299,7 @@ class _InfoTile extends StatelessWidget {
       trailing: trailing,
       visualDensity: VisualDensity.compact,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+      onTap: onTap,
     );
   }
 }

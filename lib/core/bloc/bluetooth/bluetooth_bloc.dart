@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:nav_e/core/data/local/database_helper.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -12,11 +10,12 @@ part 'bluetooth_event.dart';
 part 'bluetooth_state.dart';
 
 // TODO: Move to centralized place and update once registered
-final navwareBluetoothServiceUUIDs = <Guid>[Guid("6e400001-b5a3-f393-e0a9-e50e24dcca9e")];
+final navwareBluetoothServiceUUIDs = <Guid>[
+  Guid("6e400001-b5a3-f393-e0a9-e50e24dcca9e"),
+];
 
 class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
-  final DatabaseHelper databaseHelper;
-  BluetoothBloc(this.databaseHelper) : super(BluetoothInitial()) {
+  BluetoothBloc() : super(BluetoothInitial()) {
     on<CheckBluetoothRequirements>(_checkBluetoothSupport);
     on<StartScanning>(_startScanning);
     on<InitiateConnectionCheck>(_awaitConnectionCheck);
@@ -24,12 +23,19 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     on<ToggleConnection>(_toggleConnection);
   }
 
-  void _checkBluetoothSupport(CheckBluetoothRequirements event, Emitter<ApplicationBluetoothState> emit) async {
+  void _checkBluetoothSupport(
+    CheckBluetoothRequirements event,
+    Emitter<ApplicationBluetoothState> emit,
+  ) async {
     emit(BluetoothCheckInProgress());
 
     // Check if bluetooth is supported by the device
     if (await FlutterBluePlus.isSupported == false) {
-      emit(BluetoothOperationFailure("Bluetooth is not supported on this please try again on a bluetooth supported device."));
+      emit(
+        BluetoothOperationFailure(
+          "Bluetooth is not supported on this please try again on a bluetooth supported device.",
+        ),
+      );
     }
 
     // Check if Bluetooth permissions are given or and prompt if not
@@ -37,33 +43,44 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
       Permission.location,
       Permission.bluetoothScan,
       Permission.bluetoothAdvertise,
-      Permission.bluetoothConnect
+      Permission.bluetoothConnect,
     ].request();
 
     if (statuses[Permission.location]!.isGranted &&
         statuses[Permission.bluetoothScan]!.isGranted &&
         statuses[Permission.bluetoothAdvertise]!.isGranted &&
         statuses[Permission.bluetoothConnect]!.isGranted) {
-
       // Check if location Service is enabled
-      bool locationServiceEnabled = await Permission.location.serviceStatus.isEnabled;
+      bool locationServiceEnabled =
+          await Permission.location.serviceStatus.isEnabled;
       if (!locationServiceEnabled) {
-        emit(BluetoothOperationFailure("Please turn on location first as it's required for bluetooth scanning."));
+        emit(
+          BluetoothOperationFailure(
+            "Please turn on location first as it's required for bluetooth scanning.",
+          ),
+        );
       }
 
       // Check if the Bluetooth adapter is enabled
-      BluetoothAdapterState state = await FlutterBluePlus.adapterState.map((s){return s;}).first;
+      BluetoothAdapterState state = await FlutterBluePlus.adapterState.map((s) {
+        return s;
+      }).first;
       if (state == BluetoothAdapterState.on) {
-          emit(BluetoothRequirementsMet());
+        emit(BluetoothRequirementsMet());
       } else {
-          emit(BluetoothOperationFailure("Please turn on bluetooth first."));
+        emit(BluetoothOperationFailure("Please turn on bluetooth first."));
       }
     } else {
-      emit(BluetoothOperationFailure("Please allow 'Nearby Devices' Permissions."));
+      emit(
+        BluetoothOperationFailure("Please allow 'Nearby Devices' Permissions."),
+      );
     }
   }
 
-  void _startScanning(StartScanning event, Emitter<ApplicationBluetoothState> emit) async {
+  void _startScanning(
+    StartScanning event,
+    Emitter<ApplicationBluetoothState> emit,
+  ) async {
     debugPrint("STARTING_SCAN.....");
 
     emit(BluetoothScanInProgress());
@@ -72,9 +89,9 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
 
     // Start listening before scanning so we don't miss anything
     var subscription = FlutterBluePlus.scanResults.listen((results) {
-        if (results.isNotEmpty) {
-          latestScanResult = results;
-        }
+      if (results.isNotEmpty) {
+        latestScanResult = results;
+      }
     });
 
     // cleanup: cancel subscription when scanning stops
@@ -82,8 +99,9 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
 
     // initiate the scan
     await FlutterBluePlus.startScan(
-    androidScanMode: AndroidScanMode.lowLatency, // AndroidScanMode.lowPower might be a better fit in the future
-    // withServices: navwareBluetoothServiceUUIDs, // match any of the specified services
+      androidScanMode: AndroidScanMode
+          .lowLatency, // AndroidScanMode.lowPower might be a better fit in the future
+      // withServices: navwareBluetoothServiceUUIDs, // match any of the specified services
     );
 
     // wait for scanning to stop
@@ -94,11 +112,17 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     });
   }
 
-  void _awaitConnectionCheck(InitiateConnectionCheck event, Emitter<ApplicationBluetoothState> emit) {
+  void _awaitConnectionCheck(
+    InitiateConnectionCheck event,
+    Emitter<ApplicationBluetoothState> emit,
+  ) {
     emit(AquiringBluetoothConnetionStatus());
   }
 
-  void _checkConnectionStatus(CheckConnectionStatus event, Emitter<ApplicationBluetoothState> emit) async {
+  void _checkConnectionStatus(
+    CheckConnectionStatus event,
+    Emitter<ApplicationBluetoothState> emit,
+  ) async {
     var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
 
     if (bluetoothDevice.isDisconnected) {
@@ -110,26 +134,40 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     }
   }
 
-  void _toggleConnection(ToggleConnection event, Emitter<ApplicationBluetoothState> emit) async {
+  void _toggleConnection(
+    ToggleConnection event,
+    Emitter<ApplicationBluetoothState> emit,
+  ) async {
     emit(AquiringBluetoothConnetionStatus());
     var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
 
-    var subscription = bluetoothDevice.connectionState.listen((BluetoothConnectionState connectionState) async {
+    var subscription = bluetoothDevice.connectionState.listen((
+      BluetoothConnectionState connectionState,
+    ) async {
       if (bluetoothDevice.isDisconnected) {
-        await bluetoothDevice.connectionState.where((val) => val == BluetoothConnectionState.connected).first.then((val) async {
-          emit(BluetoothConnetionStatusAquired("Connected"));
-        });
-      } else if (bluetoothDevice.isConnected){
-        await bluetoothDevice.connectionState.where((val) => val == BluetoothConnectionState.disconnected).first.then((val) async {
-          emit(BluetoothConnetionStatusAquired("Disconnected"));
-        });
+        await bluetoothDevice.connectionState
+            .where((val) => val == BluetoothConnectionState.connected)
+            .first
+            .then((val) async {
+              emit(BluetoothConnetionStatusAquired("Connected"));
+            });
+      } else if (bluetoothDevice.isConnected) {
+        await bluetoothDevice.connectionState
+            .where((val) => val == BluetoothConnectionState.disconnected)
+            .first
+            .then((val) async {
+              emit(BluetoothConnetionStatusAquired("Disconnected"));
+            });
       } else {
         emit(BluetoothConnetionStatusAquired("Unknown"));
       }
     });
 
     if (bluetoothDevice.isDisconnected) {
-      await bluetoothDevice.connect(timeout: Duration(seconds: 35), autoConnect: false);
+      await bluetoothDevice.connect(
+        timeout: Duration(seconds: 35),
+        autoConnect: false,
+      );
     } else {
       await bluetoothDevice.disconnect();
     }

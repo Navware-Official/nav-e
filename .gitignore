@@ -43,3 +43,29 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Rust / native build artifacts
+# Ignore compiled artifacts and Cargo target directories for the embedded Rust crate
+native/nav_engine/target/
+native/nav_engine/target/**
+native/device_comm/target/
+native/device_comm/target/**
+
+# Ignore Rust-side Flutter Rust Bridge generated files
+native/nav_engine/src/frb_generated.rs
+native/nav_engine/src/frb_generated.io.rs
+native/nav_engine/src/frb_generated.web.rs
+
+# Ignore platform native libraries produced by local builds
+**/native/**/*.so
+**/native/**/*.dylib
+**/native/**/*.dll
+**/native/**/*.a
+**/native/**/target/**
+
+# FFI Generated bindings - Rust side
+native/nav_e_ffi/src/frb_generated.rs
+native/nav_e_ffi/src/frb_generated.web.rs
+
+# Misc
+.github/copilot-instructions.md

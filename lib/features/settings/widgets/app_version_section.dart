@@ -23,7 +23,7 @@ class _AppVersionSectionState extends State<AppVersionSection> {
   Future<void> _getVersionInfo() async {
     try {
       final packageInfo = await PackageInfo.fromPlatform();
-      
+
       setState(() {
         _localVersion = packageInfo.version;
         _buildNumber = packageInfo.buildNumber;
@@ -47,9 +47,9 @@ class _AppVersionSectionState extends State<AppVersionSection> {
           children: [
             Text(
               'App Version',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12.0),
             if (_isLoading)
@@ -90,14 +90,17 @@ class _AppVersionSectionState extends State<AppVersionSection> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Text(
                           'Build Date: ${_formatBuildDate(AppVersion.buildDate)}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
                         ),
                       ),
                     const SizedBox(height: 12),
                   ],
-                  
+
                   // Local/package version info
                   Text(
                     'Local Version: ${_localVersion ?? 'Unknown'}',
@@ -113,17 +116,24 @@ class _AppVersionSectionState extends State<AppVersionSection> {
                         ),
                       ),
                     ),
-                  
+
                   // Development build indicator
                   if (AppVersion.version == 'dev') ...[
                     const SizedBox(height: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.secondary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.secondary.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Row(
@@ -137,10 +147,13 @@ class _AppVersionSectionState extends State<AppVersionSection> {
                           const SizedBox(width: 4),
                           Text(
                             'Development Build',
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.secondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
                           ),
                         ],
                       ),

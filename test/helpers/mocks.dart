@@ -6,8 +6,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 // Repository mocks
 class MockMapSourceRepository extends Mock implements IMapSourceRepository {}
+
 class MockGeocodingRepository extends Mock implements IGeocodingRepository {}
-class MockSavedPlacesRepository extends Mock implements ISavedPlacesRepository {}
+
+class MockSavedPlacesRepository extends Mock
+    implements ISavedPlacesRepository {}
 
 // Platform service mocks
 class MockSharedPreferences extends Mock implements SharedPreferences {}
