@@ -3,83 +3,83 @@
 
 "area:map":
   - changed-files:
-    - any-glob-to-any-file:
-      - "lib/features/map_layers/**"
-      - "lib/core/data/map_adapter.dart"
-      - "assets/config/map_sources.json"
+      - any-glob-to-any-file:
+          - "lib/features/map_layers/**"
+          - "lib/core/data/map_adapter.dart"
+          - "assets/config/map_sources.json"
 
 "area:ui":
   - changed-files:
-    - any-glob-to-any-file:
-      - "lib/widgets/**"
-      - "lib/core/theme/**"
-      - "assets/icons/**"
-      - "assets/fonts/**"
+      - any-glob-to-any-file:
+          - "lib/widgets/**"
+          - "lib/core/theme/**"
+          - "assets/icons/**"
+          - "assets/fonts/**"
 
 "area:core":
   - changed-files:
-    - any-glob-to-any-file:
-      - "lib/core/**"
-      - "lib/main.dart"
-      - "lib/app/**"
+      - any-glob-to-any-file:
+          - "lib/core/**"
+          - "lib/main.dart"
+          - "lib/app/**"
 
 "area:navigation":
   - changed-files:
-    - any-glob-to-any-file:
-      - "lib/features/nav/**"
-      - "lib/features/plan_route/**"
+      - any-glob-to-any-file:
+          - "lib/features/nav/**"
+          - "lib/features/plan_route/**"
 
 "area:rust":
   - changed-files:
-    - any-glob-to-any-file:
-      - "native/**"
-      - "proto/**"
-      - "Cargo.toml"
-      - "Cargo.lock"
+      - any-glob-to-any-file:
+          - "native/**"
+          - "proto/**"
+          - "Cargo.toml"
+          - "Cargo.lock"
 
 "area:android":
   - changed-files:
-    - any-glob-to-any-file:
-      - "android/**"
+      - any-glob-to-any-file:
+          - "android/**"
 
 "area:ios":
   - changed-files:
-    - any-glob-to-any-file:
-      - "ios/**"
+      - any-glob-to-any-file:
+          - "ios/**"
 
 "area:build":
   - changed-files:
-    - any-glob-to-any-file:
-      - ".github/workflows/**"
-      - "Makefile"
-      - "flutter_rust_bridge.yaml"
-      - "pubspec.yaml"
-      - "scripts/**"
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - "Makefile"
+          - "flutter_rust_bridge.yaml"
+          - "pubspec.yaml"
+          - "scripts/**"
 
 "area:docs":
   - changed-files:
-    - any-glob-to-any-file:
-      - "docs/**"
-      - "README.md"
-      - "CONTRIBUTING.MD"
-      - ".github/copilot-instructions.md"
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "README.md"
+          - "CONTRIBUTING.MD"
+          - ".github/copilot-instructions.md"
 
 "area:tests":
   - changed-files:
-    - any-glob-to-any-file:
-      - "test/**"
+      - any-glob-to-any-file:
+          - "test/**"
 
 "area:device-comm":
   - changed-files:
-    - any-glob-to-any-file:
-      - "lib/features/device_comm/**"
-      - "lib/features/device_management/**"
-      - "native/device_comm/**"
-      - "proto/navigation.proto"
+      - any-glob-to-any-file:
+          - "lib/features/device_comm/**"
+          - "lib/features/device_management/**"
+          - "native/device_comm/**"
+          - "proto/navigation.proto"
 
 "area:database":
   - changed-files:
-    - any-glob-to-any-file:
-      - "assets/sql/**"
-      - "lib/features/saved_places/**"
-      - "native/nav_engine/src/infrastructure/persistence/**"
+      - any-glob-to-any-file:
+          - "assets/sql/**"
+          - "lib/features/saved_places/**"
+          - "native/nav_engine/src/infrastructure/persistence/**"
