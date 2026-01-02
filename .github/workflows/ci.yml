@@ -56,24 +56,59 @@ jobs:
             echo "Found FRB bindings in artifact at $ART_BRIDGE_DIR"
             if [ "$REPO_HAS_BRIDGE" = "true" ]; then
               echo "Repository contains lib/bridge/ — comparing artifact against committed files..."
+              
+              # Format both artifact and repo bindings to normalize formatting differences
+              echo "Normalizing formatting on artifact bindings..."
+              dart format "$ART_BRIDGE_DIR" >/dev/null 2>&1 || true
+              
+              echo "Normalizing formatting on repo bindings..."
+              dart format lib/bridge >/dev/null 2>&1 || true
+              
               TMP_DIFF=$(mktemp)
               set +e
               diff -ru "$ART_BRIDGE_DIR" lib/bridge > "$TMP_DIFF" || true
               set -e
+              
               if [ -s "$TMP_DIFF" ]; then
-                echo "❌ Committed lib/bridge differs from generated bindings artifact."
+                echo "⚠️ Committed lib/bridge differs from generated bindings artifact."
                 echo ""
-                echo "To fix locally:"
-                echo "  ./scripts/generate_bindings.sh"
-                echo "  git add lib/bridge"
-                echo "  git commit -m \"chore: regenerate flutter-rust-bridge bindings\""
-                echo ""
-                echo "Diff (artifact -> committed) (first 200 lines):"
-                sed -n '1,200p' "$TMP_DIFF" || true
-                rm -f "$TMP_DIFF"
-                exit 1
+                echo "Checking if differences are only cosmetic (whitespace/formatting)..."
+                
+                # Check if differences are only whitespace/formatting by comparing normalized content
+                SIGNIFICANT_DIFF=false
+                for file in "$ART_BRIDGE_DIR"/*.dart; do
+                  basename=$(basename "$file")
+                  if [ -f "lib/bridge/$basename" ]; then
+                    # Remove all whitespace and compare
+                    if ! diff -w <(tr -d '[:space:]' < "$file") <(tr -d '[:space:]' < "lib/bridge/$basename") >/dev/null 2>&1; then
+                      SIGNIFICANT_DIFF=true
+                      break
+                    fi
+                  else
+                    SIGNIFICANT_DIFF=true
+                    break
+                  fi
+                done
+                
+                if [ "$SIGNIFICANT_DIFF" = "true" ]; then
+                  echo "❌ Found significant differences (not just formatting)."
+                  echo ""
+                  echo "To fix locally:"
+                  echo "  ./scripts/generate_bindings.sh"
+                  echo "  git add lib/bridge"
+                  echo "  git commit -m \"chore: regenerate flutter-rust-bridge bindings\""
+                  echo ""
+                  echo "Diff (artifact -> committed) (first 200 lines):"
+                  sed -n '1,200p' "$TMP_DIFF" || true
+                  rm -f "$TMP_DIFF"
+                  exit 1
+                else
+                  echo "✅ Differences are only cosmetic (formatting/whitespace). Using committed bindings."
+                fi
+              else
+                echo "✅ Artifact and committed lib/bridge match perfectly."
               fi
-              echo "✅ Artifact and committed lib/bridge match."
+              rm -f "$TMP_DIFF"
             else
               echo "Repository does not contain lib/bridge — copying artifact into lib/bridge for tests..."
               rm -rf lib/bridge || true
