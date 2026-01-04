@@ -71,7 +71,7 @@ jobs:
           profile: minimal
           override: true
 
-      - name: Install Android SDK components and accept licenses
+      - name: Install Android SDK components
         env:
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
@@ -90,11 +90,8 @@ jobs:
           NDK_VERSION=$(grep -oP 'ndkVersion\s*=\s*"\K[^"]+' android/app/build.gradle.kts || echo "29.0.13846066")
           echo "Detected NDK version: $NDK_VERSION"
           
-          # Accept all licenses first
-          ( while true; do echo "y"; done ) | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --licenses 2>/dev/null || true
-          
-          # Install required components
-          "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --verbose \
+          # Install required components (licenses already accepted on runner)
+          "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" \
             "ndk;${NDK_VERSION}" \
             "platform-tools" \
             "build-tools;33.0.2" \
