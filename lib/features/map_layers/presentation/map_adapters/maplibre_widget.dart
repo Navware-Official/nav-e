@@ -5,9 +5,13 @@ import 'package:maplibre_gl/maplibre_gl.dart' as ml;
 
 /// Converts a Color to hex string format for MapLibre (#RRGGBB).
 String _colorToHex(Color color) {
-  return '#${color.red.toRadixString(16).padLeft(2, '0')}'
-      '${color.green.toRadixString(16).padLeft(2, '0')}'
-      '${color.blue.toRadixString(16).padLeft(2, '0')}';
+  final r = ((color.r * 255.0).round()).clamp(0, 255).toInt();
+  final g = ((color.g * 255.0).round()).clamp(0, 255).toInt();
+  final b = ((color.b * 255.0).round()).clamp(0, 255).toInt();
+
+  return '#${r.toRadixString(16).padLeft(2, '0')}'
+      '${g.toRadixString(16).padLeft(2, '0')}'
+      '${b.toRadixString(16).padLeft(2, '0')}';
 }
 
 /// MapLibre GL map widget wrapper with support for vector and raster tiles.
@@ -224,7 +228,7 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
                 .toList(),
             lineColor: _colorToHex(polyline.color),
             lineWidth: polyline.width,
-            lineOpacity: polyline.color.opacity,
+            lineOpacity: polyline.color.a,
           ),
         );
         _polylineObjects[polyline.id] = line;
