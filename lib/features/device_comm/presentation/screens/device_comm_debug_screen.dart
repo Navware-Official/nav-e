@@ -157,24 +157,36 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
                     ),
                   )
                 else
-                  ...devices.map((device) {
-                    return RadioListTile<String>(
-                      title: Text(device.name),
-                      subtitle: Text(device.remoteId),
-                      value: device.remoteId,
-                      groupValue: _selectedDeviceId,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedDeviceId = value;
-                        });
+                  RadioGroup<String>(
+                    groupValue: _selectedDeviceId,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedDeviceId = value;
+                      });
+
+                      if (value != null) {
+                        final device = devices.firstWhere(
+                          (d) => d.remoteId == value,
+                          orElse: () => devices.first,
+                        );
                         _addLog(
                           'Selected device: ${device.name} (${device.remoteId})',
                         );
-                      },
-                      contentPadding: EdgeInsets.zero,
-                      dense: true,
-                    );
-                  }),
+                      }
+                    },
+                    child: Column(
+                      children: [
+                        for (final device in devices)
+                          RadioListTile<String>(
+                            title: Text(device.name),
+                            subtitle: Text(device.remoteId),
+                            value: device.remoteId,
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                          ),
+                      ],
+                    ),
+                  ),
               ],
             ),
           );
