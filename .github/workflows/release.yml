@@ -71,11 +71,48 @@ jobs:
           profile: minimal
           override: true
       
-      - name: Setup Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r25c
-      
+      - name: Ensure Android SDK root
+        env:
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        run: |
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          ls -la "$ANDROID_SDK_ROOT" || true
+
+      - name: Install required Android SDK components and accept licenses
+        env:
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        run: |
+          set -euo pipefail
+
+          # Locate sdkmanager: prefer cmdline-tools/latest, fallback to PATH
+          if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
+            SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          else
+            SDKMANAGER="$(command -v sdkmanager || true)"
+          fi
+
+          if [ -z "$SDKMANAGER" ]; then
+            echo "sdkmanager not found. Please ensure Android SDK cmdline-tools are available on the runner."
+            exit 1
+          fi
+
+          echo "Using sdkmanager: $SDKMANAGER"
+          "$SDKMANAGER" --version || true
+
+          # Install specific NDK version required by Gradle to avoid auto-install attempts
+          REQUIRED=("ndk;29.0.13846066" "platform-tools" "build-tools;33.0.2" "platforms;android-33")
+
+          for pkg in "${REQUIRED[@]}"; do
+            echo "Installing $pkg ..."
+            yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" "$pkg" || {
+              echo "Failed to install $pkg"
+              exit 1
+            }
+          done
+
+          # Accept all licenses non-interactively
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" --licenses
+
       - name: Cache cargo
         uses: actions/cache@v4
         with:
