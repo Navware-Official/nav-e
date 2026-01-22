@@ -24,9 +24,9 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
-    context.read<DevicesBloc>().add(LoadDevices());
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: AppColors.capeCodDark02),
           onPressed: () {
@@ -34,129 +34,238 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
           },
         ),
         title: Text(
-          'Devices',
-          style: TextStyle(color: AppColors.capeCodDark02),
+          'My Devices',
+          style: TextStyle(
+            color: AppColors.capeCodDark02,
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh, color: AppColors.capeCodDark02),
+            onPressed: () {
+              context.read<DevicesBloc>().add(LoadDevices());
+            },
+            tooltip: 'Refresh',
+          ),
+        ],
       ),
-      body: Container(
-        padding: EdgeInsets.all(8),
-        child: BackButtonListener(
-          onBackButtonPressed: () async {
-            GoRouter.of(context).go('/');
-            return true;
+      body: BackButtonListener(
+        onBackButtonPressed: () async {
+          GoRouter.of(context).go('/');
+          return true;
+        },
+        child: BlocConsumer<DevicesBloc, DevicesState>(
+          listener: (context, state) {
+            if (state is DeviceOperationSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.green,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              context.read<DevicesBloc>().add(LoadDevices());
+            }
           },
-          child: Column(
-            children: [
-              Expanded(
-                child: Row(
+          builder: (context, state) {
+            if (state is DeviceLoadInProgress) {
+              return Center(
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    BlocConsumer<DevicesBloc, DevicesState>(
-                      listener: (context, state) {
-                        if (state is DeviceOperationSuccess) {
-                          initState();
-                        }
-                      },
-                      builder: (context, state) {
-                        if (state is DeviceLoadInProgress) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (state is DeviceLoadSuccess) {
-                          if (state.devices.isNotEmpty) {
-                            return Expanded(
-                              child: ListView.builder(
-                                scrollDirection: Axis.vertical,
-                                shrinkWrap: true,
-                                itemCount: state.devices.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final device = state.devices[index];
-                                  return DeviceCard(device: device);
-                                },
-                              ),
-                            );
-                          } else {
-                            return Expanded(
-                              child: Text(
-                                "No devices registered! Add a device using the button below.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            );
-                          }
-                        } else if (state is DeviceOperationFailure) {
-                          return Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  size: 48,
-                                  color: Colors.redAccent,
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  "Error loading devices",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  state.message,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: () => context
-                                      .read<DevicesBloc>()
-                                      .add(LoadDevices()),
-                                  child: Text("Retry"),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                        return Expanded(
-                          child: Text(
-                            "Error: Something went wrong. Unable to load devices!",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 24,
-                              color: Colors.redAccent,
-                            ),
-                          ),
-                        );
-                      },
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text(
+                      'Loading devices...',
+                      style: TextStyle(color: Colors.grey[600]),
                     ),
                   ],
                 ),
-              ),
-              Row(
+              );
+            }
+
+            if (state is DeviceOperationFailure) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: Colors.redAccent,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        "Error Loading Devices",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        state.message,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      SizedBox(height: 24),
+                      ElevatedButton.icon(
+                        onPressed: () =>
+                            context.read<DevicesBloc>().add(LoadDevices()),
+                        icon: Icon(Icons.refresh),
+                        label: Text("Retry"),
+                        style: ElevatedButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            if (state is DeviceLoadSuccess) {
+              if (state.devices.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.bluetooth_disabled,
+                          size: 80,
+                          color: Colors.grey[400],
+                        ),
+                        SizedBox(height: 24),
+                        Text(
+                          "No Devices Yet",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          "Add a Bluetooth device to get started.\nYou can connect to watches, phones, or other devices.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.grey[600],
+                            height: 1.5,
+                          ),
+                        ),
+                        SizedBox(height: 32),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            context.pushNamed('addDevice');
+                          },
+                          icon: Icon(Icons.add),
+                          label: Text("Add Your First Device"),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 16,
+                            ),
+                            textStyle: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return Column(
                 children: [
                   Expanded(
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        context.pushNamed('addDevice');
+                    child: ListView.builder(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      itemCount: state.devices.length,
+                      itemBuilder: (context, index) {
+                        final device = state.devices[index];
+                        return DeviceCard(device: device);
                       },
-                      child: Text("Add a new device +"),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            context.pushNamed('addDevice');
+                          },
+                          icon: Icon(Icons.add_circle_outline),
+                          label: Text("Add New Device"),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                            textStyle: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
+              );
+            }
+
+            // Fallback error state
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: Colors.redAccent,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Something went wrong",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () =>
+                        context.read<DevicesBloc>().add(LoadDevices()),
+                    icon: Icon(Icons.refresh),
+                    label: Text("Try Again"),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

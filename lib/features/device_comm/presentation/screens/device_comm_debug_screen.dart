@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_bloc.dart';
+import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_states.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';

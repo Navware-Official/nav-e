@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/app/app_router.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
-import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_bloc.dart';
+import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
 import 'package:nav_e/core/domain/repositories/device_repository.dart';
