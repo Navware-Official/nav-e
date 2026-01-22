@@ -53,12 +53,56 @@ class DeviceCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        device.name,
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              device.name,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
+                            builder: (context, state) {
+                              if (state is BluetoothConnetionStatusAquired) {
+                                var status = state.status.toString();
+                                var color = _getConnectionColor(status);
+                                var icon = status == "Connected"
+                                    ? Icons.check_circle
+                                    : Icons.radio_button_unchecked;
+
+                                return Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: color.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(icon, size: 14, color: color),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        status,
+                                        style: TextStyle(
+                                          color: color,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                              return SizedBox.shrink();
+                            },
+                          ),
+                        ],
                       ),
                       if (device.model != null) ...[
                         SizedBox(height: 4),
@@ -110,141 +154,78 @@ class DeviceCard extends StatelessWidget {
               ],
             ),
             SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  flex: 40,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      _buildStatusIcon(
-                        Icons.battery_unknown,
-                        "Battery",
-                        Colors.grey,
+            BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
+              builder: (context, state) {
+                if (state is AquiringBluetoothConnetionStatus) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          SizedBox(width: 8),
+                          Text(
+                            "Checking...",
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
                       ),
-                      _buildStatusIcon(Icons.settings, "Settings", Colors.blue),
-                      _buildStatusIcon(Icons.sync, "Sync", Colors.green),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 50),
-                Expanded(
-                  flex: 60,
-                  child: BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
-                    builder: (context, state) {
-                      if (state is AquiringBluetoothConnetionStatus) {
-                        var awaitingColor = Colors.grey;
+                    ),
+                  );
+                }
 
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: awaitingColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: awaitingColor.withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  SizedBox(
-                                    width: 10,
-                                    height: 10,
-                                    child: Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  ),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    "Checking connection...",
-                                    style: TextStyle(
-                                      color: awaitingColor,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        );
-                      } else if (state is BluetoothConnetionStatusAquired) {
-                        var connectionStatus = state.status.toString();
-                        var connectionColor = _getConnectionColor(
-                          connectionStatus,
-                        );
+                if (state is BluetoothConnetionStatusAquired) {
+                  var connectionStatus = state.status.toString();
+                  bool isConnected = connectionStatus == "Connected";
 
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            GestureDetector(
-                              onTap: () {
-                                BlocProvider.of<BluetoothBloc>(
-                                  context,
-                                ).add(ToggleConnection(device));
-                              },
-                              child: Container(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: connectionColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: connectionColor.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 8,
-                                      height: 8,
-                                      decoration: BoxDecoration(
-                                        color: connectionColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Text(
-                                      connectionStatus,
-                                      style: TextStyle(
-                                        color: connectionColor,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                  return SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        BlocProvider.of<BluetoothBloc>(context).add(
+                          ToggleConnection(device),
                         );
-                      }
-
-                      return Expanded(
-                        child: Text(
-                          "Error: Something went wrong. Unable to load Device!",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 24,
-                            color: Colors.redAccent,
+                      },
+                      icon: Icon(
+                        isConnected ? Icons.link_off : Icons.link,
+                        size: 18,
+                      ),
+                      label: Text(
+                        isConnected ? "Disconnect" : "Connect",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isConnected
+                            ? Colors.red[50]
+                            : Colors.blue[50],
+                        foregroundColor: isConnected
+                            ? Colors.red[700]
+                            : Colors.blue[700],
+                        elevation: 0,
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          side: BorderSide(
+                            color: isConnected
+                                ? Colors.red[200]!
+                                : Colors.blue[200]!,
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ],
+                      ),
+                    ),
+                  );
+                }
+
+                return SizedBox.shrink();
+              },
             ),
           ],
         ),
