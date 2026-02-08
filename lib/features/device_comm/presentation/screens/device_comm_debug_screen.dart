@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:nav_e/core/device_comm/device_communication_service.dart';
 import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_states.dart';
@@ -43,6 +44,27 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
       final timestamp = DateTime.now().toString().substring(11, 19);
       _eventLog.insert(0, '[$timestamp] $message');
     });
+  }
+
+  void _sendHeartbeat() {
+    if (_selectedDeviceId == null) {
+      _addLog('ERROR: No device selected');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a device first')),
+      );
+      return;
+    }
+    final routeId = DateTime.now().millisecondsSinceEpoch.toString();
+    _addLog('Sending HEARTBEAT to $_selectedDeviceId (routeId: $routeId)');
+    context.read<DeviceCommBloc>().add(
+      SendControlCommand(
+        remoteId: _selectedDeviceId!,
+        routeId: routeId,
+        controlType: ControlType.heartbeat,
+        statusCode: 200,
+        message: 'ping',
+      ),
+    );
   }
 
   void _sendRoute() {
@@ -97,16 +119,30 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
           // Device Comm State
           _buildDeviceCommState(colorScheme),
 
-          // Send Button
+          // Send Buttons
           Padding(
             padding: const EdgeInsets.all(16),
-            child: FilledButton.icon(
-              onPressed: _sendRoute,
-              icon: const Icon(Icons.send),
-              label: const Text('Send Route to Device'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: _sendHeartbeat,
+                  icon: const Icon(Icons.favorite),
+                  label: const Text('Send Heartbeat (Step 1 test)'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 44),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FilledButton.icon(
+                  onPressed: _sendRoute,
+                  icon: const Icon(Icons.send),
+                  label: const Text('Send Route to Device'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                  ),
+                ),
+              ],
             ),
           ),
 

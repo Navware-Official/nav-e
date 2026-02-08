@@ -109,10 +109,7 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                       Text(
                         state.message,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       SizedBox(height: 24),
                       ElevatedButton.icon(
@@ -193,7 +190,10 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                 children: [
                   Expanded(
                     child: ListView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       itemCount: state.devices.length,
                       itemBuilder: (context, index) {
                         final device = state.devices[index];
@@ -242,18 +242,11 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: Colors.redAccent,
-                  ),
+                  Icon(Icons.error_outline, size: 64, color: Colors.redAccent),
                   SizedBox(height: 16),
                   Text(
                     "Something went wrong",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 24),
                   ElevatedButton.icon(

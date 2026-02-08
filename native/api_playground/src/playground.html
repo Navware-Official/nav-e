@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>nav-e API Playground</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 900px; margin: 0 auto; padding: 1rem; background: #1a1a2e; color: #eee; }
+    h1 { color: #0f3460; font-size: 1.5rem; margin-bottom: 0.5rem; }
+    h2 { color: #e94560; font-size: 1rem; margin: 1.25rem 0 0.5rem; border-bottom: 1px solid #333; padding-bottom: 0.25rem; }
+    .card { background: #16213e; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    label { display: block; margin-top: 0.5rem; color: #aaa; font-size: 0.85rem; }
+    input, textarea, button { width: 100%; padding: 0.5rem; margin-top: 0.25rem; border-radius: 4px; border: 1px solid #333; background: #1a1a2e; color: #eee; }
+    button { background: #e94560; color: #fff; border: none; cursor: pointer; font-weight: 600; margin-top: 0.5rem; }
+    button:hover { background: #ff6b6b; }
+    pre { background: #0f0f1a; padding: 0.75rem; border-radius: 4px; overflow: auto; font-size: 0.8rem; max-height: 200px; margin: 0.5rem 0 0; white-space: pre-wrap; word-break: break-all; }
+    .row { display: flex; gap: 0.5rem; }
+    .row input { flex: 1; }
+    .error { color: #e94560; }
+    .ok { color: #4ecca3; }
+  </style>
+</head>
+<body>
+  <h1>nav-e API Playground</h1>
+  <p style="color:#888; margin-top:0;">Test Rust endpoints without Flutter. Same API as the app.</p>
+
+  <div class="card">
+    <h2>Geocode</h2>
+    <label>Query</label>
+    <input type="text" id="geocode-query" placeholder="e.g. Berlin" value="Amsterdam">
+    <label>Limit (optional)</label>
+    <input type="number" id="geocode-limit" placeholder="10" value="5">
+    <button onclick="geocode()">Run geocode_search</button>
+    <pre id="geocode-result"></pre>
+  </div>
+
+  <div class="card">
+    <h2>Reverse geocode</h2>
+    <div class="row">
+      <div><label>Lat</label><input type="number" id="rev-lat" value="52.52" step="any"></div>
+      <div><label>Lon</label><input type="number" id="rev-lon" value="13.405" step="any"></div>
+    </div>
+    <button onclick="reverseGeocode()">Run reverse_geocode</button>
+    <pre id="rev-result"></pre>
+  </div>
+
+  <div class="card">
+    <h2>Calculate route</h2>
+    <label>Waypoints (JSON array of [lat, lon])</label>
+    <textarea id="route-waypoints" rows="3">[[52.52, 13.405], [48.1351, 11.5820]]</textarea>
+    <button onclick="route()">Run calculate_route</button>
+    <pre id="route-result"></pre>
+  </div>
+
+  <div class="card">
+    <h2>Navigation session</h2>
+    <label>Waypoints</label>
+    <textarea id="nav-waypoints" rows="2">[[52.52, 13.405], [48.1351, 11.5820]]</textarea>
+    <label>Current position [lat, lon]</label>
+    <input type="text" id="nav-current" value="[52.52, 13.405]">
+    <div class="row">
+      <button onclick="navStart()">Start session</button>
+      <button onclick="navActive()">Get active</button>
+      <button onclick="navStop()">Stop session</button>
+    </div>
+    <label>Update position (session_id, lat, lon)</label>
+    <div class="row">
+      <input type="text" id="nav-update-sid" placeholder="session_id">
+      <input type="number" id="nav-update-lat" placeholder="lat" step="any">
+      <input type="number" id="nav-update-lon" placeholder="lon" step="any">
+    </div>
+    <button onclick="navUpdate()">Update position</button>
+    <pre id="nav-result"></pre>
+  </div>
+
+  <div class="card">
+    <h2>Saved places</h2>
+    <div class="row">
+      <button onclick="savedPlacesList()">Get all</button>
+      <button onclick="savedPlaceCreate()">Create one</button>
+    </div>
+    <label>Create: name, address, lat, lon</label>
+    <div class="row">
+      <input id="sp-name" placeholder="name" value="Home">
+      <input id="sp-address" placeholder="address" value="123 Main St">
+      <input type="number" id="sp-lat" placeholder="lat" value="52.52" step="any">
+      <input type="number" id="sp-lon" placeholder="lon" value="13.405" step="any">
+    </div>
+    <label>Get/delete by ID</label>
+    <div class="row">
+      <input type="number" id="sp-id" placeholder="id">
+      <button onclick="savedPlaceGet()">Get by ID</button>
+      <button onclick="savedPlaceDelete()">Delete</button>
+    </div>
+    <pre id="sp-result"></pre>
+  </div>
+
+  <div class="card">
+    <h2>Devices</h2>
+    <button onclick="devicesList()">Get all devices</button>
+    <label>Create device (JSON)</label>
+    <textarea id="device-json" rows="4">{"name":"Test Watch","remote_id":"ble-123","device_type":"wear_os_watch","connection_type":"ble","paired":false}</textarea>
+    <button onclick="deviceCreate()">Create device</button>
+    <pre id="dev-result"></pre>
+  </div>
+
+  <script>
+    const base = '';
+    function show(el, data, isError) {
+      el.textContent = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      el.className = isError ? 'error' : 'ok';
+    }
+    async function req(method, path, body) {
+      const res = await fetch(base + path, {
+        method,
+        headers: body ? { 'Content-Type': 'application/json' } : {},
+        body: body ? JSON.stringify(body) : undefined
+      });
+      return res.json();
+    }
+    async function geocode() {
+      const q = document.getElementById('geocode-query').value;
+      const limit = document.getElementById('geocode-limit').value;
+      const out = document.getElementById('geocode-result');
+      const r = await req('POST', '/api/geocode', { query: q, limit: limit ? parseInt(limit, 10) : null });
+      show(out, r, !r.ok);
+    }
+    async function reverseGeocode() {
+      const lat = parseFloat(document.getElementById('rev-lat').value);
+      const lon = parseFloat(document.getElementById('rev-lon').value);
+      const r = await req('POST', '/api/reverse_geocode', { lat, lon });
+      show(document.getElementById('rev-result'), r, !r.ok);
+    }
+    async function route() {
+      const waypoints = JSON.parse(document.getElementById('route-waypoints').value);
+      const r = await req('POST', '/api/route', { waypoints });
+      show(document.getElementById('route-result'), r, !r.ok);
+    }
+    async function navStart() {
+      const waypoints = JSON.parse(document.getElementById('nav-waypoints').value);
+      const current_position = JSON.parse(document.getElementById('nav-current').value);
+      const r = await req('POST', '/api/navigation/start', { waypoints, current_position });
+      show(document.getElementById('nav-result'), r, !r.ok);
+      if (r.ok && r.data && r.data.session_json) {
+        try {
+          const session = typeof r.data.session_json === 'string' ? JSON.parse(r.data.session_json) : r.data.session_json;
+          if (session.id) {
+            document.getElementById('nav-update-sid').value = session.id;
+          }
+        } catch (_) {}
+      }
+    }
+    async function navActive() {
+      const r = await req('GET', '/api/navigation/active');
+      show(document.getElementById('nav-result'), r, !r.ok);
+    }
+    async function navUpdate() {
+      const session_id = document.getElementById('nav-update-sid').value;
+      const lat = parseFloat(document.getElementById('nav-update-lat').value);
+      const lon = parseFloat(document.getElementById('nav-update-lon').value);
+      const r = await req('POST', '/api/navigation/update', { session_id, lat, lon });
+      show(document.getElementById('nav-result'), r, !r.ok);
+    }
+    async function navStop() {
+      const session_id = document.getElementById('nav-update-sid').value;
+      if (!session_id) { show(document.getElementById('nav-result'), { ok: false, error: 'Run Start session first or paste session id' }, true); return; }
+      const r = await req('POST', '/api/navigation/stop', { session_id });
+      show(document.getElementById('nav-result'), r, !r.ok);
+    }
+    async function savedPlacesList() {
+      const r = await req('GET', '/api/saved_places');
+      show(document.getElementById('sp-result'), r, !r.ok);
+    }
+    async function savedPlaceGet() {
+      const id = document.getElementById('sp-id').value;
+      if (!id) return;
+      const r = await req('GET', '/api/saved_places/' + id);
+      show(document.getElementById('sp-result'), r, !r.ok);
+    }
+    async function savedPlaceCreate() {
+      const name = document.getElementById('sp-name').value;
+      const address = document.getElementById('sp-address').value;
+      const lat = parseFloat(document.getElementById('sp-lat').value);
+      const lon = parseFloat(document.getElementById('sp-lon').value);
+      const r = await req('POST', '/api/saved_places', { name, address: address || null, lat, lon });
+      show(document.getElementById('sp-result'), r, !r.ok);
+    }
+    async function savedPlaceDelete() {
+      const id = document.getElementById('sp-id').value;
+      if (!id) return;
+      const r = await req('DELETE', '/api/saved_places/' + id);
+      show(document.getElementById('sp-result'), r, !r.ok);
+    }
+    async function devicesList() {
+      const r = await req('GET', '/api/devices');
+      show(document.getElementById('dev-result'), r, !r.ok);
+    }
+    async function deviceCreate() {
+      const body = JSON.parse(document.getElementById('device-json').value);
+      const r = await req('POST', '/api/devices', body);
+      show(document.getElementById('dev-result'), r, !r.ok);
+    }
+  </script>
+</body>
+</html>

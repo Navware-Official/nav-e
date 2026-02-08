@@ -175,4 +175,3 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     subscription.cancel();
   }
 }
-

@@ -10,12 +10,12 @@ class UserLocationMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 45,
-      height: 45,
+      width: 40,
+      height: 40,
       decoration: AppDecorations.userLocationMarker,
       child: Transform.rotate(
         angle: (heading ?? 0) * math.pi / 180,
-        child: const Icon(Icons.navigation, size: 30),
+        child: const Icon(Icons.navigation, size: 24, color: Colors.white),
       ),
     );
   }

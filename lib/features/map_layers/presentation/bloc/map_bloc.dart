@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
@@ -41,15 +42,28 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<ReplacePolylines>(_onReplacePolylines);
     on<MapAutoFitDone>(_onAutoFitDone);
     on<ToggleFollowUser>(_onToggleFollow);
+    on<ResetBearing>(_onResetBearing);
     on<MapSourceChanged>(_onSourceChanged, transformer: restartable());
   }
 
   void _onMoved(MapMoved event, Emitter<MapState> emit) {
+    // When followUser is true we are driving the camera from state (e.g.
+    // "go to my location"); ignore camera position reports so we don't
+    // overwrite the target and prevent the move from completing.
+    debugPrint(
+      '[MapBloc] MapMoved | force=${event.force} followUser=${state.followUser} '
+      'from=${state.center},${state.zoom} to=${event.center},${event.zoom}',
+    );
+    if (state.followUser && !event.force) return;
     emit(state.copyWith(center: event.center, zoom: event.zoom));
   }
 
   void _onToggleFollow(ToggleFollowUser event, Emitter<MapState> emit) {
     emit(state.copyWith(followUser: event.follow));
+  }
+
+  void _onResetBearing(ResetBearing event, Emitter<MapState> emit) {
+    emit(state.copyWith(resetBearingTick: state.resetBearingTick + 1));
   }
 
   Future<void> _onSourceChanged(

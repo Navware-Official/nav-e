@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help codegen build-native build-android build-android-all clean-native clean-android fmt fmt-rust fmt-flutter lint-rust fix-rust cs-fix test ci migrate-new migrate-status full-rebuild android-dev rust-only
+.PHONY: help codegen build-native build-android build-android-all clean-native clean-android fmt fmt-rust fmt-flutter lint-rust fix-rust cs-fix test test-rust ci migrate-new migrate-status full-rebuild android-dev rust-only playground api-playground
 
 help:
 	@echo "Workflow commands:"
@@ -9,6 +9,9 @@ help:
 	@echo "  make rust-only         # Build Android libs only (after changing Rust implementation)"
 	@echo ""
 	@echo "Individual commands:"
+	@echo "  make playground        # Run API playground (nav_e_ffi) at http://127.0.0.1:3030"
+	@echo "  make api-playground   # Same as playground"
+	@echo "  make test-rust         # Run Rust API smoke tests (cargo test -p nav_e_ffi)"
 	@echo "  make codegen           # Run flutter_rust_bridge_codegen (v2.x) and generate Dart bindings into lib/bridge"
 	@echo "  make build-native      # Build native Rust crate (desktop)"
 	@echo "  make build-android     # Build Android native libs for arm64 and copy to android/app/src/main/jniLibs"
@@ -124,8 +127,21 @@ test:
 	@echo "Running Flutter tests..."
 	flutter test
 	@echo "Running Rust tests..."
-	@cd native/nav_engine && cargo test
+	@cd native/nav_e_ffi && cargo test
 	@echo "✓ All tests ran"
+
+## Run Rust API smoke tests only (no Flutter) — tests the FFI surface Flutter uses
+test-rust:
+	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
+	@echo "Running nav_e_ffi API smoke tests..."
+	@cd native/nav_e_ffi && cargo test
+	@echo "✓ Rust API tests ran"
+
+## Run API playground (Storybook-style HTTP UI for nav_e_ffi endpoints)
+playground api-playground:
+	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
+	@echo "Starting API playground at http://127.0.0.1:3030"
+	@cd native && cargo run -p api_playground
 
 ci: codegen build-native
 

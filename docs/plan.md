@@ -9,24 +9,24 @@ During the demo, a user sees the onboarding screen which shows the current statu
 
 ### Phase 1: Device Discovery & Connection
 
-#### 1.1 Initial Setup (nav-e side)
-- **Pre-configure demo device**: Add fixed device UUID and name to nav-e configuration
-- **Bluetooth service UUID**: Use the existing `navwareBluetoothServiceUUIDs` or define a new one for the prototype
+#### 1.1 Initial Setup (nav-e side) — *partially done*
+- **Pre-configure demo device**: Add fixed device UUID and name to nav-e configuration — *not done (no demo-specific config)*
+- **Bluetooth service UUID**: Use the existing `navwareBluetoothServiceUUIDs` or define a new one for the prototype — *done* (UUID in `lib/core/bloc/bluetooth/bluetooth_bloc.dart`)
 - **Connection flow**:
-  1. Check Bluetooth permissions (`CheckBluetoothRequirements`)
-  2. Start scanning for the demo device (`StartScanning`)
-  3. Filter for specific device name/UUID
-  4. Auto-connect when found (`ToggleConnection`)
+  1. Check Bluetooth permissions (`CheckBluetoothRequirements`) — *done*
+  2. Start scanning for the demo device (`StartScanning`) — *done*
+  3. Filter for specific device name/UUID — *not done* (`withServices` is commented out; no name filter)
+  4. Auto-connect when found (`ToggleConnection`) — *not done* (user selects from scan list and connects manually)
 
-#### 1.2 Onboarding Screen (nav-c-prototype side)
-- **Display connection status** in `OnboardingActivity`
-- **Monitor Bluetooth state** using existing `bluetoothStateReceiver`
-- **Show pairing status** when nav-e connects
+#### 1.2 Onboarding Screen (nav-c-prototype side) — *done*
+- **Display connection status** in `OnboardingActivity` — *done* (via `OnboardingFragment2` + `BluetoothConnectionService`)
+- **Monitor Bluetooth state** using existing `bluetoothStateReceiver` — *done* (`OnboardingActivity` registers receiver for `ACTION_STATE_CHANGED`, `ACTION_CONNECTION_STATE_CHANGED`, etc.)
+- **Show pairing status** when nav-e connects — *done* (`ConnectionState.Connected(deviceName, address)`, "✓ Connected to …")
 - **Additional states to handle**:
-  - Bluetooth disabled → Show enable prompt
-  - Waiting for nav-e connection → Show spinner
-  - Connected → Show device name and "Ready" indicator
-  - Connection lost → Show reconnection UI
+  - Bluetooth disabled → Show enable prompt — *done*
+  - Waiting for nav-e connection → Show spinner — *done* (Scanning/Connecting)
+  - Connected → Show device name and "Ready" indicator — *done*
+  - Connection lost → Show reconnection UI — *done* (Error + Retry; state updates on disconnect)
 
 ### Phase 2: Message Protocol Implementation
 
@@ -128,24 +128,26 @@ if (frameAssembler.isComplete()) {
 
 ## Implementation Steps
 
-### Step 1: Basic Connectivity Test (Fake Data)
+### Step 1: Basic Connectivity Test (Fake Data) — *done*
 
 **Objective:** Confirm bidirectional communication works
 
 **nav-e implementation:**
-- Use existing `DeviceCommunicationService`
-- Send test heartbeat using `sendControlCommand`
-- Monitor connection state via `DeviceCommBloc`
+- Use existing `DeviceCommunicationService` — *done*
+- Send test heartbeat using `sendControlCommand` — *done* (Device Comm Debug: "Send Heartbeat" button)
+- Subscribe to RX characteristic to receive ACK — *done* (`subscribeToDevice`, `lastValueStream` → `Message.fromBuffer` → `messageStream`)
+- Monitor connection state via `DeviceCommBloc` — *done*
 
 **nav-c-prototype implementation:**
-- Add BLE GATT server setup in new `BluetoothService.kt`
-- Register characteristic for receiving data
-- Parse incoming `Frame` messages using protobuf
-- Send ACK back to nav-e
+- BLE GATT server in `BluetoothService.kt` — *done*
+- Parse incoming data: try raw `Message` first (single-packet Control/HEARTBEAT), then `Frame` reassembly — *done*
+- On HEARTBEAT: update `lastHeartbeatTimestamp`, call `sendAck(routeId)` — *done*
+- `sendAck`: build Control ACK, send via `notifyCharacteristicChanged` on RX — *done*
+- OnboardingFragment2: show "Heartbeat received at HH:mm:ss" when connected — *done*
 
 **Success criteria:**
-- nav-e shows "Connected to nav-c"
-- nav-c displays heartbeat received timestamp
+- nav-e shows "Connected" to device; Send Heartbeat sends HEARTBEAT; nav-e can receive ACK (MessageFromDevice in log)
+- nav-c displays heartbeat received timestamp — *done*
 - Bidirectional communication confirmed
 
 ### Step 2: Send Real Route from Plan Route Screen
@@ -153,7 +155,7 @@ if (frameAssembler.isComplete()) {
 **Objective:** Transmit actual route data from nav-e to nav-c
 
 **nav-e implementation:**
-- Add "Send to Demo Device" button in PlanRouteScreen
+- Add "Send to (connected) Device" button in PlanRouteScreen
 - Use `DeviceCommBloc.add(SendRouteToDevice(...))`
 - Send `RouteBlob` with waypoints, polyline, distance, duration
 - Monitor `DeviceCommSending` state for progress
@@ -238,7 +240,7 @@ if (frameAssembler.isComplete()) {
 ### nav-e Tasks:
 - [ ] Add demo device configuration (fixed UUID/name)
 - [ ] Auto-connect to demo device on app start
-- [ ] Test heartbeat transmission using `createControlMessage`
+- [x] Test heartbeat transmission using `createControlMessage` (Step 1: Device Comm Debug "Send Heartbeat")
 - [ ] Add "Send to Demo Device" button in PlanRouteScreen
 - [ ] Use existing `DeviceCommBloc` for route transmission
 - [ ] Send `START_NAV` control message
@@ -246,14 +248,15 @@ if (frameAssembler.isComplete()) {
 - [ ] Handle connection state changes in UI
 
 ### nav-c-prototype Tasks:
-- [ ] Add protobuf dependencies (Kotlin protobuf or Java protobuf-lite)
-- [ ] Generate Kotlin code from `navigation.proto`
-- [ ] Create `BluetoothService.kt` with GATT server
-- [ ] Register nav-e service UUID and characteristics
-- [ ] Parse incoming `Frame` messages and reassemble
-- [ ] Deserialize `RouteBlob` protobuf
-- [ ] Update onboarding screens with connection status
-- [ ] Handle Bluetooth state changes (extend existing receiver)
+- [x] Add protobuf dependencies (Kotlin protobuf or Java protobuf-lite)
+- [x] Generate Kotlin code from `navigation.proto`
+- [x] Create `BluetoothService.kt` with GATT server
+- [x] Register nav-e service UUID and characteristics
+- [x] Parse incoming `Frame` messages and reassemble; also parse raw `Message` (single-packet Control/HEARTBEAT)
+- [x] Send ACK on HEARTBEAT via RX characteristic notify
+- [x] Update onboarding screens with connection status (heartbeat timestamp in OnboardingFragment2)
+- [x] Handle Bluetooth state changes (extend existing receiver)
+- [ ] Deserialize `RouteBlob` protobuf (Step 2)
 - [ ] Add map view with route display
 - [ ] Implement turn-by-turn UI
 - [ ] Add error handling for connection loss
@@ -270,11 +273,5 @@ if (frameAssembler.isComplete()) {
 
 ### Protobuf Setup for Android
 nav-c-prototype needs to add protobuf compilation to `build.gradle.kts`:
-```kotlin
-plugins {
-    id("com.google.protobuf") version "0.9.4"
-}
-
-dependencies {
-    implementation("com.google.protobuf:protobuf-kotlin-lite:3.24.0")
+```kotlinDemo
 }

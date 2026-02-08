@@ -10,6 +10,7 @@ class NavState extends Equatable {
   final int? remainingSeconds;
   final NavCue? nextCue;
   final List<LatLng> progressPolyline;
+  final List<NavCue> turnFeed;
   final double? speed;
   final LatLng? lastPosition;
   final bool following;
@@ -22,6 +23,7 @@ class NavState extends Equatable {
     this.remainingSeconds,
     this.nextCue,
     this.progressPolyline = const [],
+    this.turnFeed = const [],
     this.speed,
     this.lastPosition,
     this.following = false,
@@ -35,6 +37,7 @@ class NavState extends Equatable {
     int? remainingSeconds,
     NavCue? nextCue,
     List<LatLng>? progressPolyline,
+    List<NavCue>? turnFeed,
     double? speed,
     LatLng? lastPosition,
     bool? following,
@@ -47,6 +50,7 @@ class NavState extends Equatable {
       remainingSeconds: remainingSeconds ?? this.remainingSeconds,
       nextCue: nextCue ?? this.nextCue,
       progressPolyline: progressPolyline ?? this.progressPolyline,
+      turnFeed: turnFeed ?? this.turnFeed,
       speed: speed ?? this.speed,
       lastPosition: lastPosition ?? this.lastPosition,
       following: following ?? this.following,
@@ -62,6 +66,7 @@ class NavState extends Equatable {
     remainingSeconds,
     nextCue,
     progressPolyline,
+    turnFeed,
     speed,
     lastPosition,
     following,
