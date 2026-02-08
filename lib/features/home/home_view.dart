@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:nav_e/app/app_nav.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/extensions/geocoding_to_saved.dart';
+import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 import 'package:nav_e/features/home/utils/route_params_handler.dart';
 import 'package:nav_e/features/home/widgets/bottom_search_bar_widget.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
@@ -41,6 +43,30 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final _routeHandler = RouteParamsHandler();
+
+  Future<void> _handleMapTap(LatLng latlng) async {
+    final geocoder = context.read<IGeocodingRepository>();
+
+    context.read<MapBloc>().add(ToggleFollowUser(false));
+
+    try {
+      final result = await geocoder.reverseGeocode(
+        lat: latlng.latitude,
+        lon: latlng.longitude,
+      );
+      if (!mounted) return;
+      context.read<PreviewCubit>().showResolved(result);
+    } catch (_) {
+      if (!mounted) return;
+      final label =
+          '${latlng.latitude.toStringAsFixed(5)}, ${latlng.longitude.toStringAsFixed(5)}';
+      context.read<PreviewCubit>().showCoords(
+        lat: latlng.latitude,
+        lon: latlng.longitude,
+        label: label,
+      );
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -96,7 +122,7 @@ class _HomeViewState extends State<HomeView> {
             final markers = markersForPreview(state);
             return Stack(
               children: [
-                MapSection(extraMarkers: markers),
+                MapSection(extraMarkers: markers, onMapTap: _handleMapTap),
 
                 const RecenterFAB(),
                 const RotateNorthFAB(),

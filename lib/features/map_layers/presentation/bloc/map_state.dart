@@ -9,6 +9,7 @@ class MapState {
   final bool followUser;
   final List<PolylineModel> polylines;
   final bool autoFit;
+  final int resetBearingTick;
 
   final MapSource? source;
   final List<MapSource> available;
@@ -22,6 +23,7 @@ class MapState {
     this.followUser = true,
     this.polylines = const [],
     this.autoFit = false,
+    this.resetBearingTick = 0,
     this.source,
     this.available = const [],
     this.loadingSource = false,
@@ -35,6 +37,7 @@ class MapState {
     bool? followUser,
     List<PolylineModel>? polylines,
     bool? autoFit,
+    int? resetBearingTick,
     MapSource? source,
     List<MapSource>? available,
     bool? loadingSource,
@@ -47,6 +50,7 @@ class MapState {
       followUser: followUser ?? this.followUser,
       polylines: polylines ?? this.polylines,
       autoFit: autoFit ?? this.autoFit,
+      resetBearingTick: resetBearingTick ?? this.resetBearingTick,
       source: source ?? this.source,
       available: available ?? this.available,
       loadingSource: loadingSource ?? this.loadingSource,

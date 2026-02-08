@@ -14,6 +14,7 @@ class MapControlsFAB extends StatelessWidget {
       tooltip: 'Map controls',
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
       onPressed: () {
+        debugPrint('[MapControlsFAB] pressed');
         showModalBottomSheet(
           context: context,
           isScrollControlled: false, // stays compact

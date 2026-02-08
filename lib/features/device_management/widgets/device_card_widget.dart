@@ -190,9 +190,9 @@ class DeviceCard extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        BlocProvider.of<BluetoothBloc>(context).add(
-                          ToggleConnection(device),
-                        );
+                        BlocProvider.of<BluetoothBloc>(
+                          context,
+                        ).add(ToggleConnection(device));
                       },
                       icon: Icon(
                         isConnected ? Icons.link_off : Icons.link,
@@ -230,13 +230,6 @@ class DeviceCard extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildStatusIcon(IconData icon, String tooltip, Color color) {
-    return Tooltip(
-      message: tooltip,
-      child: Icon(icon, size: 24, color: color),
     );
   }
 

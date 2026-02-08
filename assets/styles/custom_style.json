@@ -4,6 +4,7 @@
   "metadata": {
     "maputnik:renderer": "mbgljs"
   },
+  "glyphs": "https://demotiles.maplibre.org/fonts/{fontstack}/{range}.pbf",
   "sources": {
     "openmaptiles": {
       "type": "vector",

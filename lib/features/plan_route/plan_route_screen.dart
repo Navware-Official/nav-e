@@ -1,6 +1,7 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:convert';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/bridge/lib.dart' as rust;
 import 'package:nav_e/core/bloc/location_bloc.dart';
@@ -16,6 +17,9 @@ import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
 import 'package:nav_e/features/plan_route/widgets/route_top_panel.dart';
 import 'package:nav_e/features/plan_route/widgets/route_bottom_sheet.dart';
+import 'package:nav_e/features/nav/utils/turn_feed.dart';
+import 'package:nav_e/features/nav/bloc/nav_bloc.dart';
+import 'package:nav_e/features/nav/bloc/nav_event.dart';
 
 class PlanRouteScreen extends StatefulWidget {
   final GeocodingResult destination;
@@ -27,6 +31,9 @@ class PlanRouteScreen extends StatefulWidget {
 }
 
 class _PlanRouteScreenState extends State<PlanRouteScreen> {
+  static const _routeDebounceDuration = Duration(milliseconds: 400);
+  static const bool _useMockRoute = false;
+
   List<LatLng> _routePoints = [];
   double? _distanceM;
   double? _durationS;
@@ -37,12 +44,29 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
   // When user picks a start on the map this holds the selected coordinate.
   LatLng? _pickedStart;
 
+  Timer? _routeDebounceTimer;
+
   @override
   void initState() {
     super.initState();
-    // Compute the route immediately (stub will ignore coordinates and return
-    // a hardcoded route). Using destination as end; start is placeholder.
-    _computeRoute();
+    _computeRouteDebounced();
+  }
+
+  @override
+  void dispose() {
+    _routeDebounceTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Schedules a single route fetch after [_routeDebounceDuration]. Cancels
+  /// any pending fetch so rapid triggers (e.g. map taps) don't hammer the API.
+  Future<void> _computeRouteDebounced() {
+    _routeDebounceTimer?.cancel();
+    _routeDebounceTimer = Timer(_routeDebounceDuration, () {
+      _routeDebounceTimer = null;
+      if (mounted) _computeRoute();
+    });
+    return Future.value();
   }
 
   Future<void> _computeRoute() async {
@@ -82,20 +106,56 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         }
       }
 
-      // Use the new DDD/CQRS Rust API to calculate route
-      // The API returns JSON containing waypoints, distance, duration, and polyline
-      final waypoints = [
-        (startPos.latitude, startPos.longitude),
-        (dest.lat, dest.lon),
-      ];
-      final json = await rust.calculateRoute(waypoints: waypoints);
-      final Map<String, dynamic> obj = jsonDecode(json);
-      final List wp = obj['waypoints'] as List? ?? [];
-      final pts = wp.map<LatLng>((e) {
-        final lat = (e[0] as num).toDouble();
-        final lon = (e[1] as num).toDouble();
-        return LatLng(lat, lon);
-      }).toList();
+      late final List<LatLng> pts;
+      if (_useMockRoute) {
+        // Mock polygon-like route data (closed ring-ish) around start/dest
+        final mid = LatLng(
+          (startPos.latitude + dest.lat) / 2,
+          (startPos.longitude + dest.lon) / 2,
+        );
+        pts = [
+          startPos,
+          LatLng(startPos.latitude + 0.002, startPos.longitude + 0.003),
+          LatLng(mid.latitude + 0.004, mid.longitude - 0.002),
+          LatLng(dest.lat + 0.003, dest.lon + 0.002),
+          dest.position,
+          LatLng(dest.lat - 0.003, dest.lon - 0.002),
+          LatLng(mid.latitude - 0.004, mid.longitude + 0.002),
+          LatLng(startPos.latitude - 0.002, startPos.longitude - 0.003),
+          startPos,
+        ];
+        _distanceM = null;
+        _durationS = null;
+      } else {
+        // Use the new DDD/CQRS Rust API to calculate route
+        // The API returns JSON containing waypoints, distance, duration, and polyline
+        final waypoints = [
+          (startPos.latitude, startPos.longitude),
+          (dest.lat, dest.lon),
+        ];
+        final json = await rust.calculateRoute(waypoints: waypoints);
+        // Log the raw JSON for debugging - this can be removed once we're confident in the API and data structure.
+        debugPrint('[PlanRouteScreen] Route JSON: $json');
+        final Map<String, dynamic> obj = jsonDecode(json);
+        final polylineJson = obj['polyline_json'] as String?;
+        if (polylineJson != null && polylineJson.isNotEmpty) {
+          final List<dynamic> poly = jsonDecode(polylineJson) as List<dynamic>;
+          pts = poly.map<LatLng>((e) {
+            final lat = (e[0] as num).toDouble();
+            final lon = (e[1] as num).toDouble();
+            return LatLng(lat, lon);
+          }).toList();
+        } else {
+          final List wp = obj['waypoints'] as List? ?? [];
+          pts = wp.map<LatLng>((e) {
+            final lat = (e['latitude'] as num).toDouble();
+            final lon = (e['longitude'] as num).toDouble();
+            return LatLng(lat, lon);
+          }).toList();
+        }
+        _distanceM = (obj['distance_meters'] as num?)?.toDouble();
+        _durationS = (obj['duration_seconds'] as num?)?.toDouble();
+      }
 
       if (pts.length < 2) {
         // Not enough points to draw a line — surface this to the UI so the
@@ -112,9 +172,14 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
       }
       setState(() {
         _routePoints = pts;
-        _distanceM = (obj['distance_m'] as num?)?.toDouble();
-        _durationS = (obj['duration_s'] as num?)?.toDouble();
       });
+
+      final turnFeed = buildTurnFeed(pts);
+      try {
+        context.read<NavBloc>().add(SetTurnFeed(turnFeed));
+      } catch (_) {
+        // NavBloc not available in this context; ignore
+      }
 
       // Convert to a lightweight PolylineModel and push to MapBloc so the
       // map renders the polyline via the shared map state. This is useful
@@ -180,7 +245,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
       MarkerModel(
         id: 'destination',
         position: dest.position,
-        icon: const Icon(Icons.place, color: Color(0xFF3646F4), size: 52),
+        icon: const Icon(Icons.place, color: AppColors.blueRibbon, size: 52),
       ),
       // Current location marker
       if (userPos != null)
@@ -191,7 +256,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
             width: 28,
             height: 28,
             decoration: BoxDecoration(
-              color: Colors.blueAccent,
+              color: AppColors.blueRibbon,
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
             ),
@@ -241,11 +306,10 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
                   : const [],
               onMapTap: (latlng) {
                 if (!_pickOnMap) return;
-                // set picked start and compute route immediately
                 setState(() {
                   _pickedStart = latlng;
                 });
-                _computeRoute();
+                _computeRouteDebounced();
               },
             ),
           ),
@@ -262,11 +326,8 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
                       null; // clear any picked start when switching back
                 }
               });
-              // When switching back to 'Current location', automatically recompute
-              // the route using the current GPS/map center to give immediate
-              // feedback (button will enter the computing/loading state).
               if (!v) {
-                _computeRoute();
+                _computeRouteDebounced();
               }
             },
             startLabel: startLabel,
@@ -285,7 +346,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
             routePoints: _routePoints,
             distanceM: _distanceM,
             durationS: _durationS,
-            onCompute: _computeRoute,
+            onCompute: _computeRouteDebounced,
           ),
         ],
       ),

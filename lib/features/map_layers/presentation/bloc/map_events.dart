@@ -8,13 +8,16 @@ class MapInitialized extends MapEvent {}
 class MapMoved extends MapEvent {
   final LatLng center;
   final double zoom;
-  MapMoved(this.center, this.zoom);
+  final bool force;
+  MapMoved(this.center, this.zoom, {this.force = false});
 }
 
 class ToggleFollowUser extends MapEvent {
   final bool follow;
   ToggleFollowUser(this.follow);
 }
+
+class ResetBearing extends MapEvent {}
 
 class MapSourceChanged extends MapEvent {
   final String sourceId;

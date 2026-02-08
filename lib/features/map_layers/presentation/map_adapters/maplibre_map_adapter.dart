@@ -41,8 +41,10 @@ class MapLibreMapAdapter implements MapAdapter {
     required void Function(bool hasGesture) onUserGesture,
     required void Function(LatLng)? onMapTap,
   }) {
-    _currentCenter = center;
-    _currentZoom = zoom;
+    if (_controller == null) {
+      _currentCenter = center;
+      _currentZoom = zoom;
+    }
 
     // Convert PolylineModel to MapLibrePolyline
     final mapLibrePolylines = polylines
@@ -65,15 +67,18 @@ class MapLibreMapAdapter implements MapAdapter {
         )
         .toList();
 
-    // Determine if source is a style.json URL or raster tile URL
-    final isStyleJson =
-        source?.urlTemplate.toLowerCase().contains('style.json') ?? false;
+    // Determine if source is a style (JSON URL or asset) or raster tile URL
+    final url = source?.urlTemplate ?? '';
+    final isStyleUrl =
+        url.toLowerCase().contains('style.json') ||
+        url.toLowerCase().startsWith('asset://');
 
+    // Markers are drawn as native map circles (integrated into map layer).
     return MapLibreWidget(
       initialCenter: center,
       initialZoom: zoom,
-      styleUrl: isStyleJson ? source?.urlTemplate : null,
-      rasterTileUrl: !isStyleJson ? source?.urlTemplate : null,
+      styleUrl: isStyleUrl ? source?.urlTemplate : null,
+      rasterTileUrl: !isStyleUrl ? source?.urlTemplate : null,
       minZoom: source?.minZoom ?? 0,
       maxZoom: source?.maxZoom ?? 22,
       onMapCreated: (controller) {
@@ -93,10 +98,19 @@ class MapLibreMapAdapter implements MapAdapter {
 
   @override
   void moveCamera(LatLng center, double zoom) {
+    debugPrint('[MapLibreAdapter] moveCamera to $center $zoom');
     _currentCenter = center;
     _currentZoom = zoom;
     if (_controller != null) {
       _controller!.moveCamera(center, zoom);
+    }
+  }
+
+  @override
+  void resetBearing() {
+    debugPrint('[MapLibreAdapter] resetBearing');
+    if (_controller != null) {
+      _controller!.resetBearing();
     }
   }
 

@@ -33,3 +33,9 @@ class SetFollowMode extends NavEvent {
 
   SetFollowMode(this.follow);
 }
+
+class SetTurnFeed extends NavEvent {
+  final List<NavCue> feed;
+
+  SetTurnFeed(this.feed);
+}

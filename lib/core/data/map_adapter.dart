@@ -24,6 +24,9 @@ abstract class MapAdapter {
   /// Move the map camera to a specific location
   void moveCamera(LatLng center, double zoom);
 
+  /// Reset the map bearing (rotation) to north
+  void resetBearing();
+
   /// Fit the map to show all coordinates with padding
   void fitBounds({
     required List<LatLng> coordinates,

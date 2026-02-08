@@ -26,8 +26,24 @@ import 'package:nav_e/bridge/lib.dart' as rust_api;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
+class AppBlocObserver extends BlocObserver {
+  @override
+  void onEvent(Bloc bloc, Object? event) {
+    debugPrint('[Bloc] ${bloc.runtimeType} event=$event');
+    super.onEvent(bloc, event);
+  }
+
+  @override
+  void onTransition(Bloc bloc, Transition transition) {
+    debugPrint('[Bloc] ${bloc.runtimeType} transition=$transition');
+    super.onTransition(bloc, transition);
+  }
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Bloc.observer = AppBlocObserver();
 
   // Initialize Flutter Rust Bridge
   await RustBridge.init();
