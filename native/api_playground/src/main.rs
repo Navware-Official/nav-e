@@ -6,9 +6,8 @@
 
 use axum::{
     extract::Path,
-    http::StatusCode,
     response::{Html, IntoResponse},
-    routing::{get, post, delete},
+    routing::{get, post},
     Json, Router,
 };
 use serde::{Deserialize, Serialize};
@@ -76,20 +75,30 @@ struct ApiResponse<T> {
     error: Option<String>,
 }
 
-fn ok<T: Serialize>(data: T) -> Json<ApiResponse<T>> {
-    Json(ApiResponse {
+fn ok<T: Serialize>(data: T) -> ApiResponse<T> {
+    ApiResponse {
         ok: true,
         data: Some(data),
         error: None,
-    })
+    }
 }
 
-fn err(msg: String) -> Json<ApiResponse<()>> {
-    Json(ApiResponse {
+fn err<T>(msg: String) -> ApiResponse<T> {
+    ApiResponse {
         ok: false,
         data: None,
         error: Some(msg),
-    })
+    }
+}
+
+async fn run_blocking<F, R>(f: F) -> R
+where
+    F: FnOnce() -> R + Send + 'static,
+    R: Send + 'static,
+{
+    tokio::task::spawn_blocking(f)
+        .await
+        .expect("blocking task failed")
 }
 
 async fn index() -> Html<&'static str> {
@@ -97,126 +106,134 @@ async fn index() -> Html<&'static str> {
 }
 
 async fn api_geocode(Json(req): Json<GeocodeRequest>) -> impl IntoResponse {
-    match nav_e_ffi::geocode_search(req.query, req.limit) {
+    match run_blocking(move || nav_e_ffi::geocode_search(req.query, req.limit)).await {
         Ok(s) => {
             let parsed: Result<serde_json::Value, _> = serde_json::from_str(&s);
-            Ok::<_, StatusCode>(Json(match parsed {
+            Json(match parsed {
                 Ok(v) => ok(v),
                 Err(_) => ok(serde_json::json!({ "raw": s })),
-            }))
+            })
         }
-        Err(e) => Ok(err(e.to_string())),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_reverse_geocode(Json(req): Json<ReverseGeocodeRequest>) -> impl IntoResponse {
-    match nav_e_ffi::reverse_geocode(req.lat, req.lon) {
-        Ok(s) => Ok(Json(ok(serde_json::json!({ "address": s })))),
-        Err(e) => Ok(err(e.to_string())),
+    match run_blocking(move || nav_e_ffi::reverse_geocode(req.lat, req.lon)).await {
+        Ok(s) => Json(ok(serde_json::json!({ "address": s }))),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_route(Json(req): Json<RouteRequest>) -> impl IntoResponse {
     let waypoints: Vec<(f64, f64)> = req.waypoints.into_iter().map(|[a, b]| (a, b)).collect();
-    match nav_e_ffi::calculate_route(waypoints) {
+    match run_blocking(move || nav_e_ffi::calculate_route(waypoints)).await {
         Ok(s) => {
             let parsed: Result<serde_json::Value, _> = serde_json::from_str(&s);
-            Ok(Json(match parsed {
+            Json(match parsed {
                 Ok(v) => ok(v),
                 Err(_) => ok(serde_json::json!({ "raw": s })),
-            }))
+            })
         }
-        Err(e) => Ok(err(e.to_string())),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_nav_start(Json(req): Json<NavStartRequest>) -> impl IntoResponse {
     let waypoints: Vec<(f64, f64)> = req.waypoints.into_iter().map(|[a, b]| (a, b)).collect();
     let [lat, lon] = req.current_position;
-    match nav_e_ffi::start_navigation_session(waypoints, (lat, lon)) {
-        Ok(s) => Ok(Json(ok(serde_json::json!({ "session_json": s })))),
-        Err(e) => Ok(err(e.to_string())),
+    match run_blocking(move || nav_e_ffi::start_navigation_session(waypoints, (lat, lon))).await {
+        Ok(s) => Json(ok(serde_json::json!({ "session_json": s }))),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_nav_active() -> impl IntoResponse {
-    match nav_e_ffi::get_active_session() {
-        Ok(opt) => Ok(Json(ok(serde_json::json!({ "active_session": opt })))),
-        Err(e) => Ok(err(e.to_string())),
+    match run_blocking(nav_e_ffi::get_active_session).await {
+        Ok(opt) => Json(ok(serde_json::json!({ "active_session": opt }))),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_nav_update(Json(req): Json<NavUpdateRequest>) -> impl IntoResponse {
-    match nav_e_ffi::update_navigation_position(req.session_id, req.lat, req.lon) {
-        Ok(()) => Ok(Json(ok(serde_json::json!({ "updated": true })))),
-        Err(e) => Ok(err(e.to_string())),
+    let session_id = req.session_id;
+    let lat = req.lat;
+    let lon = req.lon;
+    match run_blocking(move || nav_e_ffi::update_navigation_position(session_id, lat, lon)).await {
+        Ok(()) => Json(ok(serde_json::json!({ "updated": true }))),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_nav_stop(Json(req): Json<NavStopRequest>) -> impl IntoResponse {
-    match nav_e_ffi::stop_navigation(req.session_id) {
-        Ok(()) => Ok(Json(ok(serde_json::json!({ "stopped": true })))),
-        Err(e) => Ok(err(e.to_string())),
+    let session_id = req.session_id;
+    match run_blocking(move || nav_e_ffi::stop_navigation(session_id)).await {
+        Ok(()) => Json(ok(serde_json::json!({ "stopped": true }))),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_saved_places_list() -> impl IntoResponse {
-    match nav_e_ffi::get_all_saved_places() {
+    match run_blocking(nav_e_ffi::get_all_saved_places).await {
         Ok(s) => {
             let v: serde_json::Value = serde_json::from_str(&s).unwrap_or(serde_json::json!(s));
-            Ok(Json(ok(v)))
+            Json(ok(v))
         }
-        Err(e) => Ok(err(e.to_string())),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_saved_place_get(Path(id): Path<i64>) -> impl IntoResponse {
-    match nav_e_ffi::get_saved_place_by_id(id) {
+    match run_blocking(move || nav_e_ffi::get_saved_place_by_id(id)).await {
         Ok(s) => {
             let v: serde_json::Value = serde_json::from_str(&s).unwrap_or(serde_json::json!(s));
-            Ok(Json(ok(v)))
+            Json(ok(v))
         }
-        Err(e) => Ok(err(e.to_string())),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_saved_place_create(Json(req): Json<SavePlaceRequest>) -> impl IntoResponse {
-    match nav_e_ffi::save_place(
-        req.name,
-        req.address,
-        req.lat,
-        req.lon,
-        req.source,
-        req.type_id,
-        req.remote_id,
-    ) {
-        Ok(id) => Ok(Json(ok(serde_json::json!({ "id": id })))),
-        Err(e) => Ok(err(e.to_string())),
+    let SavePlaceRequest {
+        name,
+        address,
+        lat,
+        lon,
+        source,
+        type_id,
+        remote_id,
+    } = req;
+    match run_blocking(move || {
+        nav_e_ffi::save_place(name, address, lat, lon, source, type_id, remote_id)
+    })
+    .await {
+        Ok(id) => Json(ok(serde_json::json!({ "id": id }))),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_saved_place_delete(Path(id): Path<i64>) -> impl IntoResponse {
-    match nav_e_ffi::delete_saved_place(id) {
-        Ok(()) => Ok(Json(ok(serde_json::json!({ "deleted": id })))),
-        Err(e) => Ok(err(e.to_string())),
+    match run_blocking(move || nav_e_ffi::delete_saved_place(id)).await {
+        Ok(()) => Json(ok(serde_json::json!({ "deleted": id }))),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_devices_list() -> impl IntoResponse {
-    match nav_e_ffi::get_all_devices() {
+    match run_blocking(nav_e_ffi::get_all_devices).await {
         Ok(s) => {
             let v: serde_json::Value = serde_json::from_str(&s).unwrap_or(serde_json::json!(s));
-            Ok(Json(ok(v)))
+            Json(ok(v))
         }
-        Err(e) => Ok(err(e.to_string())),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
 async fn api_device_create(Json(req): Json<serde_json::Value>) -> impl IntoResponse {
     let body = serde_json::to_string(&req).unwrap_or_else(|_| "{}".to_string());
-    match nav_e_ffi::save_device(body) {
-        Ok(id) => Ok(Json(ok(serde_json::json!({ "id": id })))),
-        Err(e) => Ok(err(e.to_string())),
+    match run_blocking(move || nav_e_ffi::save_device(body)).await {
+        Ok(id) => Json(ok(serde_json::json!({ "id": id }))),
+        Err(e) => Json(err::<serde_json::Value>(e.to_string())),
     }
 }
 
