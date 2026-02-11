@@ -103,6 +103,7 @@ class NavBloc extends Bloc<NavEvent, NavState> {
               DateTime.now().millisecondsSinceEpoch.toString(),
           instruction: obj['instruction']?.toString() ?? '',
           distanceToCueM: (obj['distance_to_cue_m'] as num?)?.toDouble() ?? 0.0,
+          distanceToCueText: obj['distance_to_cue_text']?.toString() ?? '',
           location: LatLng(
             (obj['location']?[0] as num?)?.toDouble() ?? 0.0,
             (obj['location']?[1] as num?)?.toDouble() ?? 0.0,

@@ -5,6 +5,8 @@ import '../../models/polyline_model.dart';
 class MapState {
   final LatLng center;
   final double zoom;
+  final double tilt;
+  final double bearing;
   final bool isReady;
   final bool followUser;
   final List<PolylineModel> polylines;
@@ -19,6 +21,8 @@ class MapState {
   MapState({
     required this.center,
     required this.zoom,
+    this.tilt = 0.0,
+    this.bearing = 0.0,
     required this.isReady,
     this.followUser = true,
     this.polylines = const [],
@@ -33,6 +37,8 @@ class MapState {
   MapState copyWith({
     LatLng? center,
     double? zoom,
+    double? tilt,
+    double? bearing,
     bool? isReady,
     bool? followUser,
     List<PolylineModel>? polylines,
@@ -46,6 +52,8 @@ class MapState {
     return MapState(
       center: center ?? this.center,
       zoom: zoom ?? this.zoom,
+      tilt: tilt ?? this.tilt,
+      bearing: bearing ?? this.bearing,
       isReady: isReady ?? this.isReady,
       followUser: followUser ?? this.followUser,
       polylines: polylines ?? this.polylines,

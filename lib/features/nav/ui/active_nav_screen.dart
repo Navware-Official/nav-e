@@ -9,9 +9,15 @@ import 'package:nav_e/features/nav/models/nav_models.dart';
 import 'package:nav_e/features/nav/utils/turn_feed.dart';
 import 'package:nav_e/features/map_layers/presentation/map_widget.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
+import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.dart';
+import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/widgets/user_location_marker.dart';
 
 class ActiveNavScreen extends StatefulWidget {
   final String routeId;
@@ -39,6 +45,21 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
       _navBloc.add(NavStart(widget.routeId, widget.routePoints));
       _navBloc.add(SetFollowMode(true));
       _navBloc.add(SetTurnFeed(buildTurnFeed(widget.routePoints)));
+      final mapBloc = context.read<MapBloc>();
+      final mapState = mapBloc.state;
+      final locState = context.read<LocationBloc>().state;
+      final targetCenter = locState.position ?? mapState.center;
+      final targetZoom = mapState.zoom < 17.0 ? 17.0 : mapState.zoom;
+      mapBloc.add(ToggleFollowUser(true));
+      mapBloc.add(
+        MapMoved(
+          targetCenter,
+          targetZoom,
+          force: true,
+          tilt: 45.0,
+          bearing: locState.heading,
+        ),
+      );
       try {
         context.read<MapBloc>().add(
           ReplacePolylines(
@@ -61,6 +82,20 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
 
   @override
   void dispose() {
+    try {
+      final mapBloc = context.read<MapBloc>();
+      final mapState = mapBloc.state;
+      mapBloc.add(
+        MapMoved(
+          mapState.center,
+          mapState.zoom,
+          force: true,
+          tilt: 0.0,
+          bearing: 0.0,
+        ),
+      );
+      mapBloc.add(ToggleFollowUser(false));
+    } catch (_) {}
     _navBloc.close();
     super.dispose();
   }
@@ -69,44 +104,86 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
   Widget build(BuildContext context) {
     return BlocProvider.value(
       value: _navBloc,
-      child: BlocListener<NavBloc, NavState>(
-        listener: (context, state) {
-          if (!state.active) Navigator.of(context).maybePop();
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<NavBloc, NavState>(
+            listener: (context, state) {
+              if (!state.active) Navigator.of(context).maybePop();
 
-          try {
-            if (state.progressPolyline.isNotEmpty) {
-              context.read<MapBloc>().add(
-                ReplacePolylines([
-                  PolylineModel(
-                    id: '${widget.routeId}-prog',
-                    points: state.progressPolyline,
-                    colorArgb: AppColors.blueRibbonDark02.value,
-                    strokeWidth: 6.0,
-                  ),
-                ], fit: false),
-              );
-            }
-          } catch (_) {}
-        },
-        child: Scaffold(
-          extendBodyBehindAppBar: true,
-          body: Stack(
-            children: [
-              Positioned.fill(child: const MapWidget(markers: [])),
-              const Positioned(
-                top: 12,
-                left: 12,
-                right: 12,
-                child: _TopTurnBar(),
-              ),
-              const Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
-                child: _BottomNavBar(),
-              ),
-            ],
+              try {
+                if (state.progressPolyline.isNotEmpty) {
+                  context.read<MapBloc>().add(
+                    ReplacePolylines([
+                      PolylineModel(
+                        id: '${widget.routeId}-prog',
+                        points: state.progressPolyline,
+                        colorArgb: AppColors.blueRibbonDark02.value,
+                        strokeWidth: 6.0,
+                      ),
+                    ], fit: false),
+                  );
+                }
+              } catch (_) {}
+            },
           ),
+          BlocListener<LocationBloc, LocationState>(
+            listenWhen: (prev, curr) => prev.heading != curr.heading,
+            listener: (context, locState) {
+              if (!context.mounted) return;
+              final heading = locState.heading;
+              if (heading == null) return;
+              final mapBloc = context.read<MapBloc>();
+              final mapState = mapBloc.state;
+              if (!mapState.followUser) return;
+              final center = locState.position ?? mapState.center;
+              mapBloc.add(
+                MapMoved(
+                  center,
+                  mapState.zoom,
+                  force: true,
+                  tilt: mapState.tilt,
+                  bearing: heading,
+                ),
+              );
+            },
+          ),
+        ],
+        child: BlocBuilder<LocationBloc, LocationState>(
+          builder: (context, locState) {
+            final markers = <MarkerModel>[
+              // User location marker with direction arrow
+              if (locState.position != null)
+                MarkerModel(
+                  id: 'user_location',
+                  position: locState.position!,
+                  icon: UserLocationMarker(heading: locState.heading),
+                ),
+            ];
+            
+            return Scaffold(
+              extendBodyBehindAppBar: true,
+              body: Stack(
+                children: [
+                  Positioned.fill(child: MapWidget(markers: markers)),
+                  const Positioned(
+                    top: 12,
+                    left: 12,
+                    right: 12,
+                    child: _TopTurnBar(),
+                  ),
+                  const RecenterFAB(),
+                  const RotateNorthFAB(),
+                  const MapControlsFAB(),
+                  const Positioned(
+                    left: 12,
+                    right: 12,
+                    bottom: 12,
+                    child: _BottomNavBar(),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -299,7 +376,9 @@ class _TurnFeedSheet extends StatelessWidget {
     return BlocBuilder<NavBloc, NavState>(
       buildWhen: (prev, curr) => prev.turnFeed != curr.turnFeed,
       builder: (context, state) {
-        debugPrint('[ActiveNav] build turn feed sheet count=${state.turnFeed.length}');
+        debugPrint(
+          '[ActiveNav] build turn feed sheet count=${state.turnFeed.length}',
+        );
         if (state.turnFeed.isEmpty) {
           return const Padding(
             padding: EdgeInsets.all(16),
@@ -313,19 +392,44 @@ class _TurnFeedSheet extends StatelessWidget {
           separatorBuilder: (_, __) => const Divider(height: 16),
           itemBuilder: (context, index) {
             final cue = state.turnFeed[index];
-            return Row(
-              children: [
-                Icon(_iconForCue(cue.maneuver), color: Colors.blueGrey),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    cue.instruction,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+            return InkWell(
+              onTap: () {
+                final mapBloc = context.read<MapBloc>();
+                final mapState = mapBloc.state;
+                mapBloc.add(ToggleFollowUser(false));
+                mapBloc.add(
+                  MapMoved(
+                    cue.location,
+                    mapState.zoom,
+                    force: true,
+                    tilt: mapState.tilt,
+                    bearing: mapState.bearing,
                   ),
+                );
+                Navigator.of(context).maybePop();
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(_iconForCue(cue.maneuver), color: Colors.blueGrey),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        cue.instruction,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      cue.distanceToCueText.isNotEmpty
+                          ? cue.distanceToCueText
+                          : '${cue.distanceToCueM.toStringAsFixed(0)} m',
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Text('${cue.distanceToCueM.toStringAsFixed(0)} m'),
-              ],
+              ),
             );
           },
         );
@@ -347,7 +451,7 @@ IconData _iconForCue(String? maneuver) {
 String _formatRemainingTime(int? seconds) {
   if (seconds == null) return '—';
   final mins = (seconds / 60).round();
-  if (mins < 60) return '${mins} min';
+  if (mins < 60) return '$mins min';
   final h = (mins / 60).floor();
   final m = mins % 60;
   return '${h}h ${m}m';

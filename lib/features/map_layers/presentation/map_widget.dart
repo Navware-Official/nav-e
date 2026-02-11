@@ -70,6 +70,8 @@ class _MapWidgetState extends State<MapWidget> {
             curr.isReady &&
             (prev.center != curr.center ||
                 prev.zoom != curr.zoom ||
+            prev.tilt != curr.tilt ||
+            prev.bearing != curr.bearing ||
                 prev.polylines != curr.polylines ||
                 prev.followUser != curr.followUser ||
                 prev.resetBearingTick != curr.resetBearingTick ||
@@ -121,8 +123,15 @@ class _MapWidgetState extends State<MapWidget> {
               );
               if (_adapter != null &&
                   (_adapter!.currentCenter != state.center ||
-                      _adapter!.currentZoom != state.zoom)) {
-                _adapter!.moveCamera(state.center, state.zoom);
+                      _adapter!.currentZoom != state.zoom ||
+                      _adapter!.currentTilt != state.tilt ||
+                      _adapter!.currentBearing != state.bearing)) {
+                _adapter!.moveCamera(
+                  state.center,
+                  state.zoom,
+                  tilt: state.tilt,
+                  bearing: state.bearing,
+                );
               }
             }
           });

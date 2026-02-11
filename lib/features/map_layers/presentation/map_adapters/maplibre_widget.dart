@@ -344,14 +344,33 @@ class MapLibreMapController {
   // ========== Camera Controls ==========
 
   /// Instantly moves the camera to the specified position and zoom level.
-  void moveCamera(LatLng center, double zoom) {
+  void moveCamera(
+    LatLng center,
+    double zoom, {
+    double? tilt,
+    double? bearing,
+  }) {
     try {
-      _native.moveCamera(
-        ml.CameraUpdate.newLatLngZoom(
-          ml.LatLng(center.latitude, center.longitude),
-          zoom,
-        ),
-      );
+      if (tilt == null && bearing == null) {
+        _native.moveCamera(
+          ml.CameraUpdate.newLatLngZoom(
+            ml.LatLng(center.latitude, center.longitude),
+            zoom,
+          ),
+        );
+      } else {
+        final pos = _native.cameraPosition;
+        _native.moveCamera(
+          ml.CameraUpdate.newCameraPosition(
+            ml.CameraPosition(
+              target: ml.LatLng(center.latitude, center.longitude),
+              zoom: zoom,
+              bearing: bearing ?? pos?.bearing ?? 0.0,
+              tilt: tilt ?? pos?.tilt ?? 0.0,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       // Silently ignore if map isn't ready yet
       debugPrint(
@@ -361,15 +380,36 @@ class MapLibreMapController {
   }
 
   /// Animates the camera to the specified position and zoom level.
-  void animateCamera(LatLng center, double zoom, {Duration? duration}) {
+  void animateCamera(
+    LatLng center,
+    double zoom, {
+    Duration? duration,
+    double? tilt,
+    double? bearing,
+  }) {
     try {
-      _native.animateCamera(
-        ml.CameraUpdate.newLatLngZoom(
-          ml.LatLng(center.latitude, center.longitude),
-          zoom,
-        ),
-        duration: duration ?? const Duration(milliseconds: 500),
-      );
+      if (tilt == null && bearing == null) {
+        _native.animateCamera(
+          ml.CameraUpdate.newLatLngZoom(
+            ml.LatLng(center.latitude, center.longitude),
+            zoom,
+          ),
+          duration: duration ?? const Duration(milliseconds: 500),
+        );
+      } else {
+        final pos = _native.cameraPosition;
+        _native.animateCamera(
+          ml.CameraUpdate.newCameraPosition(
+            ml.CameraPosition(
+              target: ml.LatLng(center.latitude, center.longitude),
+              zoom: zoom,
+              bearing: bearing ?? pos?.bearing ?? 0.0,
+              tilt: tilt ?? pos?.tilt ?? 0.0,
+            ),
+          ),
+          duration: duration ?? const Duration(milliseconds: 500),
+        );
+      }
     } catch (e) {
       // Silently ignore if map isn't ready yet
       debugPrint(

@@ -18,16 +18,26 @@ class MapLibreMapAdapter implements MapAdapter {
   MapLibreMapController? _controller;
   LatLng _currentCenter;
   double _currentZoom;
+  double _currentTilt;
+  double _currentBearing;
 
   MapLibreMapAdapter({LatLng? initialCenter, double? initialZoom})
     : _currentCenter = initialCenter ?? const LatLng(52.3791, 4.9),
-      _currentZoom = initialZoom ?? 13.0;
+      _currentZoom = initialZoom ?? 13.0,
+      _currentTilt = 0.0,
+      _currentBearing = 0.0;
 
   @override
   LatLng get currentCenter => _currentCenter;
 
   @override
   double get currentZoom => _currentZoom;
+
+  @override
+  double get currentTilt => _currentTilt;
+
+  @override
+  double get currentBearing => _currentBearing;
 
   @override
   Widget buildMap({
@@ -88,6 +98,10 @@ class MapLibreMapAdapter implements MapAdapter {
       onCameraMove: (center, zoom) {
         _currentCenter = center;
         _currentZoom = zoom;
+        if (_controller != null) {
+          _currentTilt = _controller!.tilt;
+          _currentBearing = _controller!.bearing;
+        }
         onPositionChanged(center, zoom);
       },
       onMapTap: onMapTap,
@@ -97,12 +111,23 @@ class MapLibreMapAdapter implements MapAdapter {
   }
 
   @override
-  void moveCamera(LatLng center, double zoom) {
+  void moveCamera(
+    LatLng center,
+    double zoom, {
+    double? tilt,
+    double? bearing,
+  }) {
     debugPrint('[MapLibreAdapter] moveCamera to $center $zoom');
     _currentCenter = center;
     _currentZoom = zoom;
+    if (tilt != null) {
+      _currentTilt = tilt;
+    }
+    if (bearing != null) {
+      _currentBearing = bearing;
+    }
     if (_controller != null) {
-      _controller!.moveCamera(center, zoom);
+      _controller!.moveCamera(center, zoom, tilt: tilt, bearing: bearing);
     }
   }
 

@@ -22,7 +22,12 @@ abstract class MapAdapter {
   });
 
   /// Move the map camera to a specific location
-  void moveCamera(LatLng center, double zoom);
+  void moveCamera(
+    LatLng center,
+    double zoom, {
+    double? tilt,
+    double? bearing,
+  });
 
   /// Reset the map bearing (rotation) to north
   void resetBearing();
@@ -37,6 +42,8 @@ abstract class MapAdapter {
   /// Get the current camera position
   LatLng get currentCenter;
   double get currentZoom;
+  double get currentTilt;
+  double get currentBearing;
 
   /// Check if the adapter supports a given map source
   bool supportsSource(MapSource source);
