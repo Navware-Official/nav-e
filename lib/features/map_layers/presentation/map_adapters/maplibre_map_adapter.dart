@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/data/map_adapter.dart';
 import 'package:nav_e/core/domain/entities/map_source.dart';
+import 'package:nav_e/features/map_layers/models/data_layer_definition.dart';
 import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 import 'package:nav_e/features/map_layers/presentation/map_adapters/maplibre_widget.dart';
@@ -49,14 +50,23 @@ class MapLibreMapAdapter implements MapAdapter {
     required VoidCallback onMapReady,
     required void Function(LatLng center, double zoom) onPositionChanged,
     required void Function(bool hasGesture) onUserGesture,
+    VoidCallback? onCameraIdle,
     required void Function(LatLng)? onMapTap,
+    void Function(LatLng)? onMapLongPress,
+    Set<String> enabledDataLayerIds = const {},
+    List<DataLayerDefinition> dataLayerDefinitions = const [],
+    int? markerFillColorArgb,
+    int? markerStrokeColorArgb,
+    int? defaultPolylineColorArgb,
+    double? defaultPolylineWidth,
+    void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap,
   }) {
     if (_controller == null) {
       _currentCenter = center;
       _currentZoom = zoom;
     }
 
-    // Convert PolylineModel to MapLibrePolyline
+    // Convert PolylineModel to MapLibrePolyline; apply current style when set
     final mapLibrePolylines = polylines
         .asMap()
         .entries
@@ -64,8 +74,8 @@ class MapLibreMapAdapter implements MapAdapter {
           (entry) => MapLibrePolyline(
             id: 'polyline_${entry.key}',
             points: entry.value.points,
-            color: Color(entry.value.colorArgb),
-            width: entry.value.strokeWidth,
+            color: Color(defaultPolylineColorArgb ?? entry.value.colorArgb),
+            width: defaultPolylineWidth ?? entry.value.strokeWidth,
           ),
         )
         .toList();
@@ -105,8 +115,15 @@ class MapLibreMapAdapter implements MapAdapter {
         onPositionChanged(center, zoom);
       },
       onMapTap: onMapTap,
+      onMapLongPress: onMapLongPress,
+      onCameraIdle: onCameraIdle,
       polylines: mapLibrePolylines,
       markers: mapLibreMarkers,
+      enabledDataLayerIds: enabledDataLayerIds,
+      dataLayerDefinitions: dataLayerDefinitions,
+      markerFillColorArgb: markerFillColorArgb,
+      markerStrokeColorArgb: markerStrokeColorArgb,
+      onDataLayerFeatureTap: onDataLayerFeatureTap,
     );
   }
 

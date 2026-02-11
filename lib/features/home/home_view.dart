@@ -14,6 +14,7 @@ import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
 import 'package:nav_e/features/map_layers/presentation/utils/map_helpers.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/data_layer_info_bottom_sheet.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
@@ -43,6 +44,11 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   final _routeHandler = RouteParamsHandler();
+
+  void _handleDataLayerFeatureTap(String layerId, Map<String, dynamic> properties) {
+    if (!mounted) return;
+    showDataLayerInfoBottomSheet(context, layerId: layerId, properties: properties);
+  }
 
   Future<void> _handleMapTap(LatLng latlng) async {
     final geocoder = context.read<IGeocodingRepository>();
@@ -122,7 +128,11 @@ class _HomeViewState extends State<HomeView> {
             final markers = markersForPreview(state);
             return Stack(
               children: [
-                MapSection(extraMarkers: markers, onMapTap: _handleMapTap),
+                MapSection(
+                  extraMarkers: markers,
+                  onMapLongPress: _handleMapTap,
+                  onDataLayerFeatureTap: _handleDataLayerFeatureTap,
+                ),
 
                 const RecenterFAB(),
                 const RotateNorthFAB(),

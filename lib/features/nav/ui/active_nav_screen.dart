@@ -61,6 +61,7 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
         ),
       );
       try {
+        final mapState = context.read<MapBloc>().state;
         context.read<MapBloc>().add(
           ReplacePolylines(
             widget.routePoints.isNotEmpty
@@ -68,8 +69,8 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
                     PolylineModel(
                       id: widget.routeId,
                       points: widget.routePoints,
-                      colorArgb: AppColors.blueRibbon.value,
-                      strokeWidth: 4.0,
+                      colorArgb: mapState.defaultPolylineColorArgb ?? 0xFF375AF9,
+                      strokeWidth: mapState.defaultPolylineWidth ?? 4.0,
                     ),
                   ]
                 : const [],
@@ -205,14 +206,20 @@ class _TopTurnBar extends StatelessWidget {
         final primaryText = nextCue?.instruction ?? 'Proceed';
         final secondaryText = followingCue?.instruction ?? '—';
 
+        final colorScheme = Theme.of(context).colorScheme;
+        final textTheme = Theme.of(context).textTheme;
+
         return SafeArea(
           child: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E3A8A),
+              color: colorScheme.primary,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 8),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                ),
               ],
             ),
             child: Column(
@@ -222,16 +229,15 @@ class _TopTurnBar extends StatelessWidget {
                   children: [
                     Icon(
                       _iconForCue(nextCue?.maneuver),
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                       size: 28,
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         primaryText,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
+                        style: textTheme.titleLarge?.copyWith(
+                          color: colorScheme.onPrimary,
                           fontWeight: FontWeight.w700,
                         ),
                         maxLines: 2,
@@ -243,18 +249,17 @@ class _TopTurnBar extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.subdirectory_arrow_left,
-                      color: Colors.white70,
+                      color: colorScheme.onPrimary.withValues(alpha: 0.8),
                       size: 18,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         secondaryText,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onPrimary.withValues(alpha: 0.8),
                           fontWeight: FontWeight.w600,
                         ),
                         maxLines: 1,
@@ -290,14 +295,20 @@ class _BottomNavBar extends StatelessWidget {
         final remainingKm = _formatDistance(state.remainingDistanceM);
         final eta = _formatArrivalTime(context, state.remainingSeconds);
 
+        final colorScheme = Theme.of(context).colorScheme;
+        final textTheme = Theme.of(context).textTheme;
+
         return SafeArea(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: colorScheme.surface,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 8),
+              boxShadow: [
+                BoxShadow(
+                  color: colorScheme.shadow.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                ),
               ],
             ),
             child: Row(
@@ -318,18 +329,16 @@ class _BottomNavBar extends StatelessWidget {
                     children: [
                       Text(
                         remainingTime,
-                        style: const TextStyle(
-                          fontSize: 20,
+                        style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: Colors.blue,
+                          color: colorScheme.primary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$remainingKm · $eta',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.black54,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -413,7 +422,10 @@ class _TurnFeedSheet extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 8),
                 child: Row(
                   children: [
-                    Icon(_iconForCue(cue.maneuver), color: Colors.blueGrey),
+                    Icon(
+                      _iconForCue(cue.maneuver),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(

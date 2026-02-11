@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:nav_e/core/data/map_adapter.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
+
+import 'package:nav_e/core/data/map_adapter.dart';
+import 'package:nav_e/features/map_layers/data/data_layer_registry.dart';
 import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
@@ -13,8 +15,16 @@ import 'package:nav_e/features/map_layers/presentation/map_adapters/maplibre_map
 class MapWidget extends StatefulWidget {
   final List<MarkerModel> markers;
   final void Function(LatLng latlng)? onMapTap;
+  final void Function(LatLng latlng)? onMapLongPress;
+  final void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap;
 
-  const MapWidget({super.key, required this.markers, this.onMapTap});
+  const MapWidget({
+    super.key,
+    required this.markers,
+    this.onMapTap,
+    this.onMapLongPress,
+    this.onDataLayerFeatureTap,
+  });
 
   @override
   State<MapWidget> createState() => _MapWidgetState();
@@ -65,7 +75,12 @@ class _MapWidgetState extends State<MapWidget> {
         buildWhen: (prev, curr) =>
             prev.source != curr.source ||
             prev.isReady != curr.isReady ||
-            prev.polylines != curr.polylines,
+            prev.polylines != curr.polylines ||
+            prev.enabledDataLayerIds != curr.enabledDataLayerIds ||
+            prev.markerFillColorArgb != curr.markerFillColorArgb ||
+            prev.markerStrokeColorArgb != curr.markerStrokeColorArgb ||
+            prev.defaultPolylineColorArgb != curr.defaultPolylineColorArgb ||
+            prev.defaultPolylineWidth != curr.defaultPolylineWidth,
         listenWhen: (prev, curr) =>
             curr.isReady &&
             (prev.center != curr.center ||
@@ -168,7 +183,33 @@ class _MapWidgetState extends State<MapWidget> {
                   mapBloc.add(ToggleFollowUser(false));
                 }
               },
+              onCameraIdle: () {
+                // When the camera settles, if we're still in follow-user mode but
+                // the map center is far from the user location, the user panned
+                // the map — stop following.
+                if (!context.mounted) return;
+                final mapState = mapBloc.state;
+                if (!mapState.followUser) return;
+                final location = context.read<LocationBloc>().state.position;
+                if (location == null || _adapter == null) return;
+                const thresholdMeters = 25.0;
+                final distance = const Distance().distance(
+                  _adapter!.currentCenter,
+                  location,
+                );
+                if (distance > thresholdMeters) {
+                  mapBloc.add(ToggleFollowUser(false));
+                }
+              },
               onMapTap: widget.onMapTap,
+              onMapLongPress: widget.onMapLongPress,
+              enabledDataLayerIds: state.enabledDataLayerIds,
+              dataLayerDefinitions: getDataLayerDefinitions(),
+              markerFillColorArgb: state.markerFillColorArgb,
+              markerStrokeColorArgb: state.markerStrokeColorArgb,
+              defaultPolylineColorArgb: state.defaultPolylineColorArgb,
+              defaultPolylineWidth: state.defaultPolylineWidth,
+              onDataLayerFeatureTap: widget.onDataLayerFeatureTap,
             ),
           );
         },

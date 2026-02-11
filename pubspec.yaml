@@ -103,6 +103,7 @@ flutter:
     - assets/sql/init.sql
     - assets/styles/custom_style.json
     - assets/config/map_sources.json
+    - assets/data/parking.geojson
 
 # The following section specifies the launcher_icons configuration 
 flutter_launcher_icons:

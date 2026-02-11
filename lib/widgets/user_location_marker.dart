@@ -9,13 +9,18 @@ class UserLocationMarker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: 40,
       height: 40,
       decoration: AppDecorations.userLocationMarker,
       child: Transform.rotate(
         angle: (heading ?? 0) * math.pi / 180,
-        child: const Icon(Icons.navigation, size: 24, color: Colors.white),
+        child: Icon(
+          Icons.navigation,
+          size: 24,
+          color: colorScheme.primary,
+        ),
       ),
     );
   }

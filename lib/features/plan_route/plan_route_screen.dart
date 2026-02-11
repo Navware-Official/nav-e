@@ -185,12 +185,13 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
       // Convert to a lightweight PolylineModel and push to MapBloc so the
       // map renders the polyline via the shared map state. This is useful
       // as a fallback path and keeps rendering consistent with other
-      // polylines in the app.
+      // polylines in the app. Use MapBloc style config when set.
+      final mapState = context.read<MapBloc>().state;
       final model = PolylineModel(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         points: pts,
-        colorArgb: 0xFFE53935, // red-ish accent
-        strokeWidth: 6.0,
+        colorArgb: mapState.defaultPolylineColorArgb ?? 0xFF375AF9,
+        strokeWidth: mapState.defaultPolylineWidth ?? 4.0,
       );
       if (mounted) {
         try {
@@ -262,14 +263,22 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         MarkerModel(
           id: 'picked_start',
           position: _pickedStart!,
-          icon: Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: Colors.orangeAccent,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-            ),
+          icon: Builder(
+            builder: (context) {
+              final colorScheme = Theme.of(context).colorScheme;
+              return Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: colorScheme.tertiary,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: colorScheme.surface,
+                    width: 2,
+                  ),
+                ),
+              );
+            },
           ),
         ),
     ];
@@ -290,12 +299,8 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
                       PolylineModel(
                         id: 'route',
                         points: _routePoints,
-                        colorArgb:
-                            (AppColors.blueRibbonDark02.a.toInt() << 24) |
-                            (AppColors.blueRibbonDark02.r.toInt() << 16) |
-                            (AppColors.blueRibbonDark02.g.toInt() << 8) |
-                            AppColors.blueRibbonDark02.b.toInt(),
-                        strokeWidth: 6.0,
+                        colorArgb: context.read<MapBloc>().state.defaultPolylineColorArgb ?? 0xFF375AF9,
+                        strokeWidth: context.read<MapBloc>().state.defaultPolylineWidth ?? 4.0,
                       ),
                     ]
                   : const [],

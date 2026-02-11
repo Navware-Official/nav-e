@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/domain/entities/map_source.dart';
+import 'package:nav_e/features/map_layers/models/data_layer_definition.dart';
 import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 
@@ -18,7 +19,16 @@ abstract class MapAdapter {
     required VoidCallback onMapReady,
     required void Function(LatLng center, double zoom) onPositionChanged,
     required void Function(bool hasGesture) onUserGesture,
+    VoidCallback? onCameraIdle,
     required void Function(LatLng)? onMapTap,
+    void Function(LatLng)? onMapLongPress,
+    Set<String> enabledDataLayerIds = const {},
+    List<DataLayerDefinition> dataLayerDefinitions = const [],
+    int? markerFillColorArgb,
+    int? markerStrokeColorArgb,
+    int? defaultPolylineColorArgb,
+    double? defaultPolylineWidth,
+    void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap,
   });
 
   /// Move the map camera to a specific location

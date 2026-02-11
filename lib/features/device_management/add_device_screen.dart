@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
-import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 
@@ -70,22 +69,19 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Check for required bluetooth support, adapter status and permissions
     context.read<BluetoothBloc>().add(CheckBluetoothRequirements());
+
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.capeCodDark02),
-          onPressed: () {
-            // Navigate to devices list using named route
-            context.push('/devices');
-          },
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.push('/devices'),
         ),
-        title: Text(
-          'Add a new bluetooth device',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const Text('Add a new bluetooth device'),
       ),
       body: Container(
         padding: EdgeInsets.all(8),
@@ -150,11 +146,10 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                         if (state is BluetoothCheckInProgress) {
                           return Expanded(
                             child: Text(
-                              "Checking bluetooth requirements...",
+                              'Checking bluetooth requirements...',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 24,
-                                color: Colors.grey,
+                              style: textTheme.titleLarge?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                           );
@@ -168,7 +163,9 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                             child: Text("Try again"),
                           );
                         } else if (state is BluetoothScanInProgress) {
-                          return CircularProgressIndicator();
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         } else if (state is BluetoothScanComplete) {
                           return Expanded(
                             child: Column(
@@ -224,13 +221,11 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
 
                                       return ListTile(
                                         leading: CircleAvatar(
-                                          backgroundColor:
-                                              Colors.blueGrey.withValues(
-                                                alpha: 0.1,
-                                              ),
+                                          backgroundColor: colorScheme
+                                              .surfaceContainerHighest,
                                           child: Icon(
                                             typeIcon,
-                                            color: Colors.blueGrey,
+                                            color: colorScheme.onSurfaceVariant,
                                           ),
                                         ),
                                         title: Text(title),
@@ -239,7 +234,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(remoteId),
-                                            SizedBox(height: 4),
+                                            const SizedBox(height: 4),
                                             Wrap(
                                               spacing: 8,
                                               runSpacing: 4,
@@ -253,16 +248,18 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                                     Icon(
                                                       typeIcon,
                                                       size: 14,
-                                                      color: Colors.grey[600],
+                                                      color: colorScheme
+                                                          .onSurfaceVariant,
                                                     ),
-                                                    SizedBox(width: 4),
+                                                    const SizedBox(width: 4),
                                                     Text(
                                                       typeLabel,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color:
-                                                            Colors.grey[600],
-                                                      ),
+                                                      style: textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                            color: colorScheme
+                                                                .onSurfaceVariant,
+                                                          ),
                                                     ),
                                                   ],
                                                 ),
@@ -273,16 +270,18 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                                     Icon(
                                                       Icons.network_cell,
                                                       size: 14,
-                                                      color: Colors.grey[600],
+                                                      color: colorScheme
+                                                          .onSurfaceVariant,
                                                     ),
-                                                    SizedBox(width: 4),
+                                                    const SizedBox(width: 4),
                                                     Text(
-                                                      "RSSI ${result.rssi}",
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color:
-                                                            Colors.grey[600],
-                                                      ),
+                                                      'RSSI ${result.rssi}',
+                                                      style: textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                            color: colorScheme
+                                                                .onSurfaceVariant,
+                                                          ),
                                                     ),
                                                   ],
                                                 ),
@@ -310,14 +309,12 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                             ),
                           );
                         } else {
-                          // if something unexpected goed wrong
                           return Expanded(
                             child: Text(
-                              "Error: Something went wrong! Unable to add devices.",
+                              'Error: Something went wrong! Unable to add devices.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 24,
-                                color: Colors.redAccent,
+                              style: textTheme.titleLarge?.copyWith(
+                                color: colorScheme.error,
                               ),
                             ),
                           );

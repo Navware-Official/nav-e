@@ -39,3 +39,27 @@ class ReplacePolylines extends MapEvent {
 }
 
 class MapAutoFitDone extends MapEvent {}
+
+/// Toggle a data layer (e.g. parking) on or off.
+class ToggleDataLayer extends MapEvent {
+  final String layerId;
+  ToggleDataLayer(this.layerId);
+}
+
+/// Update map style config; null values mean keep current. Use [ResetMapStyleConfig] to clear.
+class SetMapStyleConfig extends MapEvent {
+  final int? defaultPolylineColorArgb;
+  final double? defaultPolylineWidth;
+  final int? markerFillColorArgb;
+  final int? markerStrokeColorArgb;
+
+  SetMapStyleConfig({
+    this.defaultPolylineColorArgb,
+    this.defaultPolylineWidth,
+    this.markerFillColorArgb,
+    this.markerStrokeColorArgb,
+  });
+}
+
+/// Clear all style overrides (use app defaults).
+class ResetMapStyleConfig extends MapEvent {}
