@@ -20,14 +20,6 @@
     "attribution": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
   },
   {
-    "id": "vector-demo",
-    "name": "Vector Demo (MapLibre)",
-    "urlTemplate": "https://demotiles.maplibre.org/style.json",
-    "maxZoom": 22,
-    "attribution": "© MapLibre, © OpenStreetMap contributors",
-    "description": "MapLibre demo vector tiles style"
-  },
-  {
     "id": "custom",
     "name": "Custom Style",
     "urlTemplate": "asset://assets/styles/custom_style.json",

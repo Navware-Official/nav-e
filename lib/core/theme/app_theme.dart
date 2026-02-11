@@ -8,15 +8,23 @@ import 'components/inputs.dart';
 
 class AppTheme {
   static ThemeData light() {
+    final colorScheme = ColorScheme.fromSeed(
+      brightness: Brightness.light,
+      seedColor: AppColors.blueRibbon,
+      primary: AppColors.blueRibbon,
+    ).copyWith(
+      surface: AppColors.white,
+      onSurface: AppColors.capeCodDark02,
+      onSurfaceVariant: AppColors.onSurfaceVariant,
+      error: AppColors.error,
+      onError: AppColors.white,
+    );
+
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: AppColors.white,
-      colorScheme: ColorScheme.fromSeed(
-        brightness: Brightness.light,
-        seedColor: AppColors.blueRibbon,
-        primary: AppColors.blueRibbon,
-      ),
+      colorScheme: colorScheme,
     );
 
     return base.copyWith(
@@ -32,15 +40,23 @@ class AppTheme {
   }
 
   static ThemeData dark() {
+    final colorScheme = ColorScheme.fromSeed(
+      brightness: Brightness.dark,
+      seedColor: AppColors.blueRibbon,
+      primary: AppColors.blueRibbon,
+    ).copyWith(
+      surface: AppColors.capeCodDark01,
+      onSurface: AppColors.white,
+      onSurfaceVariant: AppColors.lightGray,
+      error: AppColors.error,
+      onError: AppColors.white,
+    );
+
     final base = ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: AppColors.capeCodDark01,
-      colorScheme: ColorScheme.fromSeed(
-        brightness: Brightness.dark,
-        seedColor: AppColors.blueRibbon,
-        primary: AppColors.blueRibbon,
-      ),
+      colorScheme: colorScheme,
     );
 
     return base.copyWith(

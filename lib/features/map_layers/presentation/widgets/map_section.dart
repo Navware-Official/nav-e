@@ -9,8 +9,16 @@ import 'package:nav_e/features/map_layers/presentation/map_widget.dart';
 class MapSection extends StatelessWidget {
   final List<MarkerModel> extraMarkers;
   final void Function(LatLng latlng)? onMapTap;
+  final void Function(LatLng latlng)? onMapLongPress;
+  final void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap;
 
-  const MapSection({super.key, required this.extraMarkers, this.onMapTap});
+  const MapSection({
+    super.key,
+    required this.extraMarkers,
+    this.onMapTap,
+    this.onMapLongPress,
+    this.onDataLayerFeatureTap,
+  });
 
   /// Default position for test marker when user location is not yet available.
   static const LatLng _testMarkerPosition = LatLng(52.3791, 4.9);
@@ -29,6 +37,11 @@ class MapSection extends StatelessWidget {
       ),
     ];
 
-    return MapWidget(markers: markers, onMapTap: onMapTap);
+    return MapWidget(
+      markers: markers,
+      onMapTap: onMapTap,
+      onMapLongPress: onMapLongPress,
+      onDataLayerFeatureTap: onDataLayerFeatureTap,
+    );
   }
 }

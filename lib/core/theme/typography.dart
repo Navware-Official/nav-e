@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'colors.dart';
 
+/// App typography. Prefer Theme.of(context).textTheme (titleLarge, bodyMedium,
+/// etc.) for all text; avoid raw TextStyle for body/title so theme and dark mode stay consistent.
 class AppTypography {
   static const family = 'NeueHaasUnica';
   static const subFamily = 'BitcountGridSingle';

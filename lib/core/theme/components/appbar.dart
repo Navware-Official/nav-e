@@ -5,7 +5,7 @@ import '../colors.dart';
 class AppBarThemes {
   static const AppBarTheme light = AppBarTheme(
     backgroundColor: AppColors.white,
-    foregroundColor: AppColors.white,
+    foregroundColor: AppColors.capeCodDark02,
     elevation: 0,
     shape: CornerBlockBorder(
       side: BorderSide(width: 2, color: AppColors.lightGray),

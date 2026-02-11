@@ -1,0 +1,115 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "parking-1",
+      "properties": {
+        "name": "P1 Jaarbeursplein Noord",
+        "address": "Jaarbeursplein 1–3, 3521 AL Utrecht",
+        "capacity": "420",
+        "info": "Main parking for Jaarbeurs. Open 24/7. EV charging available."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [5.1078, 52.0886],
+          [5.1102, 52.0886],
+          [5.1102, 52.0892],
+          [5.1118, 52.0892],
+          [5.1118, 52.0898],
+          [5.1078, 52.0898],
+          [5.1078, 52.0886]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "parking-2",
+      "properties": {
+        "name": "P2 Jaarbeurs Oost",
+        "address": "Croeselaan 200, 3521 BJ Utrecht",
+        "capacity": "380",
+        "info": "East side parking. Direct access to Hall 1–4."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [5.1115, 52.0875],
+          [5.1142, 52.0875],
+          [5.1142, 52.0880],
+          [5.1152, 52.0880],
+          [5.1152, 52.0890],
+          [5.1115, 52.0890],
+          [5.1115, 52.0875]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "parking-3",
+      "properties": {
+        "name": "P3 Croeselaan",
+        "address": "Croeselaan 180, 3521 BH Utrecht",
+        "capacity": "250",
+        "info": "Multi-storey. Covered walkway to entrance."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [5.1052, 52.0890],
+          [5.1068, 52.0890],
+          [5.1068, 52.0898],
+          [5.1082, 52.0898],
+          [5.1082, 52.0904],
+          [5.1052, 52.0904],
+          [5.1052, 52.0890]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "parking-4",
+      "properties": {
+        "name": "P4 Rijnkade",
+        "address": "Rijnkade 2, 3521 BD Utrecht",
+        "capacity": "180",
+        "info": "Along the canal. Short walk to Jaarbeursplein."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [5.1118, 52.0898],
+          [5.1138, 52.0898],
+          [5.1138, 52.0902],
+          [5.1148, 52.0902],
+          [5.1148, 52.0910],
+          [5.1118, 52.0910],
+          [5.1118, 52.0898]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "parking-5",
+      "properties": {
+        "name": "P5 Beursplein",
+        "address": "Beursplein 15, 3521 BA Utrecht",
+        "capacity": "120",
+        "info": "Small lot south of the main building. Often full during events."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [5.1088, 52.0868],
+          [5.1105, 52.0868],
+          [5.1105, 52.0872],
+          [5.1112, 52.0872],
+          [5.1112, 52.0880],
+          [5.1088, 52.0880],
+          [5.1088, 52.0868]
+        ]]
+      }
+    }
+  ]
+}

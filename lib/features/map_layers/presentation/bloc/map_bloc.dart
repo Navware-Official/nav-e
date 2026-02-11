@@ -44,6 +44,9 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<ToggleFollowUser>(_onToggleFollow);
     on<ResetBearing>(_onResetBearing);
     on<MapSourceChanged>(_onSourceChanged, transformer: restartable());
+    on<ToggleDataLayer>(_onToggleDataLayer);
+    on<SetMapStyleConfig>(_onSetMapStyleConfig);
+    on<ResetMapStyleConfig>(_onResetMapStyleConfig);
   }
 
   void _onMoved(MapMoved event, Emitter<MapState> emit) {
@@ -94,6 +97,36 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   void _onAutoFitDone(MapAutoFitDone event, Emitter<MapState> emit) {
     // clear the autoFit flag after the widget performed the fit
     if (state.autoFit) emit(state.copyWith(autoFit: false));
+  }
+
+  void _onToggleDataLayer(ToggleDataLayer event, Emitter<MapState> emit) {
+    final next = Set<String>.from(state.enabledDataLayerIds);
+    if (next.contains(event.layerId)) {
+      next.remove(event.layerId);
+    } else {
+      next.add(event.layerId);
+    }
+    emit(state.copyWith(enabledDataLayerIds: next));
+  }
+
+  void _onSetMapStyleConfig(SetMapStyleConfig event, Emitter<MapState> emit) {
+    emit(state.copyWith(
+      defaultPolylineColorArgb:
+          event.defaultPolylineColorArgb ?? state.defaultPolylineColorArgb,
+      defaultPolylineWidth:
+          event.defaultPolylineWidth ?? state.defaultPolylineWidth,
+      markerFillColorArgb:
+          event.markerFillColorArgb ?? state.markerFillColorArgb,
+      markerStrokeColorArgb:
+          event.markerStrokeColorArgb ?? state.markerStrokeColorArgb,
+    ));
+  }
+
+  void _onResetMapStyleConfig(
+    ResetMapStyleConfig event,
+    Emitter<MapState> emit,
+  ) {
+    emit(state.copyWith(clearStyleOverrides: true));
   }
 
   EventTransformer<T> _throttle<T>(Duration d) {

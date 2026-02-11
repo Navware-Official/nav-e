@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 // imports above (map bloc/models) are intentionally omitted; this widget is
 // presentation-only and receives state + callbacks from the parent screen.
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/nav/ui/active_nav_screen.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 
@@ -134,12 +135,12 @@ class RouteBottomSheet extends StatelessWidget {
                                     );
                                   },
                             icon: computing
-                                ? const SizedBox(
+                                ? SizedBox(
                                     width: 20,
                                     height: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
+                                      color: colorScheme.onPrimary,
                                     ),
                                   )
                                 : const Icon(Icons.navigation),
@@ -189,7 +190,7 @@ class RouteBottomSheet extends StatelessWidget {
                                       alpha: 0.3,
                                     )
                                   : routePoints.isNotEmpty
-                                  ? Colors.green.shade50
+                                  ? AppColors.successContainer
                                   : colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(8),
                               border: Border.all(
@@ -198,7 +199,7 @@ class RouteBottomSheet extends StatelessWidget {
                                     : computeError != null
                                     ? colorScheme.errorContainer
                                     : routePoints.isNotEmpty
-                                    ? Colors.green.shade200
+                                    ? AppColors.success
                                     : colorScheme.outlineVariant,
                                 width: 1,
                               ),
@@ -225,7 +226,7 @@ class RouteBottomSheet extends StatelessWidget {
                                 else if (routePoints.isNotEmpty)
                                   Icon(
                                     Icons.check_circle,
-                                    color: Colors.green[700],
+                                    color: AppColors.success,
                                     size: 16,
                                   )
                                 else
@@ -275,7 +276,7 @@ class RouteBottomSheet extends StatelessWidget {
                                           'Route ready',
                                           style: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                                color: Colors.green[900],
+                                                color: AppColors.success,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                         ),

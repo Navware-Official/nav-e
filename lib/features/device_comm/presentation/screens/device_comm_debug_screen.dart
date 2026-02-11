@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/core/device_comm/device_communication_service.dart';
 import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
@@ -298,18 +299,18 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
         IconData icon;
 
         if (state is DeviceCommSending) {
-          bgColor = Colors.blue.shade50;
-          borderColor = Colors.blue.shade300;
+          bgColor = colorScheme.primaryContainer;
+          borderColor = colorScheme.primary;
           stateText = 'Sending... ${(state.progress * 100).toInt()}%';
           icon = Icons.sync;
         } else if (state is DeviceCommSuccess) {
-          bgColor = Colors.green.shade50;
-          borderColor = Colors.green.shade300;
+          bgColor = AppColors.successContainer;
+          borderColor = AppColors.success;
           stateText = 'Success!';
           icon = Icons.check_circle;
         } else if (state is DeviceCommError) {
-          bgColor = Colors.red.shade50;
-          borderColor = Colors.red.shade300;
+          bgColor = colorScheme.errorContainer;
+          borderColor = colorScheme.error;
           stateText = 'Error: ${state.message}';
           icon = Icons.error;
         } else {
@@ -418,9 +419,9 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: isError
-                              ? Colors.red.shade50
+                              ? colorScheme.errorContainer
                               : isSuccess
-                              ? Colors.green.shade50
+                              ? AppColors.successContainer
                               : null,
                           border: Border(
                             bottom: BorderSide(
@@ -434,9 +435,9 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
                           style: theme.textTheme.bodySmall?.copyWith(
                             fontFamily: 'monospace',
                             color: isError
-                                ? Colors.red.shade900
+                                ? colorScheme.error
                                 : isSuccess
-                                ? Colors.green.shade900
+                                ? AppColors.success
                                 : colorScheme.onSurface,
                           ),
                         ),

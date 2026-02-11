@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/app/app_nav.dart';
 import 'package:nav_e/core/domain/entities/saved_place.dart';
-import 'package:nav_e/core/theme/colors.dart';
-import 'package:nav_e/core/theme/typography.dart';
+import 'package:nav_e/core/widgets/state_views.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_state.dart';
 
@@ -33,7 +32,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.capeCodDark02),
+            icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: const Text('Saved places'),
@@ -41,21 +40,31 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
         body: BlocBuilder<SavedPlacesCubit, SavedPlacesState>(
           builder: (context, state) {
             if (state is SavedPlacesLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const AppLoadingState(message: 'Loading places...');
             }
 
             if (state is SavedPlacesError) {
-              return Center(child: Text('Error: ${state.message}'));
+              return AppErrorState(
+                message: state.message,
+                onRetry: () =>
+                    context.read<SavedPlacesCubit>().loadPlaces(),
+              );
             }
 
             if (state is SavedPlacesLoaded) {
               final places = state.places;
               if (places.isEmpty) {
-                return _EmptyState(
-                  onAddTapped: () {
+                return AppEmptyState(
+                  icon: Icons.bookmark_border,
+                  title: 'No saved places yet.',
+                  subtitle:
+                      'Search for a location and tap "Save Location" to keep it here.',
+                  actionLabel: 'Find a place',
+                  onAction: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Use search to add your first place.'),
+                        content: Text(
+                            'Use search to add your first place.'),
                       ),
                     );
                   },
@@ -72,10 +81,13 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                     key: ValueKey('place_${place.id}_$index'),
                     direction: DismissDirection.endToStart,
                     background: Container(
-                      color: Colors.red,
+                      color: Theme.of(context).colorScheme.error,
                       alignment: Alignment.centerRight,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: const Icon(Icons.delete, color: Colors.white),
+                      child: Icon(
+                        Icons.delete,
+                        color: Theme.of(context).colorScheme.onError,
+                      ),
                     ),
                     confirmDismiss: (_) async {
                       return await showDialog<bool>(
@@ -112,10 +124,16 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                       }
                     },
                     child: Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         border: Border(
-                          left: BorderSide(color: Colors.grey, width: 1),
-                          right: BorderSide(color: Colors.grey, width: 1),
+                          left: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
+                            width: 1,
+                          ),
+                          right: BorderSide(
+                            color: Theme.of(context).colorScheme.outline,
+                            width: 1,
+                          ),
                         ),
                       ),
                       child: ListTile(
@@ -130,9 +148,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                           ].join('\n'),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontFamily: AppTypography.subFamily,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                         trailing: IconButton(
                           icon: const Icon(Icons.visibility),
@@ -160,42 +176,6 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
       label: place.name,
       placeId: place.id?.toString(),
       zoom: 14,
-    );
-  }
-}
-
-class _EmptyState extends StatelessWidget {
-  final VoidCallback onAddTapped;
-  const _EmptyState({required this.onAddTapped});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.bookmark_border, size: 64, color: Colors.grey),
-            const SizedBox(height: 12),
-            const Text(
-              'No saved places yet.',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Search for a location and tap “Save Location” to keep it here.',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: onAddTapped,
-              icon: const Icon(Icons.search),
-              label: const Text('Find a place'),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

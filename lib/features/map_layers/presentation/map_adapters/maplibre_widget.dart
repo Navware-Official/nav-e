@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show Point;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as ml;
 import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/features/map_layers/models/data_layer_definition.dart';
 
 /// Converts a Color to hex string format for MapLibre (#RRGGBB).
 String _colorToHex(Color color) {
@@ -30,8 +32,17 @@ class MapLibreWidget extends StatefulWidget {
   final Function(LatLng center, double zoom)? onCameraMove;
   final VoidCallback? onCameraIdle;
   final Function(LatLng)? onMapTap;
+  /// Long press: e.g. reverse geosearch on home.
+  final void Function(LatLng)? onMapLongPress;
+  /// Called when the user taps a data layer feature (e.g. parking polygon).
+  /// [layerId] is the data layer id (e.g. "parking"); [properties] are the GeoJSON feature properties.
+  final void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap;
   final List<MapLibrePolyline> polylines;
   final List<MapLibreMarker> markers;
+  final Set<String> enabledDataLayerIds;
+  final List<DataLayerDefinition> dataLayerDefinitions;
+  final int? markerFillColorArgb;
+  final int? markerStrokeColorArgb;
 
   const MapLibreWidget({
     super.key,
@@ -45,8 +56,14 @@ class MapLibreWidget extends StatefulWidget {
     this.onCameraMove,
     this.onCameraIdle,
     this.onMapTap,
+    this.onMapLongPress,
+    this.onDataLayerFeatureTap,
     this.polylines = const [],
     this.markers = const [],
+    this.enabledDataLayerIds = const {},
+    this.dataLayerDefinitions = const [],
+    this.markerFillColorArgb,
+    this.markerStrokeColorArgb,
   });
 
   @override
@@ -60,6 +77,8 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
 
   /// Native map circles used as markers (integrated into map layer).
   final Map<String, ml.Circle> _markerCircles = {};
+  /// Data layer ids for which we have added source+layer (so we can remove them).
+  final Set<String> _dataLayerIdsAdded = {};
   late Future<String> _styleFuture;
   bool _styleLoaded = false;
 
@@ -80,6 +99,7 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
         _styleLoaded = false;
         _polylineObjects.clear();
         _markerCircles.clear();
+        _dataLayerIdsAdded.clear();
         _styleFuture = _loadStyleString();
       });
     }
@@ -92,6 +112,12 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
     // Update markers if they changed
     if (widget.markers != oldWidget.markers) {
       _syncMarkers();
+    }
+
+    // Update data layers if enabled set or definitions changed
+    if (widget.enabledDataLayerIds != oldWidget.enabledDataLayerIds ||
+        widget.dataLayerDefinitions != oldWidget.dataLayerDefinitions) {
+      _syncDataLayers();
     }
   }
 
@@ -181,10 +207,18 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
               onStyleLoadedCallback: _handleStyleLoaded,
               onCameraMove: _handleCameraMove,
               onCameraIdle: _handleCameraIdle,
-              onMapClick: widget.onMapTap != null
-                  ? (point, coordinates) => widget.onMapTap!(
-                      LatLng(coordinates.latitude, coordinates.longitude),
-                    )
+              onMapClick: (widget.onMapTap != null ||
+                      (widget.onDataLayerFeatureTap != null &&
+                          widget.enabledDataLayerIds.isNotEmpty))
+                  ? (point, coordinates) => _handleMapClick(
+                        point,
+                        LatLng(coordinates.latitude, coordinates.longitude),
+                      )
+                  : null,
+              onMapLongClick: widget.onMapLongPress != null
+                  ? (point, coordinates) => _handleMapLongClick(
+                        LatLng(coordinates.latitude, coordinates.longitude),
+                      )
                   : null,
               trackCameraPosition: true,
               myLocationEnabled: false,
@@ -220,8 +254,10 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
     debugPrint('[MapLibreWidget] style loaded');
     _polylineObjects.clear();
     _markerCircles.clear();
+    _dataLayerIdsAdded.clear();
     await _syncPolylines();
     await _syncMarkers();
+    await _syncDataLayers();
   }
 
   void _handleCameraMove(ml.CameraPosition position) {
@@ -243,6 +279,52 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
         position.zoom,
       );
     }
+  }
+
+  /// Handles tap: data layer feature hit → onDataLayerFeatureTap; else → onMapTap.
+  void _handleMapClick(Point point, LatLng coordinates) {
+    if (widget.onDataLayerFeatureTap != null &&
+        widget.enabledDataLayerIds.isNotEmpty &&
+        _nativeController != null) {
+      final layerIds = widget.enabledDataLayerIds
+          .map((id) => 'data-layer-$id')
+          .toList();
+      final pt = Point<double>(point.x.toDouble(), point.y.toDouble());
+      _nativeController!
+          .queryRenderedFeatures(pt, layerIds, null)
+          .then((features) {
+        if (features.isNotEmpty) {
+          final first = features[0];
+          if (first is Map<String, dynamic>) {
+            final props = first['properties'];
+            final layer = first['layer'];
+            final propsMap = props is Map
+                ? Map<String, dynamic>.from(props)
+                : <String, dynamic>{};
+            final layerId = layer is Map
+                ? (layer['id'] as String?) ?? ''
+                : layer?.toString() ?? '';
+            final dataLayerId = layerId.startsWith('data-layer-')
+                ? layerId.substring('data-layer-'.length)
+                : layerId;
+            if (dataLayerId.isNotEmpty) {
+              widget.onDataLayerFeatureTap?.call(dataLayerId, propsMap);
+              return;
+            }
+          }
+        }
+        widget.onMapTap?.call(coordinates);
+      }).catchError((_) {
+        widget.onMapTap?.call(coordinates);
+      });
+    } else {
+      widget.onMapTap?.call(coordinates);
+    }
+  }
+
+  /// Handles long press: e.g. reverse geosearch (onMapLongPress).
+  void _handleMapLongClick(LatLng coordinates) {
+    widget.onMapLongPress?.call(coordinates);
   }
 
   /// Synchronizes polylines with the map (removes old, adds new).
@@ -275,6 +357,88 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
     }
   }
 
+  /// Syncs data layers (GeoJSON overlays): add source+layer for enabled ids,
+  /// remove layer+source for disabled ids.
+  Future<void> _syncDataLayers() async {
+    if (_nativeController == null || !_styleLoaded) return;
+
+    final definitionsById = {
+      for (final d in widget.dataLayerDefinitions) d.id: d
+    };
+
+    // Remove layers that are no longer enabled
+    for (final id in _dataLayerIdsAdded.toList()) {
+      if (!widget.enabledDataLayerIds.contains(id)) {
+        try {
+          final layerId = 'data-layer-$id';
+          final sourceId = 'data-source-$id';
+          await _nativeController!.removeLayer(layerId);
+          await _nativeController!.removeSource(sourceId);
+          _dataLayerIdsAdded.remove(id);
+        } catch (e) {
+          debugPrint('[MapLibreWidget] Error removing data layer $id: $e');
+        }
+      }
+    }
+
+    // Add layers that are enabled and have a definition
+    for (final id in widget.enabledDataLayerIds) {
+      if (_dataLayerIdsAdded.contains(id)) continue;
+      final definition = definitionsById[id];
+      if (definition == null) continue;
+
+      try {
+        final jsonString = await rootBundle.loadString(definition.geojsonAssetPath);
+        final geojsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
+        final sourceId = 'data-source-$id';
+        final layerId = 'data-layer-$id';
+
+        await _nativeController!.addGeoJsonSource(sourceId, geojsonMap);
+
+        switch (definition.geometryType) {
+          case DataLayerGeometryType.fill:
+            await _nativeController!.addFillLayer(
+              sourceId,
+              layerId,
+              const ml.FillLayerProperties(
+                fillColor: '#3388ff',
+                fillOpacity: 0.4,
+                fillOutlineColor: '#3388ff',
+              ),
+            );
+            break;
+          case DataLayerGeometryType.circle:
+            await _nativeController!.addCircleLayer(
+              sourceId,
+              layerId,
+              const ml.CircleLayerProperties(
+                circleColor: '#3388ff',
+                circleRadius: 6,
+                circleStrokeWidth: 1,
+                circleStrokeColor: '#2266cc',
+              ),
+            );
+            break;
+          case DataLayerGeometryType.line:
+            await _nativeController!.addLineLayer(
+              sourceId,
+              layerId,
+              const ml.LineLayerProperties(
+                lineColor: '#3388ff',
+                lineWidth: 2,
+              ),
+            );
+            break;
+        }
+        _dataLayerIdsAdded.add(id);
+      } catch (e) {
+        debugPrint(
+          '[MapLibreWidget] Error adding data layer ${definition.id}: $e',
+        );
+      }
+    }
+  }
+
   /// Syncs markers as native circles on the map (integrated into map layer).
   /// Only updates when marker positions change (e.g. user location update).
   Future<void> _syncMarkers() async {
@@ -290,6 +454,13 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
       }
     }
 
+    final fillColor = widget.markerFillColorArgb != null
+        ? Color(widget.markerFillColorArgb!)
+        : AppColors.blueRibbon;
+    final strokeColor = widget.markerStrokeColorArgb != null
+        ? Color(widget.markerStrokeColorArgb!)
+        : AppColors.white;
+
     // Add or update circles for each marker
     for (final marker in widget.markers) {
       final pos = ml.LatLng(
@@ -299,9 +470,9 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
       final options = ml.CircleOptions(
         geometry: pos,
         circleRadius: 12,
-        circleColor: _colorToHex(AppColors.blueRibbon),
+        circleColor: _colorToHex(fillColor),
         circleStrokeWidth: 2,
-        circleStrokeColor: _colorToHex(AppColors.white),
+        circleStrokeColor: _colorToHex(strokeColor),
       );
       if (_markerCircles.containsKey(marker.id)) {
         try {
