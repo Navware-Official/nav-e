@@ -20,6 +20,7 @@ import 'package:nav_e/features/plan_route/widgets/route_bottom_sheet.dart';
 import 'package:nav_e/features/nav/utils/turn_feed.dart';
 import 'package:nav_e/features/nav/bloc/nav_bloc.dart';
 import 'package:nav_e/features/nav/bloc/nav_event.dart';
+import 'package:nav_e/widgets/user_location_marker.dart';
 
 class PlanRouteScreen extends StatefulWidget {
   final GeocodingResult destination;
@@ -247,19 +248,13 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         position: dest.position,
         icon: const Icon(Icons.place, color: AppColors.blueRibbon, size: 52),
       ),
-      // Current location marker
+      // Current location marker with direction arrow
       if (userPos != null)
         MarkerModel(
           id: 'current_location',
           position: userPos,
-          icon: Container(
-            width: 28,
-            height: 28,
-            decoration: BoxDecoration(
-              color: AppColors.blueRibbon,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-            ),
+          icon: UserLocationMarker(
+            heading: context.watch<LocationBloc>().state.heading,
           ),
         ),
       // If the user picked a custom start on the map, show it as a marker.

@@ -39,16 +39,17 @@ List<NavCue> buildTurnFeed(List<LatLng> points) {
       continue;
     }
 
+    final cumulativeText =  cumulative >= 1000
+        ? '${(cumulative / 1000).toStringAsFixed(1)} km'
+        : '${cumulative.toStringAsFixed(0)} m';
+
     final maneuver = _turnType(delta);
-    debugPrint(
-      '[TurnFeed] turn $maneuver at ${curr.latitude},${curr.longitude} '
-      'dist=${cumulative.toStringAsFixed(1)}m',
-    );
     cues.add(
       NavCue(
         id: 'turn_$i',
         instruction: _instructionFor(maneuver),
         distanceToCueM: cumulative,
+        distanceToCueText: cumulativeText,
         location: curr,
         maneuver: maneuver,
       ),

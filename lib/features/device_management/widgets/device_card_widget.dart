@@ -114,6 +114,24 @@ class DeviceCard extends StatelessWidget {
                           ),
                         ),
                       ],
+                      SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            _getDeviceTypeIcon(),
+                            size: 14,
+                            color: Colors.grey[600],
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            _getDeviceTypeLabel(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
                       SizedBox(height: 2),
                       Text(
                         device.remoteId,
@@ -233,16 +251,55 @@ class DeviceCard extends StatelessWidget {
     );
   }
 
-  IconData _getDeviceIcon() {
-    // You can customize this based on device type/model
-    if (device.name.toLowerCase().contains('gps')) {
-      return Icons.gps_fixed;
-    } else if (device.name.toLowerCase().contains('bluetooth')) {
-      return Icons.bluetooth;
-    } else if (device.name.toLowerCase().contains('tracker')) {
-      return Icons.track_changes;
+  String _getDeviceTypeLabel() {
+    final name = device.name.toLowerCase();
+    final model = (device.model ?? '').toLowerCase();
+    bool containsAny(List<String> keys) {
+      return keys.any((key) => name.contains(key) || model.contains(key));
     }
-    return Icons.device_unknown;
+
+    if (containsAny(['watch', 'wear', 'garmin', 'fitbit'])) {
+      return 'Watch';
+    }
+    if (containsAny(['phone', 'ios', 'android'])) {
+      return 'Phone';
+    }
+    if (containsAny(['gps'])) {
+      return 'GPS';
+    }
+    if (containsAny(['tracker', 'tag'])) {
+      return 'Tracker';
+    }
+    if (containsAny(['headset', 'buds', 'airpods', 'headphone'])) {
+      return 'Headphones';
+    }
+    if (containsAny(['sensor', 'heart', 'hrm'])) {
+      return 'Sensor';
+    }
+    return 'Bluetooth Device';
+  }
+
+  IconData _getDeviceTypeIcon() {
+    switch (_getDeviceTypeLabel()) {
+      case 'Watch':
+        return Icons.watch;
+      case 'Phone':
+        return Icons.smartphone;
+      case 'GPS':
+        return Icons.gps_fixed;
+      case 'Tracker':
+        return Icons.track_changes;
+      case 'Headphones':
+        return Icons.headphones;
+      case 'Sensor':
+        return Icons.sensors;
+      default:
+        return Icons.bluetooth;
+    }
+  }
+
+  IconData _getDeviceIcon() {
+    return _getDeviceTypeIcon();
   }
 
   Color _getConnectionColor(String connectionStatus) {

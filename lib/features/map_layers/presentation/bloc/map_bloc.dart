@@ -55,7 +55,14 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       'from=${state.center},${state.zoom} to=${event.center},${event.zoom}',
     );
     if (state.followUser && !event.force) return;
-    emit(state.copyWith(center: event.center, zoom: event.zoom));
+    emit(
+      state.copyWith(
+        center: event.center,
+        zoom: event.zoom,
+        tilt: event.tilt ?? state.tilt,
+        bearing: event.bearing ?? state.bearing,
+      ),
+    );
   }
 
   void _onToggleFollow(ToggleFollowUser event, Emitter<MapState> emit) {

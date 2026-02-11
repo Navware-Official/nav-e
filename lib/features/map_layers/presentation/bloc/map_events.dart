@@ -9,7 +9,15 @@ class MapMoved extends MapEvent {
   final LatLng center;
   final double zoom;
   final bool force;
-  MapMoved(this.center, this.zoom, {this.force = false});
+  final double? tilt;
+  final double? bearing;
+  MapMoved(
+    this.center,
+    this.zoom, {
+    this.force = false,
+    this.tilt,
+    this.bearing,
+  });
 }
 
 class ToggleFollowUser extends MapEvent {

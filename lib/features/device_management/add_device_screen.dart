@@ -15,6 +15,59 @@ class AddDeviceScreen extends StatefulWidget {
 }
 
 class _AddDeviceScreenState extends State<AddDeviceScreen> {
+  String _inferDeviceTypeLabel(ScanResult result) {
+    final name = result.advertisementData.advName.toLowerCase();
+    final services = result.advertisementData.serviceUuids
+        .map((uuid) => uuid.toString().toLowerCase())
+        .toList();
+
+    bool containsAny(List<String> keys) {
+      return keys.any(
+        (key) => name.contains(key) || services.any((s) => s.contains(key)),
+      );
+    }
+
+    if (containsAny(['watch', 'wear', 'garmin', 'fitbit'])) {
+      return 'Watch';
+    }
+    if (containsAny(['phone', 'ios', 'android'])) {
+      return 'Phone';
+    }
+    if (containsAny(['gps'])) {
+      return 'GPS';
+    }
+    if (containsAny(['tracker', 'tag'])) {
+      return 'Tracker';
+    }
+    if (containsAny(['headset', 'buds', 'airpods', 'headphone'])) {
+      return 'Headphones';
+    }
+    if (containsAny(['sensor', 'heart', 'hrm'])) {
+      return 'Sensor';
+    }
+    return 'Bluetooth Device';
+  }
+
+  IconData _inferDeviceTypeIcon(ScanResult result) {
+    final label = _inferDeviceTypeLabel(result);
+    switch (label) {
+      case 'Watch':
+        return Icons.watch;
+      case 'Phone':
+        return Icons.smartphone;
+      case 'GPS':
+        return Icons.gps_fixed;
+      case 'Tracker':
+        return Icons.track_changes;
+      case 'Headphones':
+        return Icons.headphones;
+      case 'Sensor':
+        return Icons.sensors;
+      default:
+        return Icons.bluetooth;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Check for required bluetooth support, adapter status and permissions
@@ -164,10 +217,79 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                           : title;
                                       String remoteId = result.device.remoteId
                                           .toString();
+                                      final typeLabel =
+                                          _inferDeviceTypeLabel(result);
+                                      final typeIcon =
+                                          _inferDeviceTypeIcon(result);
+
                                       return ListTile(
-                                        leading: Text("RSSI: ${result.rssi}"),
+                                        leading: CircleAvatar(
+                                          backgroundColor:
+                                              Colors.blueGrey.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                          child: Icon(
+                                            typeIcon,
+                                            color: Colors.blueGrey,
+                                          ),
+                                        ),
                                         title: Text(title),
-                                        subtitle: Text(remoteId),
+                                        subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(remoteId),
+                                            SizedBox(height: 4),
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 4,
+                                              crossAxisAlignment:
+                                                  WrapCrossAlignment.center,
+                                              children: [
+                                                Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      typeIcon,
+                                                      size: 14,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                    SizedBox(width: 4),
+                                                    Text(
+                                                      typeLabel,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color:
+                                                            Colors.grey[600],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.network_cell,
+                                                      size: 14,
+                                                      color: Colors.grey[600],
+                                                    ),
+                                                    SizedBox(width: 4),
+                                                    Text(
+                                                      "RSSI ${result.rssi}",
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color:
+                                                            Colors.grey[600],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                         trailing: FilledButton(
                                           onPressed: () {
                                             Device device = Device(
