@@ -30,11 +30,7 @@ class AppEmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 80,
-              color: colorScheme.onSurfaceVariant,
-            ),
+            Icon(icon, size: 80, color: colorScheme.onSurfaceVariant),
             const SizedBox(height: 24),
             Text(
               title,
@@ -103,11 +99,7 @@ class AppErrorState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: colorScheme.error,
-            ),
+            Icon(Icons.error_outline, size: 64, color: colorScheme.error),
             const SizedBox(height: 16),
             if (title != null && title!.isNotEmpty)
               Text(
@@ -151,10 +143,7 @@ class AppErrorState extends StatelessWidget {
 /// Centered loading state: progress indicator and optional message.
 /// Use for initial load (devices, saved places). Theme-aware.
 class AppLoadingState extends StatelessWidget {
-  const AppLoadingState({
-    super.key,
-    this.message,
-  });
+  const AppLoadingState({super.key, this.message});
 
   final String? message;
 
@@ -168,9 +157,7 @@ class AppLoadingState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            color: colorScheme.primary,
-          ),
+          CircularProgressIndicator(color: colorScheme.primary),
           if (message != null && message!.isNotEmpty) ...[
             const SizedBox(height: 16),
             Text(

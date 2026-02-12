@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/features/settings/widgets/app_version_section.dart';
+import 'package:nav_e/features/settings/widgets/offline_maps_section.dart';
 import 'package:nav_e/features/settings/widgets/theme_settings_section.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -16,7 +17,13 @@ class SettingsScreen extends StatelessWidget {
         ),
         title: const Text('Settings'),
       ),
-      body: ListView(children: [ThemeSettingsSection(), AppVersionSection()]),
+      body: ListView(
+        children: [
+          ThemeSettingsSection(),
+          OfflineMapsSection(),
+          AppVersionSection(),
+        ],
+      ),
     );
   }
 }

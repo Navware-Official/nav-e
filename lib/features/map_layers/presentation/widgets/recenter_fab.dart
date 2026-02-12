@@ -21,9 +21,7 @@ class RecenterFAB extends StatelessWidget {
           key: const Key('recenter_fab'),
           icon: Icons.my_location,
           tooltip: 'Recenter map to user location',
-          iconColor: isFollowing
-              ? colorScheme.onPrimary
-              : colorScheme.primary,
+          iconColor: isFollowing ? colorScheme.onPrimary : colorScheme.primary,
           backgroundColor: isFollowing
               ? colorScheme.primary
               : colorScheme.surfaceContainerHighest,

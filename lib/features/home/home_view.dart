@@ -45,9 +45,16 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final _routeHandler = RouteParamsHandler();
 
-  void _handleDataLayerFeatureTap(String layerId, Map<String, dynamic> properties) {
+  void _handleDataLayerFeatureTap(
+    String layerId,
+    Map<String, dynamic> properties,
+  ) {
     if (!mounted) return;
-    showDataLayerInfoBottomSheet(context, layerId: layerId, properties: properties);
+    showDataLayerInfoBottomSheet(
+      context,
+      layerId: layerId,
+      properties: properties,
+    );
   }
 
   Future<void> _handleMapTap(LatLng latlng) async {
@@ -90,7 +97,6 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     final state = GoRouterState.of(context);
-    debugPrint('[HomeView] build uri = ${state.uri}');
 
     return Scaffold(
       body: MultiBlocListener(

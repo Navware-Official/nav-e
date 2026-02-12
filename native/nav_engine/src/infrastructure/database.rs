@@ -293,3 +293,145 @@ impl Repository<DeviceEntity, i64> for DeviceRepository {
         self.base.delete(id)
     }
 }
+
+// ============================================================================
+// Offline region entity and repository (String id, custom impl)
+// ============================================================================
+
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OfflineRegionEntity {
+    pub id: String,
+    pub name: String,
+    pub north: f64,
+    pub south: f64,
+    pub east: f64,
+    pub west: f64,
+    pub min_zoom: i32,
+    pub max_zoom: i32,
+    pub relative_path: String,
+    pub size_bytes: i64,
+    pub created_at: i64,
+}
+
+#[derive(Clone)]
+pub struct OfflineRegionsRepository {
+    db: Arc<Mutex<Connection>>,
+    storage_base_path: std::path::PathBuf,
+}
+
+impl OfflineRegionsRepository {
+    pub fn new(db: Arc<Mutex<Connection>>, storage_base_path: std::path::PathBuf) -> Self {
+        Self {
+            db,
+            storage_base_path,
+        }
+    }
+
+    pub fn get_all(&self) -> Result<Vec<OfflineRegionEntity>> {
+        let conn = self.db.lock().unwrap();
+        let mut stmt = conn.prepare(
+            "SELECT id, name, north, south, east, west, min_zoom, max_zoom, relative_path, size_bytes, created_at
+             FROM offline_regions ORDER BY created_at DESC",
+        )?;
+        let rows = stmt.query_map([], |row| {
+            Ok(OfflineRegionEntity {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                north: row.get(2)?,
+                south: row.get(3)?,
+                east: row.get(4)?,
+                west: row.get(5)?,
+                min_zoom: row.get(6)?,
+                max_zoom: row.get(7)?,
+                relative_path: row.get(8)?,
+                size_bytes: row.get(9)?,
+                created_at: row.get(10)?,
+            })
+        })?;
+        rows.collect::<rusqlite::Result<Vec<_>>>()
+            .map_err(Into::into)
+    }
+
+    pub fn get_by_id(&self, id: &str) -> Result<Option<OfflineRegionEntity>> {
+        let conn = self.db.lock().unwrap();
+        let mut stmt = conn.prepare(
+            "SELECT id, name, north, south, east, west, min_zoom, max_zoom, relative_path, size_bytes, created_at
+             FROM offline_regions WHERE id = ?",
+        )?;
+        let result = stmt.query_row([id], |row| {
+            Ok(OfflineRegionEntity {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                north: row.get(2)?,
+                south: row.get(3)?,
+                east: row.get(4)?,
+                west: row.get(5)?,
+                min_zoom: row.get(6)?,
+                max_zoom: row.get(7)?,
+                relative_path: row.get(8)?,
+                size_bytes: row.get(9)?,
+                created_at: row.get(10)?,
+            })
+        });
+        match result {
+            Ok(e) => Ok(Some(e)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    pub fn insert(&self, entity: &OfflineRegionEntity) -> Result<()> {
+        let conn = self.db.lock().unwrap();
+        conn.execute(
+            "INSERT INTO offline_regions (id, name, north, south, east, west, min_zoom, max_zoom, relative_path, size_bytes, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            rusqlite::params![
+                entity.id,
+                entity.name,
+                entity.north,
+                entity.south,
+                entity.east,
+                entity.west,
+                entity.min_zoom,
+                entity.max_zoom,
+                entity.relative_path,
+                entity.size_bytes,
+                entity.created_at,
+            ],
+        )?;
+        Ok(())
+    }
+
+    pub fn delete(&self, id: &str) -> Result<()> {
+        let conn = self.db.lock().unwrap();
+        conn.execute("DELETE FROM offline_regions WHERE id = ?", [id])?;
+        Ok(())
+    }
+
+    pub fn get_region_for_viewport(
+        &self,
+        north: f64,
+        south: f64,
+        east: f64,
+        west: f64,
+    ) -> Result<Option<OfflineRegionEntity>> {
+        let regions = self.get_all()?;
+        for r in regions {
+            if r.intersects_bbox(north, south, east, west) {
+                return Ok(Some(r));
+            }
+        }
+        Ok(None)
+    }
+
+    pub fn get_storage_path(&self) -> Result<String> {
+        Ok(self.storage_base_path.to_string_lossy().into_owned())
+    }
+}
+
+impl OfflineRegionEntity {
+    pub fn intersects_bbox(&self, n: f64, s: f64, e: f64, w: f64) -> bool {
+        !(n < self.south || s > self.north || e < self.west || w > self.east)
+    }
+}

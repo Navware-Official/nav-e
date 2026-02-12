@@ -39,7 +39,7 @@ List<NavCue> buildTurnFeed(List<LatLng> points) {
       continue;
     }
 
-    final cumulativeText =  cumulative >= 1000
+    final cumulativeText = cumulative >= 1000
         ? '${(cumulative / 1000).toStringAsFixed(1)} km'
         : '${cumulative.toStringAsFixed(0)} m';
 

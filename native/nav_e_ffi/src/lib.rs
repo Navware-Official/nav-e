@@ -229,3 +229,66 @@ pub fn create_control_message(
 ) -> Result<Vec<u8>> {
     nav_engine::api::create_control_message(route_id, command_type, status_code, message)
 }
+
+// ============================================================================
+// Offline regions API
+// ============================================================================
+
+/// Get all offline regions as JSON array
+#[frb(sync)]
+pub fn get_all_offline_regions() -> Result<String> {
+    nav_engine::api::get_all_offline_regions()
+}
+
+/// Get one offline region by id as JSON object (or null)
+#[frb(sync)]
+pub fn get_offline_region_by_id(id: String) -> Result<String> {
+    nav_engine::api::get_offline_region_by_id(id)
+}
+
+/// Delete an offline region by id and remove its tile directory
+#[frb(sync)]
+pub fn delete_offline_region(id: String) -> Result<()> {
+    nav_engine::api::delete_offline_region(id)
+}
+
+/// Get region for viewport bbox as JSON object (or null)
+#[frb(sync)]
+pub fn get_offline_region_for_viewport(
+    north: f64,
+    south: f64,
+    east: f64,
+    west: f64,
+) -> Result<String> {
+    nav_engine::api::get_offline_region_for_viewport(north, south, east, west)
+}
+
+/// Get storage root path for offline regions
+#[frb(sync)]
+pub fn get_offline_regions_storage_path() -> Result<String> {
+    nav_engine::api::get_offline_regions_storage_path()
+}
+
+/// Download a region: fetch tiles, write to directory, insert into DB. Returns region JSON.
+#[frb(sync)]
+pub fn download_offline_region(
+    name: String,
+    north: f64,
+    south: f64,
+    east: f64,
+    west: f64,
+    min_zoom: i32,
+    max_zoom: i32,
+    tile_url_template: Option<String>,
+) -> Result<String> {
+    nav_engine::api::download_offline_region(
+        name,
+        north,
+        south,
+        east,
+        west,
+        min_zoom,
+        max_zoom,
+        tile_url_template,
+    )
+}

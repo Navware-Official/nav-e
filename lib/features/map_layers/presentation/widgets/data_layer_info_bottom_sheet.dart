@@ -48,26 +48,25 @@ void showDataLayerInfoBottomSheet(
               ),
             ] else ...[
               const SizedBox(height: 16),
-              ...entries.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          e.key,
-                          style: theme.textTheme.labelMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontWeight: FontWeight.w500,
-                          ),
+              ...entries.map(
+                (e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        e.key,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w500,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          e.value,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  )),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(e.value, style: theme.textTheme.bodyMedium),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ],
         ),
@@ -88,7 +87,9 @@ String _labelForKey(String key) {
     default:
       if (key.isEmpty) return key;
       return key[0].toUpperCase() +
-          key.substring(1).replaceAllMapped(
+          key
+              .substring(1)
+              .replaceAllMapped(
                 RegExp(r'([A-Z])|_'),
                 (m) => m.group(1) != null ? ' ${m.group(1)}' : ' ',
               );

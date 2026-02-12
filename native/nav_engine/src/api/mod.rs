@@ -10,6 +10,7 @@ pub(crate) mod device_comm;
 pub(crate) mod devices;
 pub(crate) mod geocoding;
 pub(crate) mod navigation;
+pub(crate) mod offline_regions;
 pub(crate) mod routes;
 pub(crate) mod saved_places;
 
@@ -18,11 +19,12 @@ pub use device_comm::*;
 pub use devices::*;
 pub use geocoding::*;
 pub use navigation::*;
+pub use offline_regions::*;
 pub use routes::*;
 pub use saved_places::*;
 
 use crate::infrastructure::{
-    database::{Database, DeviceRepository, SavedPlacesRepository},
+    database::{Database, DeviceRepository, OfflineRegionsRepository, SavedPlacesRepository},
     geocoding_adapter::PhotonGeocodingService,
     in_memory_repo::InMemoryNavigationRepository,
     osrm_adapter::OsrmRouteService,
@@ -43,14 +45,21 @@ pub(crate) struct AppContext {
     navigation_repo: Arc<dyn NavigationRepository>,
     saved_places_repo: SavedPlacesRepository,
     device_repo: DeviceRepository,
+    offline_regions_repo: OfflineRegionsRepository,
 }
 
 impl AppContext {
     fn new_with_db_path(db_path: String) -> Self {
-        let db = Database::new(std::path::PathBuf::from(db_path))
-            .expect("Failed to initialize database");
+        let path = std::path::PathBuf::from(&db_path);
+        let db = Database::new(path.clone()).expect("Failed to initialize database");
 
         let db_conn = db.get_connection();
+        let storage_base = path
+            .parent()
+            .unwrap_or_else(|| std::path::Path::new("."))
+            .join("offline_regions");
+        let offline_regions_repo =
+            OfflineRegionsRepository::new(Arc::clone(&db_conn), storage_base);
 
         Self {
             route_service: Arc::new(OsrmRouteService::new(
@@ -62,6 +71,7 @@ impl AppContext {
             navigation_repo: Arc::new(InMemoryNavigationRepository::new()),
             saved_places_repo: SavedPlacesRepository::new(Arc::clone(&db_conn)),
             device_repo: DeviceRepository::new(db_conn),
+            offline_regions_repo,
         }
     }
 }

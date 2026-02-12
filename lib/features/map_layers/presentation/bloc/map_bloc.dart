@@ -23,11 +23,18 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       try {
         final current = await sources.getCurrent();
         final all = await sources.getAll();
+        // Demotiles (custom/custom_dark) only has zoom 0–6; clamp so tiles are visible.
+        final isLimitedZoom =
+            current.id == 'custom' || current.id == 'custom_dark';
+        final zoom = isLimitedZoom && state.zoom > current.maxZoom
+            ? current.maxZoom.toDouble()
+            : null;
         emit(
           state.copyWith(
             isReady: true,
             source: current,
             available: all,
+            zoom: zoom,
             error: null,
           ),
         );
@@ -53,10 +60,6 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     // When followUser is true we are driving the camera from state (e.g.
     // "go to my location"); ignore camera position reports so we don't
     // overwrite the target and prevent the move from completing.
-    debugPrint(
-      '[MapBloc] MapMoved | force=${event.force} followUser=${state.followUser} '
-      'from=${state.center},${state.zoom} to=${event.center},${event.zoom}',
-    );
     if (state.followUser && !event.force) return;
     emit(
       state.copyWith(
@@ -84,7 +87,12 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     try {
       await sources.setCurrent(event.sourceId);
       final src = await sources.getCurrent();
-      emit(state.copyWith(source: src, loadingSource: false));
+      // Demotiles (custom/custom_dark) only has zoom 0–6; clamp so tiles are visible.
+      final isLimitedZoom = src.id == 'custom' || src.id == 'custom_dark';
+      final zoom = isLimitedZoom && state.zoom > src.maxZoom
+          ? src.maxZoom.toDouble()
+          : null;
+      emit(state.copyWith(source: src, zoom: zoom, loadingSource: false));
     } catch (e) {
       emit(state.copyWith(loadingSource: false, error: e));
     }
@@ -110,16 +118,18 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   }
 
   void _onSetMapStyleConfig(SetMapStyleConfig event, Emitter<MapState> emit) {
-    emit(state.copyWith(
-      defaultPolylineColorArgb:
-          event.defaultPolylineColorArgb ?? state.defaultPolylineColorArgb,
-      defaultPolylineWidth:
-          event.defaultPolylineWidth ?? state.defaultPolylineWidth,
-      markerFillColorArgb:
-          event.markerFillColorArgb ?? state.markerFillColorArgb,
-      markerStrokeColorArgb:
-          event.markerStrokeColorArgb ?? state.markerStrokeColorArgb,
-    ));
+    emit(
+      state.copyWith(
+        defaultPolylineColorArgb:
+            event.defaultPolylineColorArgb ?? state.defaultPolylineColorArgb,
+        defaultPolylineWidth:
+            event.defaultPolylineWidth ?? state.defaultPolylineWidth,
+        markerFillColorArgb:
+            event.markerFillColorArgb ?? state.markerFillColorArgb,
+        markerStrokeColorArgb:
+            event.markerStrokeColorArgb ?? state.markerStrokeColorArgb,
+      ),
+    );
   }
 
   void _onResetMapStyleConfig(

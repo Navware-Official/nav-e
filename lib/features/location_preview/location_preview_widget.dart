@@ -67,9 +67,7 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                         width: 44,
                         height: 5,
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .outlineVariant,
+                          color: Theme.of(context).colorScheme.outlineVariant,
                           borderRadius: BorderRadius.circular(99),
                         ),
                       ),

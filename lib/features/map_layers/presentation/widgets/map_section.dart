@@ -10,7 +10,8 @@ class MapSection extends StatelessWidget {
   final List<MarkerModel> extraMarkers;
   final void Function(LatLng latlng)? onMapTap;
   final void Function(LatLng latlng)? onMapLongPress;
-  final void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap;
+  final void Function(String layerId, Map<String, dynamic> properties)?
+  onDataLayerFeatureTap;
 
   const MapSection({
     super.key,

@@ -102,6 +102,7 @@ flutter:
     - assets/img/house_cat.jpeg
     - assets/sql/init.sql
     - assets/styles/custom_style.json
+    - assets/styles/custom_style_dark.json
     - assets/config/map_sources.json
     - assets/data/parking.geojson
 

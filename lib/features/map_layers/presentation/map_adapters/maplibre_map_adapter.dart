@@ -59,7 +59,9 @@ class MapLibreMapAdapter implements MapAdapter {
     int? markerStrokeColorArgb,
     int? defaultPolylineColorArgb,
     double? defaultPolylineWidth,
-    void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap,
+    void Function(String layerId, Map<String, dynamic> properties)?
+    onDataLayerFeatureTap,
+    String? styleStringOverride,
   }) {
     if (_controller == null) {
       _currentCenter = center;
@@ -87,18 +89,25 @@ class MapLibreMapAdapter implements MapAdapter {
         )
         .toList();
 
-    // Determine if source is a style (JSON URL or asset) or raster tile URL
-    final url = source?.urlTemplate ?? '';
+    // When style override is set (e.g. offline region), use it and ignore source URL
+    final url = styleStringOverride == null ? (source?.urlTemplate ?? '') : '';
+    final lower = url.toLowerCase();
     final isStyleUrl =
-        url.toLowerCase().contains('style.json') ||
-        url.toLowerCase().startsWith('asset://');
+        lower.contains('style.json') ||
+        lower.startsWith('asset://') ||
+        (lower.startsWith('http') && lower.contains('/styles/'));
 
     // Markers are drawn as native map circles (integrated into map layer).
     return MapLibreWidget(
       initialCenter: center,
       initialZoom: zoom,
-      styleUrl: isStyleUrl ? source?.urlTemplate : null,
-      rasterTileUrl: !isStyleUrl ? source?.urlTemplate : null,
+      styleStringOverride: styleStringOverride,
+      styleUrl: styleStringOverride == null && isStyleUrl
+          ? source?.urlTemplate
+          : null,
+      rasterTileUrl: styleStringOverride == null && !isStyleUrl
+          ? source?.urlTemplate
+          : null,
       minZoom: source?.minZoom ?? 0,
       maxZoom: source?.maxZoom ?? 22,
       onMapCreated: (controller) {
@@ -128,12 +137,7 @@ class MapLibreMapAdapter implements MapAdapter {
   }
 
   @override
-  void moveCamera(
-    LatLng center,
-    double zoom, {
-    double? tilt,
-    double? bearing,
-  }) {
+  void moveCamera(LatLng center, double zoom, {double? tilt, double? bearing}) {
     debugPrint('[MapLibreAdapter] moveCamera to $center $zoom');
     _currentCenter = center;
     _currentZoom = zoom;

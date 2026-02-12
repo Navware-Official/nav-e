@@ -11,6 +11,7 @@ class DraggableFAB extends StatefulWidget {
   final double? initialY;
   final ShapeBorder shape;
   final Color iconColor;
+
   /// When null, uses theme's FAB default. Use for inactive state (e.g. muted).
   final Color? backgroundColor;
 

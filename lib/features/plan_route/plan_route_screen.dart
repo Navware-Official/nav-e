@@ -272,10 +272,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
                 decoration: BoxDecoration(
                   color: colorScheme.tertiary,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colorScheme.surface,
-                    width: 2,
-                  ),
+                  border: Border.all(color: colorScheme.surface, width: 2),
                 ),
               );
             },
@@ -299,8 +296,18 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
                       PolylineModel(
                         id: 'route',
                         points: _routePoints,
-                        colorArgb: context.read<MapBloc>().state.defaultPolylineColorArgb ?? 0xFF375AF9,
-                        strokeWidth: context.read<MapBloc>().state.defaultPolylineWidth ?? 4.0,
+                        colorArgb:
+                            context
+                                .read<MapBloc>()
+                                .state
+                                .defaultPolylineColorArgb ??
+                            0xFF375AF9,
+                        strokeWidth:
+                            context
+                                .read<MapBloc>()
+                                .state
+                                .defaultPolylineWidth ??
+                            4.0,
                       ),
                     ]
                   : const [],

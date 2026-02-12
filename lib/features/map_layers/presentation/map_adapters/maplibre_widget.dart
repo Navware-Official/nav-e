@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math' show Point;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as ml;
 import 'package:nav_e/core/theme/colors.dart';
@@ -32,17 +33,23 @@ class MapLibreWidget extends StatefulWidget {
   final Function(LatLng center, double zoom)? onCameraMove;
   final VoidCallback? onCameraIdle;
   final Function(LatLng)? onMapTap;
+
   /// Long press: e.g. reverse geosearch on home.
   final void Function(LatLng)? onMapLongPress;
+
   /// Called when the user taps a data layer feature (e.g. parking polygon).
   /// [layerId] is the data layer id (e.g. "parking"); [properties] are the GeoJSON feature properties.
-  final void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap;
+  final void Function(String layerId, Map<String, dynamic> properties)?
+  onDataLayerFeatureTap;
   final List<MapLibrePolyline> polylines;
   final List<MapLibreMarker> markers;
   final Set<String> enabledDataLayerIds;
   final List<DataLayerDefinition> dataLayerDefinitions;
   final int? markerFillColorArgb;
   final int? markerStrokeColorArgb;
+
+  /// When set, used as the map style JSON instead of loading from [styleUrl] / [rasterTileUrl].
+  final String? styleStringOverride;
 
   const MapLibreWidget({
     super.key,
@@ -64,6 +71,7 @@ class MapLibreWidget extends StatefulWidget {
     this.dataLayerDefinitions = const [],
     this.markerFillColorArgb,
     this.markerStrokeColorArgb,
+    this.styleStringOverride,
   });
 
   @override
@@ -77,6 +85,7 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
 
   /// Native map circles used as markers (integrated into map layer).
   final Map<String, ml.Circle> _markerCircles = {};
+
   /// Data layer ids for which we have added source+layer (so we can remove them).
   final Set<String> _dataLayerIdsAdded = {};
   late Future<String> _styleFuture;
@@ -94,7 +103,8 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
 
     // Reload style if source parameters changed
     if (oldWidget.styleUrl != widget.styleUrl ||
-        oldWidget.rasterTileUrl != widget.rasterTileUrl) {
+        oldWidget.rasterTileUrl != widget.rasterTileUrl ||
+        oldWidget.styleStringOverride != widget.styleStringOverride) {
       setState(() {
         _styleLoaded = false;
         _polylineObjects.clear();
@@ -123,6 +133,9 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
 
   /// Loads the map style from URL, asset, or generates raster tile style.
   Future<String> _loadStyleString() async {
+    if (widget.styleStringOverride != null) {
+      return widget.styleStringOverride!;
+    }
     // Custom style URL (HTTP/HTTPS or asset://)
     if (widget.styleUrl != null) {
       final styleUrl = widget.styleUrl!;
@@ -138,6 +151,19 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
           debugPrint('[MapLibreWidget] $stack');
           return ml.MapLibreStyles.demo;
         }
+      }
+
+      // Fetch remote style JSON (e.g. OpenFreeMap) so native SDK gets full JSON
+      if (styleUrl.startsWith('http://') || styleUrl.startsWith('https://')) {
+        try {
+          final response = await http.get(Uri.parse(styleUrl));
+          if (response.statusCode == 200) return response.body;
+          debugPrint('[MapLibreWidget] Style URL returned ${response.statusCode}: $styleUrl');
+        } catch (e, stack) {
+          debugPrint('[MapLibreWidget] Failed to fetch style URL: $e');
+          debugPrint('[MapLibreWidget] $stack');
+        }
+        return ml.MapLibreStyles.demo;
       }
 
       return styleUrl;
@@ -207,18 +233,19 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
               onStyleLoadedCallback: _handleStyleLoaded,
               onCameraMove: _handleCameraMove,
               onCameraIdle: _handleCameraIdle,
-              onMapClick: (widget.onMapTap != null ||
+              onMapClick:
+                  (widget.onMapTap != null ||
                       (widget.onDataLayerFeatureTap != null &&
                           widget.enabledDataLayerIds.isNotEmpty))
                   ? (point, coordinates) => _handleMapClick(
-                        point,
-                        LatLng(coordinates.latitude, coordinates.longitude),
-                      )
+                      point,
+                      LatLng(coordinates.latitude, coordinates.longitude),
+                    )
                   : null,
               onMapLongClick: widget.onMapLongPress != null
                   ? (point, coordinates) => _handleMapLongClick(
-                        LatLng(coordinates.latitude, coordinates.longitude),
-                      )
+                      LatLng(coordinates.latitude, coordinates.longitude),
+                    )
                   : null,
               trackCameraPosition: true,
               myLocationEnabled: false,
@@ -293,30 +320,31 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
       _nativeController!
           .queryRenderedFeatures(pt, layerIds, null)
           .then((features) {
-        if (features.isNotEmpty) {
-          final first = features[0];
-          if (first is Map<String, dynamic>) {
-            final props = first['properties'];
-            final layer = first['layer'];
-            final propsMap = props is Map
-                ? Map<String, dynamic>.from(props)
-                : <String, dynamic>{};
-            final layerId = layer is Map
-                ? (layer['id'] as String?) ?? ''
-                : layer?.toString() ?? '';
-            final dataLayerId = layerId.startsWith('data-layer-')
-                ? layerId.substring('data-layer-'.length)
-                : layerId;
-            if (dataLayerId.isNotEmpty) {
-              widget.onDataLayerFeatureTap?.call(dataLayerId, propsMap);
-              return;
+            if (features.isNotEmpty) {
+              final first = features[0];
+              if (first is Map<String, dynamic>) {
+                final props = first['properties'];
+                final layer = first['layer'];
+                final propsMap = props is Map
+                    ? Map<String, dynamic>.from(props)
+                    : <String, dynamic>{};
+                final layerId = layer is Map
+                    ? (layer['id'] as String?) ?? ''
+                    : layer?.toString() ?? '';
+                final dataLayerId = layerId.startsWith('data-layer-')
+                    ? layerId.substring('data-layer-'.length)
+                    : layerId;
+                if (dataLayerId.isNotEmpty) {
+                  widget.onDataLayerFeatureTap?.call(dataLayerId, propsMap);
+                  return;
+                }
+              }
             }
-          }
-        }
-        widget.onMapTap?.call(coordinates);
-      }).catchError((_) {
-        widget.onMapTap?.call(coordinates);
-      });
+            widget.onMapTap?.call(coordinates);
+          })
+          .catchError((_) {
+            widget.onMapTap?.call(coordinates);
+          });
     } else {
       widget.onMapTap?.call(coordinates);
     }
@@ -363,7 +391,7 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
     if (_nativeController == null || !_styleLoaded) return;
 
     final definitionsById = {
-      for (final d in widget.dataLayerDefinitions) d.id: d
+      for (final d in widget.dataLayerDefinitions) d.id: d,
     };
 
     // Remove layers that are no longer enabled
@@ -388,7 +416,9 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
       if (definition == null) continue;
 
       try {
-        final jsonString = await rootBundle.loadString(definition.geojsonAssetPath);
+        final jsonString = await rootBundle.loadString(
+          definition.geojsonAssetPath,
+        );
         final geojsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
         final sourceId = 'data-source-$id';
         final layerId = 'data-layer-$id';
@@ -423,10 +453,7 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
             await _nativeController!.addLineLayer(
               sourceId,
               layerId,
-              const ml.LineLayerProperties(
-                lineColor: '#3388ff',
-                lineWidth: 2,
-              ),
+              const ml.LineLayerProperties(lineColor: '#3388ff', lineWidth: 2),
             );
             break;
         }
@@ -515,12 +542,7 @@ class MapLibreMapController {
   // ========== Camera Controls ==========
 
   /// Instantly moves the camera to the specified position and zoom level.
-  void moveCamera(
-    LatLng center,
-    double zoom, {
-    double? tilt,
-    double? bearing,
-  }) {
+  void moveCamera(LatLng center, double zoom, {double? tilt, double? bearing}) {
     try {
       if (tilt == null && bearing == null) {
         _native.moveCamera(

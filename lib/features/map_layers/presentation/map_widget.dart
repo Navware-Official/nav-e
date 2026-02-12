@@ -6,6 +6,7 @@ import 'package:nav_e/core/bloc/location_bloc.dart';
 
 import 'package:nav_e/core/data/map_adapter.dart';
 import 'package:nav_e/features/map_layers/data/data_layer_registry.dart';
+import 'package:nav_e/features/offline_maps/data/offline_map_style_resolver.dart';
 import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
@@ -16,7 +17,8 @@ class MapWidget extends StatefulWidget {
   final List<MarkerModel> markers;
   final void Function(LatLng latlng)? onMapTap;
   final void Function(LatLng latlng)? onMapLongPress;
-  final void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap;
+  final void Function(String layerId, Map<String, dynamic> properties)?
+  onDataLayerFeatureTap;
 
   const MapWidget({
     super.key,
@@ -85,8 +87,8 @@ class _MapWidgetState extends State<MapWidget> {
             curr.isReady &&
             (prev.center != curr.center ||
                 prev.zoom != curr.zoom ||
-            prev.tilt != curr.tilt ||
-            prev.bearing != curr.bearing ||
+                prev.tilt != curr.tilt ||
+                prev.bearing != curr.bearing ||
                 prev.polylines != curr.polylines ||
                 prev.followUser != curr.followUser ||
                 prev.resetBearingTick != curr.resetBearingTick ||
@@ -131,88 +133,123 @@ class _MapWidgetState extends State<MapWidget> {
               }
             } else if (state.followUser) {
               // Only move the camera to follow the user when followUser flag is true.
-              // Use adapter instead of direct controller
-              debugPrint(
-                '[MapWidget] followUser move | state=${state.center},${state.zoom} '
-                'adapter=${_adapter?.currentCenter},${_adapter?.currentZoom}',
-              );
-              if (_adapter != null &&
-                  (_adapter!.currentCenter != state.center ||
-                      _adapter!.currentZoom != state.zoom ||
-                      _adapter!.currentTilt != state.tilt ||
-                      _adapter!.currentBearing != state.bearing)) {
-                _adapter!.moveCamera(
-                  state.center,
-                  state.zoom,
-                  tilt: state.tilt,
-                  bearing: state.bearing,
-                );
+              // Use tolerance to avoid feedback loop: map reports position -> we move ->
+              // map reports again (slight diff) -> we move again -> freeze/jitter.
+              if (_adapter == null) return;
+              const centerTolerance = 1e-6;
+              const zoomTolerance = 0.001;
+              final centerMatch =
+                  (_adapter!.currentCenter.latitude - state.center.latitude).abs() < centerTolerance &&
+                  (_adapter!.currentCenter.longitude - state.center.longitude).abs() < centerTolerance;
+              final zoomMatch =
+                  (_adapter!.currentZoom - state.zoom).abs() < zoomTolerance;
+              final tiltMatch = (_adapter!.currentTilt - state.tilt).abs() < 0.01;
+              final bearingMatch = (_adapter!.currentBearing - state.bearing).abs() < 0.01;
+              if (centerMatch && zoomMatch && tiltMatch && bearingMatch) {
+                return;
               }
+              _adapter!.moveCamera(
+                state.center,
+                state.zoom,
+                tilt: state.tilt,
+                bearing: state.bearing,
+              );
             }
           });
         },
         builder: (context, state) {
-          // Ensure adapter is created
-          _ensureAdapter(state);
-
-          if (_adapter == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
-
-          return KeyedSubtree(
-            key: const ValueKey('maplibre_map'),
-            child: _adapter!.buildMap(
-              source: state.source,
-              center: state.center,
-              zoom: state.zoom,
-              markers: widget.markers,
-              polylines: [...state.polylines],
-              onMapReady: () {
-                if (!state.isReady) {
-                  mapBloc.add(MapInitialized());
+          final isOffline =
+              state.source?.urlTemplate.startsWith('offline://') == true;
+          if (isOffline) {
+            final regionId = state.source!.urlTemplate.replaceFirst(
+              'offline://',
+              '',
+            );
+            final resolver = context.read<OfflineMapStyleResolver>();
+            return FutureBuilder<String?>(
+              key: ValueKey('offline_$regionId'),
+              future: resolver.getStyleString(regionId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
                 }
-              },
-              onPositionChanged: (center, zoom) {
-                debugPrint('[MapWidget] onPositionChanged $center $zoom');
-                if (center != state.center || zoom != state.zoom) {
-                  mapBloc.add(MapMoved(center, zoom));
+                final styleOverride = snapshot.data;
+                if (styleOverride == null) {
+                  return const Center(child: Text('Offline region not found'));
                 }
-              },
-              onUserGesture: (hasGesture) {
-                if (hasGesture) {
-                  mapBloc.add(ToggleFollowUser(false));
-                }
-              },
-              onCameraIdle: () {
-                // When the camera settles, if we're still in follow-user mode but
-                // the map center is far from the user location, the user panned
-                // the map — stop following.
-                if (!context.mounted) return;
-                final mapState = mapBloc.state;
-                if (!mapState.followUser) return;
-                final location = context.read<LocationBloc>().state.position;
-                if (location == null || _adapter == null) return;
-                const thresholdMeters = 25.0;
-                final distance = const Distance().distance(
-                  _adapter!.currentCenter,
-                  location,
+                return _buildMapContent(
+                  context,
+                  state,
+                  mapBloc,
+                  styleStringOverride: styleOverride,
                 );
-                if (distance > thresholdMeters) {
-                  mapBloc.add(ToggleFollowUser(false));
-                }
               },
-              onMapTap: widget.onMapTap,
-              onMapLongPress: widget.onMapLongPress,
-              enabledDataLayerIds: state.enabledDataLayerIds,
-              dataLayerDefinitions: getDataLayerDefinitions(),
-              markerFillColorArgb: state.markerFillColorArgb,
-              markerStrokeColorArgb: state.markerStrokeColorArgb,
-              defaultPolylineColorArgb: state.defaultPolylineColorArgb,
-              defaultPolylineWidth: state.defaultPolylineWidth,
-              onDataLayerFeatureTap: widget.onDataLayerFeatureTap,
-            ),
-          );
+            );
+          }
+          return _buildMapContent(context, state, mapBloc);
         },
+      ),
+    );
+  }
+
+  Widget _buildMapContent(
+    BuildContext context,
+    MapState state,
+    MapBloc mapBloc, {
+    String? styleStringOverride,
+  }) {
+    _ensureAdapter(state);
+    if (_adapter == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return KeyedSubtree(
+      key: const ValueKey('maplibre_map'),
+      child: _adapter!.buildMap(
+        source: state.source,
+        center: state.center,
+        zoom: state.zoom,
+        markers: widget.markers,
+        polylines: [...state.polylines],
+        onMapReady: () {
+          if (!state.isReady) {
+            mapBloc.add(MapInitialized());
+          }
+        },
+        onPositionChanged: (center, zoom) {
+          if (center != state.center || zoom != state.zoom) {
+            mapBloc.add(MapMoved(center, zoom));
+          }
+        },
+        onUserGesture: (hasGesture) {
+          if (hasGesture) {
+            mapBloc.add(ToggleFollowUser(false));
+          }
+        },
+        onCameraIdle: () {
+          if (!context.mounted) return;
+          final mapState = mapBloc.state;
+          if (!mapState.followUser) return;
+          final location = context.read<LocationBloc>().state.position;
+          if (location == null || _adapter == null) return;
+          const thresholdMeters = 25.0;
+          final distance = const Distance().distance(
+            _adapter!.currentCenter,
+            location,
+          );
+          if (distance > thresholdMeters) {
+            mapBloc.add(ToggleFollowUser(false));
+          }
+        },
+        onMapTap: widget.onMapTap,
+        onMapLongPress: widget.onMapLongPress,
+        enabledDataLayerIds: state.enabledDataLayerIds,
+        dataLayerDefinitions: getDataLayerDefinitions(),
+        markerFillColorArgb: state.markerFillColorArgb,
+        markerStrokeColorArgb: state.markerStrokeColorArgb,
+        defaultPolylineColorArgb: state.defaultPolylineColorArgb,
+        defaultPolylineWidth: state.defaultPolylineWidth,
+        onDataLayerFeatureTap: widget.onDataLayerFeatureTap,
+        styleStringOverride: styleStringOverride,
       ),
     );
   }

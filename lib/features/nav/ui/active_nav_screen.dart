@@ -69,7 +69,8 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
                     PolylineModel(
                       id: widget.routeId,
                       points: widget.routePoints,
-                      colorArgb: mapState.defaultPolylineColorArgb ?? 0xFF375AF9,
+                      colorArgb:
+                          mapState.defaultPolylineColorArgb ?? 0xFF375AF9,
                       strokeWidth: mapState.defaultPolylineWidth ?? 4.0,
                     ),
                   ]
@@ -160,7 +161,7 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
                   icon: UserLocationMarker(heading: locState.heading),
                 ),
             ];
-            
+
             return Scaffold(
               extendBodyBehindAppBar: true,
               body: Stack(
@@ -369,10 +370,8 @@ class _BottomNavBar extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) => BlocProvider.value(
-        value: navBloc,
-        child: const _TurnFeedSheet(),
-      ),
+      builder: (_) =>
+          BlocProvider.value(value: navBloc, child: const _TurnFeedSheet()),
     );
   }
 }

@@ -60,15 +60,9 @@ class MapControlBottomSheet extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 16),
-                _SectionCard(
-                  title: 'Data layers',
-                  child: _DataLayersGrid(),
-                ),
+                _SectionCard(title: 'Data layers', child: _DataLayersGrid()),
                 SizedBox(height: 16),
-                _SectionCard(
-                  title: 'Style',
-                  child: _StyleSection(),
-                ),
+                _SectionCard(title: 'Style', child: _StyleSection()),
               ],
             ),
           ),
@@ -95,13 +89,16 @@ class _DataLayersGrid extends StatelessWidget {
     if (definitions.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
     return BlocBuilder<MapBloc, MapState>(
-      buildWhen: (prev, curr) => prev.enabledDataLayerIds != curr.enabledDataLayerIds,
+      buildWhen: (prev, curr) =>
+          prev.enabledDataLayerIds != curr.enabledDataLayerIds,
       builder: (context, state) {
         return LayoutBuilder(
           builder: (context, constraints) {
             const crossAxisCount = 3;
             const spacing = 8.0;
-            final width = (constraints.maxWidth - spacing * (crossAxisCount - 1)) / crossAxisCount;
+            final width =
+                (constraints.maxWidth - spacing * (crossAxisCount - 1)) /
+                crossAxisCount;
             return Wrap(
               spacing: spacing,
               runSpacing: spacing,
@@ -115,7 +112,8 @@ class _DataLayersGrid extends StatelessWidget {
                         : theme.colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.zero,
                     child: InkWell(
-                      onTap: () => context.read<MapBloc>().add(ToggleDataLayer(def.id)),
+                      onTap: () =>
+                          context.read<MapBloc>().add(ToggleDataLayer(def.id)),
                       borderRadius: BorderRadius.zero,
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -174,10 +172,14 @@ class _StyleSection extends StatelessWidget {
           prev.markerFillColorArgb != curr.markerFillColorArgb ||
           prev.markerStrokeColorArgb != curr.markerStrokeColorArgb,
       builder: (context, state) {
-        final polylineColor = state.defaultPolylineColorArgb ?? _defaultPolylineColorArgb;
-        final polylineWidth = state.defaultPolylineWidth ?? _defaultPolylineWidth;
-        final markerFill = state.markerFillColorArgb ?? AppColors.blueRibbon.value;
-        final hasOverrides = state.defaultPolylineColorArgb != null ||
+        final polylineColor =
+            state.defaultPolylineColorArgb ?? _defaultPolylineColorArgb;
+        final polylineWidth =
+            state.defaultPolylineWidth ?? _defaultPolylineWidth;
+        final markerFill =
+            state.markerFillColorArgb ?? AppColors.blueRibbon.value;
+        final hasOverrides =
+            state.defaultPolylineColorArgb != null ||
             state.defaultPolylineWidth != null ||
             state.markerFillColorArgb != null ||
             state.markerStrokeColorArgb != null;
@@ -197,8 +199,8 @@ class _StyleSection extends StatelessWidget {
                     selectedColor: Color(argb),
                     backgroundColor: Color(argb).withValues(alpha: 0.3),
                     onSelected: (_) => context.read<MapBloc>().add(
-                          SetMapStyleConfig(defaultPolylineColorArgb: argb),
-                        ),
+                      SetMapStyleConfig(defaultPolylineColorArgb: argb),
+                    ),
                   );
                 }).toList(),
               ),
@@ -215,8 +217,8 @@ class _StyleSection extends StatelessWidget {
                     selected: selected,
                     label: Text('${w.toInt()}'),
                     onSelected: (_) => context.read<MapBloc>().add(
-                          SetMapStyleConfig(defaultPolylineWidth: w),
-                        ),
+                      SetMapStyleConfig(defaultPolylineWidth: w),
+                    ),
                   );
                 }).toList(),
               ),
@@ -236,11 +238,11 @@ class _StyleSection extends StatelessWidget {
                     selectedColor: Color(argb),
                     backgroundColor: Color(argb).withValues(alpha: 0.3),
                     onSelected: (_) => context.read<MapBloc>().add(
-                          SetMapStyleConfig(
-                            markerFillColorArgb: argb,
-                            markerStrokeColorArgb: stroke,
-                          ),
-                        ),
+                      SetMapStyleConfig(
+                        markerFillColorArgb: argb,
+                        markerStrokeColorArgb: stroke,
+                      ),
+                    ),
                   );
                 }).toList(),
               ),
@@ -248,7 +250,8 @@ class _StyleSection extends StatelessWidget {
             if (hasOverrides) ...[
               SizedBox(height: 12),
               TextButton.icon(
-                onPressed: () => context.read<MapBloc>().add(ResetMapStyleConfig()),
+                onPressed: () =>
+                    context.read<MapBloc>().add(ResetMapStyleConfig()),
                 icon: const Icon(Icons.restore, size: 18),
                 label: const Text('Reset to defaults'),
               ),
@@ -271,7 +274,10 @@ class _StyleRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 100, child: Text(label, style: Theme.of(context).textTheme.bodySmall)),
+        SizedBox(
+          width: 100,
+          child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ),
         Expanded(child: child),
       ],
     );
