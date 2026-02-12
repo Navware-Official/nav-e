@@ -36,8 +36,7 @@ class NavBanner extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.navigation,
-                        color: colorScheme.onSurface),
+                    Icon(Icons.navigation, color: colorScheme.onSurface),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(

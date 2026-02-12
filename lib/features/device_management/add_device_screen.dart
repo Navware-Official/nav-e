@@ -214,10 +214,12 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                           : title;
                                       String remoteId = result.device.remoteId
                                           .toString();
-                                      final typeLabel =
-                                          _inferDeviceTypeLabel(result);
-                                      final typeIcon =
-                                          _inferDeviceTypeIcon(result);
+                                      final typeLabel = _inferDeviceTypeLabel(
+                                        result,
+                                      );
+                                      final typeIcon = _inferDeviceTypeIcon(
+                                        result,
+                                      );
 
                                       return ListTile(
                                         leading: CircleAvatar(
@@ -254,8 +256,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                                     const SizedBox(width: 4),
                                                     Text(
                                                       typeLabel,
-                                                      style: textTheme
-                                                          .bodySmall
+                                                      style: textTheme.bodySmall
                                                           ?.copyWith(
                                                             color: colorScheme
                                                                 .onSurfaceVariant,
@@ -276,8 +277,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                                     const SizedBox(width: 4),
                                                     Text(
                                                       'RSSI ${result.rssi}',
-                                                      style: textTheme
-                                                          .bodySmall
+                                                      style: textTheme.bodySmall
                                                           ?.copyWith(
                                                             color: colorScheme
                                                                 .onSurfaceVariant,

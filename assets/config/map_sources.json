@@ -23,8 +23,40 @@
     "id": "custom",
     "name": "Custom Style",
     "urlTemplate": "asset://assets/styles/custom_style.json",
-    "maxZoom": 22,
+    "maxZoom": 6,
     "attribution": "© OpenStreetMap contributors",
     "description": "Nav-E custom vector style"
+  },
+  {
+    "id": "custom_dark",
+    "name": "Custom Style (Dark)",
+    "urlTemplate": "asset://assets/styles/custom_style_dark.json",
+    "maxZoom": 6,
+    "attribution": "© OpenStreetMap contributors",
+    "description": "Nav-E dark vector style"
+  },
+  {
+    "id": "openfreemap_bright",
+    "name": "OpenFreeMap Bright",
+    "urlTemplate": "https://tiles.openfreemap.org/styles/bright",
+    "maxZoom": 19,
+    "attribution": "© OpenFreeMap © OpenStreetMap contributors",
+    "description": "Vector map with roads, labels, buildings; free, no API key"
+  },
+  {
+    "id": "openfreemap_liberty",
+    "name": "OpenFreeMap Liberty",
+    "urlTemplate": "https://tiles.openfreemap.org/styles/liberty",
+    "maxZoom": 19,
+    "attribution": "© OpenFreeMap © OpenStreetMap contributors",
+    "description": "Vector map (Liberty style); free, no API key"
+  },
+  {
+    "id": "openfreemap_dark",
+    "name": "OpenFreeMap Dark",
+    "urlTemplate": "https://tiles.openfreemap.org/styles/dark",
+    "maxZoom": 19,
+    "attribution": "© OpenFreeMap © OpenStreetMap contributors",
+    "description": "Dark vector map with roads, labels, buildings; free, no API key"
   }
 ]

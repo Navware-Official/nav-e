@@ -9,7 +9,9 @@ import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 /// Allows swapping between flutter_map (raster tiles) and MapLibre (vector tiles)
 /// without changing the business logic in MapBloc.
 abstract class MapAdapter {
-  /// Build the map widget with the current state
+  /// Build the map widget with the current state.
+  /// [styleStringOverride] when non-null is used instead of loading from [source]
+  /// (e.g. for offline regions with local tile server).
   Widget buildMap({
     required MapSource? source,
     required LatLng center,
@@ -28,16 +30,13 @@ abstract class MapAdapter {
     int? markerStrokeColorArgb,
     int? defaultPolylineColorArgb,
     double? defaultPolylineWidth,
-    void Function(String layerId, Map<String, dynamic> properties)? onDataLayerFeatureTap,
+    void Function(String layerId, Map<String, dynamic> properties)?
+    onDataLayerFeatureTap,
+    String? styleStringOverride,
   });
 
   /// Move the map camera to a specific location
-  void moveCamera(
-    LatLng center,
-    double zoom, {
-    double? tilt,
-    double? bearing,
-  });
+  void moveCamera(LatLng center, double zoom, {double? tilt, double? bearing});
 
   /// Reset the map bearing (rotation) to north
   void resetBearing();

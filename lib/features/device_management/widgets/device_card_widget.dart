@@ -73,7 +73,9 @@ class DeviceCard extends StatelessWidget {
                               if (state is BluetoothConnetionStatusAquired) {
                                 final status = state.status.toString();
                                 final color = _getConnectionColor(
-                                    context, status);
+                                  context,
+                                  status,
+                                );
                                 final icon = status == 'Connected'
                                     ? Icons.check_circle
                                     : Icons.radio_button_unchecked;
@@ -165,11 +167,16 @@ class DeviceCard extends StatelessWidget {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete,
-                                size: 18, color: colorScheme.error),
+                            Icon(
+                              Icons.delete,
+                              size: 18,
+                              color: colorScheme.error,
+                            ),
                             const SizedBox(width: 8),
-                            Text('Delete',
-                                style: TextStyle(color: colorScheme.error)),
+                            Text(
+                              'Delete',
+                              style: TextStyle(color: colorScheme.error),
+                            ),
                           ],
                         ),
                       ),
@@ -217,8 +224,9 @@ class DeviceCard extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () {
-                        BlocProvider.of<BluetoothBloc>(context)
-                            .add(ToggleConnection(device));
+                        BlocProvider.of<BluetoothBloc>(
+                          context,
+                        ).add(ToggleConnection(device));
                       },
                       icon: Icon(
                         isConnected ? Icons.link_off : Icons.link,
@@ -226,8 +234,9 @@ class DeviceCard extends StatelessWidget {
                       ),
                       label: Text(
                         isConnected ? 'Disconnect' : 'Connect',
-                        style: textTheme.labelLarge
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                        style: textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isConnected
@@ -342,9 +351,7 @@ class DeviceCard extends StatelessWidget {
         title: const Text('Change device name'),
         content: TextField(
           controller: controller,
-          decoration: InputDecoration(
-            hintText: device.name,
-          ),
+          decoration: InputDecoration(hintText: device.name),
         ),
         actions: <Widget>[
           TextButton(
@@ -353,10 +360,10 @@ class DeviceCard extends StatelessWidget {
           ),
           ElevatedButton(
             onPressed: () {
-              final renamedDevice =
-                  device.copyWith(name: controller.text);
-              BlocProvider.of<DevicesBloc>(context)
-                  .add(UpdateDevice(renamedDevice));
+              final renamedDevice = device.copyWith(name: controller.text);
+              BlocProvider.of<DevicesBloc>(
+                context,
+              ).add(UpdateDevice(renamedDevice));
               Navigator.pop(dialogContext);
             },
             child: const Text('Rename'),
@@ -371,8 +378,7 @@ class DeviceCard extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Device'),
-        content: Text(
-            'Are you sure you want to delete "${device.name}"?'),
+        content: Text('Are you sure you want to delete "${device.name}"?'),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),

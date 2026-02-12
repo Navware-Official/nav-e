@@ -46,8 +46,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
             if (state is SavedPlacesError) {
               return AppErrorState(
                 message: state.message,
-                onRetry: () =>
-                    context.read<SavedPlacesCubit>().loadPlaces(),
+                onRetry: () => context.read<SavedPlacesCubit>().loadPlaces(),
               );
             }
 
@@ -63,8 +62,7 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                   onAction: () {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text(
-                            'Use search to add your first place.'),
+                        content: Text('Use search to add your first place.'),
                       ),
                     );
                   },

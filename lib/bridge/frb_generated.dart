@@ -65,7 +65,7 @@ class RustBridge
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -1854845923;
+  int get rustContentHash => -522750087;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -95,9 +95,22 @@ abstract class RustBridgeApi extends BaseApi {
 
   void crateDeleteDevice({required PlatformInt64 id});
 
+  void crateDeleteOfflineRegion({required String id});
+
   void crateDeleteSavedPlace({required PlatformInt64 id});
 
   bool crateDeviceExistsByRemoteId({required String remoteId});
+
+  String crateDownloadOfflineRegion({
+    required String name,
+    required double north,
+    required double south,
+    required double east,
+    required double west,
+    required int minZoom,
+    required int maxZoom,
+    String? tileUrlTemplate,
+  });
 
   Future<String> crateGeocodeSearch({required String query, int? limit});
 
@@ -105,11 +118,24 @@ abstract class RustBridgeApi extends BaseApi {
 
   String crateGetAllDevices();
 
+  String crateGetAllOfflineRegions();
+
   String crateGetAllSavedPlaces();
 
   String crateGetDeviceById({required PlatformInt64 id});
 
   String crateGetDeviceByRemoteId({required String remoteId});
+
+  String crateGetOfflineRegionById({required String id});
+
+  String crateGetOfflineRegionForViewport({
+    required double north,
+    required double south,
+    required double east,
+    required double west,
+  });
+
+  String crateGetOfflineRegionsStoragePath();
 
   String crateGetSavedPlaceById({required PlatformInt64 id});
 
@@ -293,13 +319,36 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       const TaskConstMeta(debugName: "delete_device", argNames: ["id"]);
 
   @override
+  void crateDeleteOfflineRegion({required String id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateDeleteOfflineRegionConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateDeleteOfflineRegionConstMeta =>
+      const TaskConstMeta(debugName: "delete_offline_region", argNames: ["id"]);
+
+  @override
   void crateDeleteSavedPlace({required PlatformInt64 id}) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_i_64(id, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 5)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -322,7 +371,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(remoteId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 6)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 7)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_bool,
@@ -342,6 +391,65 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
+  String crateDownloadOfflineRegion({
+    required String name,
+    required double north,
+    required double south,
+    required double east,
+    required double west,
+    required int minZoom,
+    required int maxZoom,
+    String? tileUrlTemplate,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(name, serializer);
+          sse_encode_f_64(north, serializer);
+          sse_encode_f_64(south, serializer);
+          sse_encode_f_64(east, serializer);
+          sse_encode_f_64(west, serializer);
+          sse_encode_i_32(minZoom, serializer);
+          sse_encode_i_32(maxZoom, serializer);
+          sse_encode_opt_String(tileUrlTemplate, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 8)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateDownloadOfflineRegionConstMeta,
+        argValues: [
+          name,
+          north,
+          south,
+          east,
+          west,
+          minZoom,
+          maxZoom,
+          tileUrlTemplate,
+        ],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateDownloadOfflineRegionConstMeta => const TaskConstMeta(
+    debugName: "download_offline_region",
+    argNames: [
+      "name",
+      "north",
+      "south",
+      "east",
+      "west",
+      "minZoom",
+      "maxZoom",
+      "tileUrlTemplate",
+    ],
+  );
+
+  @override
   Future<String> crateGeocodeSearch({required String query, int? limit}) {
     return handler.executeNormal(
       NormalTask(
@@ -352,7 +460,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 7,
+            funcId: 9,
             port: port_,
           );
         },
@@ -381,7 +489,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 8,
+            funcId: 10,
             port: port_,
           );
         },
@@ -405,7 +513,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 9)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -422,12 +530,34 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       const TaskConstMeta(debugName: "get_all_devices", argNames: []);
 
   @override
+  String crateGetAllOfflineRegions() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateGetAllOfflineRegionsConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateGetAllOfflineRegionsConstMeta =>
+      const TaskConstMeta(debugName: "get_all_offline_regions", argNames: []);
+
+  @override
   String crateGetAllSavedPlaces() {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 10)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -450,7 +580,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_i_64(id, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 11)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 14)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -473,7 +603,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(remoteId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 12)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 15)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -492,13 +622,97 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
+  String crateGetOfflineRegionById({required String id}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(id, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateGetOfflineRegionByIdConstMeta,
+        argValues: [id],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateGetOfflineRegionByIdConstMeta => const TaskConstMeta(
+    debugName: "get_offline_region_by_id",
+    argNames: ["id"],
+  );
+
+  @override
+  String crateGetOfflineRegionForViewport({
+    required double north,
+    required double south,
+    required double east,
+    required double west,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_f_64(north, serializer);
+          sse_encode_f_64(south, serializer);
+          sse_encode_f_64(east, serializer);
+          sse_encode_f_64(west, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateGetOfflineRegionForViewportConstMeta,
+        argValues: [north, south, east, west],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateGetOfflineRegionForViewportConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_offline_region_for_viewport",
+        argNames: ["north", "south", "east", "west"],
+      );
+
+  @override
+  String crateGetOfflineRegionsStoragePath() {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateGetOfflineRegionsStoragePathConstMeta,
+        argValues: [],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateGetOfflineRegionsStoragePathConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_offline_regions_storage_path",
+        argNames: [],
+      );
+
+  @override
   String crateGetSavedPlaceById({required PlatformInt64 id}) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_i_64(id, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 13)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -524,7 +738,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 14,
+            funcId: 20,
             port: port_,
           );
         },
@@ -554,7 +768,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 15,
+            funcId: 21,
             port: port_,
           );
         },
@@ -581,7 +795,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(routeJson, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 16)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -606,7 +820,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_list_list_prim_u_8_strict(frameBytes, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 17)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -634,7 +848,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 18,
+            funcId: 24,
             port: port_,
           );
         },
@@ -668,7 +882,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 19,
+            funcId: 25,
             port: port_,
           );
         },
@@ -695,7 +909,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(deviceJson, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_i_64,
@@ -732,7 +946,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           sse_encode_opt_String(source, serializer);
           sse_encode_opt_box_autoadd_i_64(typeId, serializer);
           sse_encode_opt_String(remoteId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_i_64,
@@ -764,7 +978,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 22,
+            funcId: 28,
             port: port_,
           );
         },
@@ -798,7 +1012,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 23,
+            funcId: 29,
             port: port_,
           );
         },
@@ -829,7 +1043,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 30,
             port: port_,
           );
         },
@@ -860,7 +1074,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_i_64(id, serializer);
           sse_encode_String(deviceJson, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 31)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -894,7 +1108,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 26,
+            funcId: 32,
             port: port_,
           );
         },
@@ -955,6 +1169,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   double dco_decode_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as double;
+  }
+
+  @protected
+  int dco_decode_i_32(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw as int;
   }
 
   @protected
@@ -1080,6 +1300,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  int sse_decode_i_32(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return deserializer.buffer.getInt32();
+  }
+
+  @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getPlatformInt64();
@@ -1186,12 +1412,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
-  int sse_decode_i_32(SseDeserializer deserializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    return deserializer.buffer.getInt32();
-  }
-
-  @protected
   void sse_encode_AnyhowException(
     AnyhowException self,
     SseSerializer serializer,
@@ -1240,6 +1460,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   void sse_encode_f_64(double self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putFloat64(self);
+  }
+
+  @protected
+  void sse_encode_i_32(int self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    serializer.buffer.putInt32(self);
   }
 
   @protected
@@ -1352,11 +1578,5 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   @protected
   void sse_encode_unit(void self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
-  }
-
-  @protected
-  void sse_encode_i_32(int self, SseSerializer serializer) {
-    // Codec=Sse (Serialization based), see doc to use other codecs
-    serializer.buffer.putInt32(self);
   }
 }

@@ -14,6 +14,7 @@ help:
 	@echo "  make test-rust         # Run Rust API smoke tests (cargo test -p nav_e_ffi)"
 	@echo "  make codegen           # Run flutter_rust_bridge_codegen (v2.x) and generate Dart bindings into lib/bridge"
 	@echo "  make build-native      # Build native Rust crate (desktop)"
+	@echo "  make android-rust-targets # Install Rust Android targets (once, if build-android fails)"
 	@echo "  make build-android     # Build Android native libs for arm64 and copy to android/app/src/main/jniLibs"
 	@echo "  make build-android-all # Build Android native libs for common ABIs and copy to jniLibs"
 	@echo "  make clean-native      # cargo clean in native/nav_engine"
@@ -39,15 +40,22 @@ build-native:
 	@echo "Building native Rust crate (release)..."
 	@cd native/nav_e_ffi && cargo build --release
 
+## Install Rust targets for Android (run once if build-android fails with "can't find crate for `core`")
+android-rust-targets:
+	@echo "Adding Rust targets for Android..."
+	@rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+
 ## Build Android libs via cargo-ndk (arm64 only). Requires cargo-ndk and NDK installed.
 build-android:
 	@command -v cargo-ndk >/dev/null 2>&1 || { echo "cargo-ndk not found. Install with: cargo install cargo-ndk"; exit 1; }
+	@rustup target add aarch64-linux-android 2>/dev/null || true
 	@echo "Building Android native libs (arm64-v8a) and copying to android/app/src/main/jniLibs"
 	@cd native/nav_e_ffi && cargo ndk -t arm64-v8a -o ../../android/app/src/main/jniLibs build --release
 
 ## Build Android libs for multiple ABIs
 build-android-all:
 	@command -v cargo-ndk >/dev/null 2>&1 || { echo "cargo-ndk not found. Install with: cargo install cargo-ndk"; exit 1; }
+	@rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android 2>/dev/null || true
 	@echo "Building Android native libs (arm64-v8a, armeabi-v7a, x86_64) and copying to android/app/src/main/jniLibs"
 	@cd native/nav_e_ffi && cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 -o ../../android/app/src/main/jniLibs build --release
 
@@ -56,7 +64,7 @@ clean-native:
 	@cd native/nav_engine && cargo clean
 
 clean-android: clean-native
-	@rm -rf android/app/src/main/jniLibs/* 2>/dev/null || true
+	@rm -rf android/app/src/main/jniLibs/arm64-v8a android/app/src/main/jniLibs/armeabi-v7a android/app/src/main/jniLibs/x86_64 2>/dev/null || true
 	@echo "Android artifacts cleaned. Rebuild with 'make build-android'."
 
 ## Format Rust code

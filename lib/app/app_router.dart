@@ -17,6 +17,7 @@ import 'package:nav_e/features/saved_places/saved_places_screen.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/features/search/search_screen.dart';
 import 'package:nav_e/features/settings/settings_screen.dart';
+import 'package:nav_e/features/offline_maps/presentation/offline_maps_screen.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
@@ -84,6 +85,11 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         path: '/settings',
         name: 'settings',
         builder: (_, _) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: '/offline-maps',
+        name: 'offlineMaps',
+        builder: (_, _) => const OfflineMapsScreen(),
       ),
       GoRoute(
         path: '/navigate',

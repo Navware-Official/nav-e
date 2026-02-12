@@ -15,8 +15,4 @@ class DataLayerDefinition {
   });
 }
 
-enum DataLayerGeometryType {
-  fill,
-  circle,
-  line,
-}
+enum DataLayerGeometryType { fill, circle, line }

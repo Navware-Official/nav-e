@@ -175,3 +175,53 @@ Uint8List createControlMessage({
   statusCode: statusCode,
   message: message,
 );
+
+/// Get all offline regions as JSON array
+String getAllOfflineRegions() =>
+    RustBridge.instance.api.crateGetAllOfflineRegions();
+
+/// Get one offline region by id as JSON object (or null)
+String getOfflineRegionById({required String id}) =>
+    RustBridge.instance.api.crateGetOfflineRegionById(id: id);
+
+/// Delete an offline region by id and remove its tile directory
+void deleteOfflineRegion({required String id}) =>
+    RustBridge.instance.api.crateDeleteOfflineRegion(id: id);
+
+/// Get region for viewport bbox as JSON object (or null)
+String getOfflineRegionForViewport({
+  required double north,
+  required double south,
+  required double east,
+  required double west,
+}) => RustBridge.instance.api.crateGetOfflineRegionForViewport(
+  north: north,
+  south: south,
+  east: east,
+  west: west,
+);
+
+/// Get storage root path for offline regions
+String getOfflineRegionsStoragePath() =>
+    RustBridge.instance.api.crateGetOfflineRegionsStoragePath();
+
+/// Download a region: fetch tiles, write to directory, insert into DB. Returns region JSON.
+String downloadOfflineRegion({
+  required String name,
+  required double north,
+  required double south,
+  required double east,
+  required double west,
+  required int minZoom,
+  required int maxZoom,
+  String? tileUrlTemplate,
+}) => RustBridge.instance.api.crateDownloadOfflineRegion(
+  name: name,
+  north: north,
+  south: south,
+  east: east,
+  west: west,
+  minZoom: minZoom,
+  maxZoom: maxZoom,
+  tileUrlTemplate: tileUrlTemplate,
+);
