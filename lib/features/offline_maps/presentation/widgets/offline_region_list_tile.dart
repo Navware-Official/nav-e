@@ -7,10 +7,12 @@ class OfflineRegionListTile extends StatelessWidget {
     super.key,
     required this.region,
     required this.onDelete,
+    this.onSendToDevice,
   });
 
   final OfflineRegion region;
   final VoidCallback onDelete;
+  final VoidCallback? onSendToDevice;
 
   static String _formatBytes(int bytes) {
     if (bytes < 1024) return '$bytes B';
@@ -29,9 +31,21 @@ class OfflineRegionListTile extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
       ),
-      trailing: IconButton(
-        icon: const Icon(Icons.delete_outline),
-        onPressed: onDelete,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (onSendToDevice != null)
+            IconButton(
+              icon: const Icon(Icons.send_outlined),
+              onPressed: onSendToDevice,
+              tooltip: 'Send to device',
+            ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            onPressed: onDelete,
+            tooltip: 'Delete',
+          ),
+        ],
       ),
     );
   }

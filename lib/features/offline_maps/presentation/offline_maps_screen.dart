@@ -3,6 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:nav_e/core/domain/repositories/offline_regions_repository.dart';
+import 'package:nav_e/core/device_comm/device_comm_transport.dart';
+import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
+import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
+import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_states.dart';
 import 'package:nav_e/features/offline_maps/cubit/offline_maps_cubit.dart';
 import 'package:nav_e/features/offline_maps/cubit/offline_maps_state.dart';
 import 'package:nav_e/features/offline_maps/presentation/widgets/download_region_sheet.dart';
@@ -28,26 +32,48 @@ class _OfflineMapsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<OfflineMapsCubit, OfflineMapsState>(
-      listenWhen: (prev, curr) =>
-          prev.status == OfflineMapsStatus.downloading &&
-          (curr.status == OfflineMapsStatus.loaded ||
-              curr.status == OfflineMapsStatus.error),
-      listener: (context, state) {
-        if (state.status == OfflineMapsStatus.loaded) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Region downloaded')),
-          );
-        } else if (state.status == OfflineMapsStatus.error &&
-            state.errorMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage!),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<OfflineMapsCubit, OfflineMapsState>(
+          listenWhen: (prev, curr) =>
+              prev.status == OfflineMapsStatus.downloading &&
+              (curr.status == OfflineMapsStatus.loaded ||
+                  curr.status == OfflineMapsStatus.error),
+          listener: (context, state) {
+            if (state.status == OfflineMapsStatus.loaded) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Region downloaded')),
+              );
+            } else if (state.status == OfflineMapsStatus.error &&
+                state.errorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage!),
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<DeviceCommBloc, DeviceCommState>(
+          listenWhen: (prev, curr) =>
+              curr is DeviceCommSuccess || curr is DeviceCommError,
+          listener: (context, state) {
+            if (state is DeviceCommSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Map region sent to device')),
+              );
+            } else if (state is DeviceCommError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                ),
+              );
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
         leading: IconButton(
@@ -146,6 +172,8 @@ class _OfflineMapsView extends StatelessWidget {
                   region: region,
                   onDelete: () =>
                       _confirmDelete(context, region.name, region.id),
+                  onSendToDevice: () =>
+                      _openSendToDevice(context, region.id),
                 );
               },
             );
@@ -268,6 +296,71 @@ class _OfflineMapsView extends StatelessWidget {
       builder: (_) => BlocProvider.value(
         value: cubit,
         child: const DownloadRegionSheet(),
+      ),
+    );
+  }
+
+  void _openSendToDevice(BuildContext context, String regionId) {
+    final devicesFuture =
+        context.read<DeviceCommBloc>().getConnectedDeviceIds();
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => FutureBuilder<List<ConnectedDeviceInfo>>(
+        future: devicesFuture,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: CircularProgressIndicator()),
+            );
+          }
+          final devices = snapshot.data!;
+          if (devices.isEmpty) {
+            return Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text(
+                'No devices connected. Connect a device (Wear or BLE) first.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            );
+          }
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Send to device',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ),
+                ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: devices.length,
+                  itemBuilder: (context, index) {
+                    final device = devices[index];
+                    return ListTile(
+                      leading: const Icon(Icons.devices),
+                      title: Text(device.name ?? device.id),
+                      subtitle: Text(device.id),
+                      onTap: () {
+                        Navigator.of(sheetContext).pop();
+                        context.read<DeviceCommBloc>().add(
+                          SendMapRegionToDevice(
+                            remoteId: device.id,
+                            regionId: regionId,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

@@ -195,6 +195,33 @@ message ErrorReport {
   uint64 timestamp_ms = 5;
 }
 
+// Map region metadata: sent first so device knows how many TileChunk messages to expect
+message MapRegionMetadata {
+  string region_id = 1;
+  string name = 2;
+  double north = 3;
+  double south = 4;
+  double east = 5;
+  double west = 6;
+  uint32 min_zoom = 7;
+  uint32 max_zoom = 8;
+  uint32 total_tiles = 9;
+}
+
+// One vector tile (.pbf) for a region
+message TileChunk {
+  string region_id = 1;
+  int32 z = 2;
+  int32 x = 3;
+  int32 y = 4;
+  bytes data = 5;
+}
+
+// Map style/source sync: nav-e sends current map source id so device shows same map
+message MapStyle {
+  string map_source_id = 1;
+}
+
 // Frame wrapper for chunked transmission over BLE
 message Frame {
   uint32 magic = 1;  // 0xNAVE
@@ -222,5 +249,8 @@ message Message {
     WaypointUpdate waypoint_update = 8;
     DeviceCapabilities device_capabilities = 9;
     BatteryStatus battery_status = 10;
+    MapRegionMetadata map_region_metadata = 11;
+    TileChunk tile_chunk = 12;
+    MapStyle map_style = 13;
   }
 }

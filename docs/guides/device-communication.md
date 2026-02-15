@@ -6,7 +6,21 @@ This guide explains how the device communication system works and how to integra
 
 ## System Overview
 
-The device communication system enables sending navigation data from the phone to wearable devices (watches, custom hardware) over Bluetooth Low Energy (BLE).
+The device communication system enables sending navigation data from the phone to wearable devices (watches, custom hardware).
+
+### Prototype: Wear OS Message API (Android)
+
+For the **prototype**, phone–watch communication on Android uses the **Wear OS Message API** over the existing Wear OS companion link (no BLE scan or GATT). This avoids connection popups and conflicts with the Wear OS companion. The same protobuf messages and frame format are used; only the transport changes.
+
+- **Phone (nav-e):** MethodChannel `org.navware.nav_e/wear` (`getConnectedNodes`, `sendFrames`); EventChannel `org.navware.nav_e/wear_messages` for incoming messages from the watch.
+- **Paths:** Phone → watch: `/nav/frame` (one BLE-style frame per Wear message). Watch → phone: `/nav/msg` (e.g. ACK).
+- **Later versions** will switch back to BLE; the transport is abstracted so only the injected implementation (Wear vs BLE) changes.
+
+**Connecting to another phone:** The Wear OS transport only works for **phone (nav-e) ↔ Wear OS watch (nav-c)**. It does not support connecting to a second phone. To connect to another phone (e.g. a second Android device running nav-c as a GATT server), use **BLE**: in `main.dart` inject `BleDeviceCommTransport()` instead of `WearDeviceCommTransport()` on Android (or add a setting/build flag to choose transport). Then the phone will scan for BLE devices and can connect to the other phone.
+
+### Production: BLE
+
+Production and non-Android builds use **Bluetooth Low Energy (BLE)** to send data to wearables (watches, custom hardware).
 
 ### Architecture Layers
 
@@ -27,7 +41,7 @@ The device communication system enables sending navigation data from the phone t
 ┌─────────────────────────────────────────────────┐
 │ Service Layer (Business Logic)                  │
 │ • DeviceCommunicationService                    │
-│   - Prepares route JSON                         │
+│   - Prepares route JSON & map region messages   │
 │   - Handles transmission progress               │
 │   - Manages retry logic                         │
 └────────────────┬────────────────────────────────┘
@@ -35,6 +49,7 @@ The device communication system enables sending navigation data from the phone t
 ┌─────────────────────────────────────────────────┐
 │ FFI Bridge (Flutter ↔ Rust)                     │
 │ • prepareRouteMessage() - JSON → Protobuf       │
+│ • getOfflineRegionTileList/Bytes, prepare*      │
 │ • chunkMessageForBle() - Split into frames      │
 │ • createControlMessage() - Commands             │
 └────────────────┬────────────────────────────────┘
@@ -62,6 +77,8 @@ The device communication system enables sending navigation data from the phone t
 
 **Key Events:**
 - `SendRouteToDevice` - Triggers route transmission
+- `SendMapRegionToDevice` - Sends an offline map region (metadata + tile chunks) to the device
+- `SendMapStyleToDevice` - Sends current map source id so the device shows the same map style
 - `SendControlCommand` - Sends commands (START_NAV, STOP_NAV, ACK)
 - `MessageReceived` - Handles incoming device messages
 - `ResetDeviceComm` - Clears state
@@ -85,6 +102,8 @@ The device communication system enables sending navigation data from the phone t
 
 **Key Methods:**
 - `sendRoute()` - Complete route transmission
+- `sendMapRegion()` - Sends a downloaded offline region: metadata message first, then one TileChunk per tile, with optional progress callback
+- `sendMapStyle()` - Sends current map source id (MapStyle protobuf) so nav-c can apply the same map style
 - `sendControlCommand()` - Quick commands
 - `_sendFramesWithRetry()` - Reliable transmission
 
@@ -151,6 +170,12 @@ The device communication system enables sending navigation data from the phone t
 - `PositionUpdate` - GPS location from device
 - `BatteryStatus` - Device battery level
 - `DeviceCapabilities` - Screen size, features
+
+**Map data (offline regions):**
+- `MapRegionMetadata` - Sent first: region id, name, bbox (n/s/e/w), zoom range, `total_tiles`. The device uses this to allocate or reset a cache and know how many tile messages to expect.
+- `TileChunk` - One vector tile: `region_id`, `z`, `x`, `y`, and raw `.pbf` bytes. The phone sends one message per tile after the metadata.
+
+Map transfer is **push** from phone to device: the phone sends metadata then each tile as `TileChunk` over BLE (chunked with the same frame protocol as routes). The **device** is responsible for reassembling frames, handling `MapRegionMetadata` and `TileChunk`, caching tiles (e.g. by `region_id`, z, x, y), and rendering (e.g. MapLibre or a custom vector renderer). This is not implemented in nav-e; the phone side only sends the data in the format the device will need.
 
 ## Integration Examples
 
@@ -219,6 +244,16 @@ Frames sent over BLE (with progress)
 Success/error feedback to user
 ```
 
+### Map region transfer (offline maps)
+
+From the **Offline maps** screen, each region has a "Send to device" action. The flow:
+
+1. User taps send icon on a region → bottom sheet lists saved devices.
+2. User picks a device → `SendMapRegionToDevice(remoteId, regionId)` is dispatched.
+3. Service fetches region JSON and tile list from Rust, builds `MapRegionMetadata` (with `total_tiles`), chunks and sends it.
+4. For each tile (z, x, y), service reads tile bytes, builds `TileChunk`, chunks and sends. Progress callback reports (tilesSent, totalTiles).
+5. Device must implement: receive and reassemble frames, handle `MapRegionMetadata` (allocate cache for `region_id`), store each `TileChunk` in cache, and use cached tiles for rendering.
+
 ### Phase 3: Navigation Session
 
 ```
@@ -256,6 +291,13 @@ Used in `DeviceCommDebugScreen` - test communication with detailed logging.
 **When:** Developer or tester needs to verify device communication.
 **BLoCs:** DeviceCommBloc, DevicesBloc, BluetoothBloc
 **Flow:** Select device → Show route info → Send → Display events
+
+### Pattern 4: Map style on device (dropdown in map overlay)
+
+In the map overlay options (map controls bottom sheet), a **"Map style on device"** dropdown lets the user choose which map style to send to the connected device (nav-c). This does not change the app’s own map source; it only sends the selected style to the device so nav-c can show that map. The device persists the id and applies the style; MapActivity observes the preference and updates the map.
+
+**When:** User opens map controls (FAB) → "Map style on device" section → selects a map source from the dropdown.
+**Flow:** SendMapStyleToDevice(remoteId, mapSourceId) → DeviceCommunicationService.sendMapStyle() → BLE frames.
 
 ### Developer-Facing Errors
 

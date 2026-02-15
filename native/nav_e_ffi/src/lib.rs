@@ -246,6 +246,50 @@ pub fn get_offline_region_by_id(id: String) -> Result<String> {
     nav_engine::api::get_offline_region_by_id(id)
 }
 
+/// Get list of tiles for a region as JSON array of {z, x, y}
+#[frb(sync)]
+pub fn get_offline_region_tile_list(region_id: String) -> Result<String> {
+    nav_engine::api::get_offline_region_tile_list(region_id)
+}
+
+/// Read one tile file for a region. Returns raw .pbf bytes.
+#[frb(sync)]
+pub fn get_offline_region_tile_bytes(
+    region_id: String,
+    z: i32,
+    x: i32,
+    y: i32,
+) -> Result<Vec<u8>> {
+    nav_engine::api::get_offline_region_tile_bytes(region_id, z, x, y)
+}
+
+/// Build MapRegionMetadata protobuf message bytes for BLE transfer.
+#[frb(sync)]
+pub fn prepare_map_region_metadata_message(
+    region_json: String,
+    total_tiles: u32,
+) -> Result<Vec<u8>> {
+    nav_engine::api::prepare_map_region_metadata_message(region_json, total_tiles)
+}
+
+/// Build MapStyle protobuf message bytes for BLE transfer (sync map source to device).
+#[frb(sync)]
+pub fn prepare_map_style_message(map_source_id: String) -> Result<Vec<u8>> {
+    nav_engine::api::prepare_map_style_message(map_source_id)
+}
+
+/// Build TileChunk protobuf message bytes for BLE transfer.
+#[frb(sync)]
+pub fn prepare_tile_chunk_message(
+    region_id: String,
+    z: i32,
+    x: i32,
+    y: i32,
+    data: Vec<u8>,
+) -> Result<Vec<u8>> {
+    nav_engine::api::prepare_tile_chunk_message(region_id, z, x, y, data)
+}
+
 /// Delete an offline region by id and remove its tile directory
 #[frb(sync)]
 pub fn delete_offline_region(id: String) -> Result<()> {

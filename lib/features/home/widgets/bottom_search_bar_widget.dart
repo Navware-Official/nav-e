@@ -74,7 +74,7 @@ class BottomSearchBarWidget extends StatelessWidget {
       child: Hero(
         tag: 'searchBarHero',
         child: SearchBarWidget(
-          hintText: 'Hinted search text',
+          hintText: 'Search for a place ',
           onTap: () async {
             final result = await Navigator.of(context).push(
               MaterialPageRoute(

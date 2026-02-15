@@ -6,6 +6,9 @@ import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 
+/// Navware BLE service UUID (nav-c watch); used to label the watch in the scan list.
+const _navwareServiceUuid = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
+
 class AddDeviceScreen extends StatefulWidget {
   const AddDeviceScreen({super.key});
 
@@ -26,7 +29,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       );
     }
 
-    if (containsAny(['watch', 'wear', 'garmin', 'fitbit'])) {
+    if (containsAny(['watch', 'wear', 'garmin', 'fitbit', _navwareServiceUuid])) {
       return 'Watch';
     }
     if (containsAny(['phone', 'ios', 'android'])) {
@@ -81,7 +84,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.push('/devices'),
         ),
-        title: const Text('Add a new bluetooth device'),
+        title: const Text('Pair with watch'),
       ),
       body: Container(
         padding: EdgeInsets.all(8),
@@ -182,7 +185,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                     child: Row(
                                       children: [
                                         Icon(Icons.refresh),
-                                        Text(" Scan Again"),
+                                        Text(" Scan again"),
                                       ],
                                     ),
                                   ),
@@ -193,25 +196,26 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                     itemCount: state.results.length,
                                     itemBuilder: (context, index) {
                                       ScanResult result = state.results[index];
+                                      final hasNavwareService = result
+                                          .advertisementData.serviceUuids
+                                          .any((u) =>
+                                              u.toString().toLowerCase().contains(
+                                                  _navwareServiceUuid.toLowerCase()));
                                       String title = "Unknown";
-                                      title =
-                                          result
-                                              .advertisementData
-                                              .serviceUuids
-                                              .isNotEmpty
-                                          ? result
-                                                .advertisementData
-                                                .serviceUuids
-                                                .first
-                                                .toString()
-                                          : title;
-                                      title =
-                                          result
-                                              .advertisementData
-                                              .advName
-                                              .isNotEmpty
-                                          ? result.advertisementData.advName
-                                          : title;
+                                      if (hasNavwareService) {
+                                        title = "Navware watch (nav-c)";
+                                      } else if (result
+                                          .advertisementData.serviceUuids
+                                          .isNotEmpty) {
+                                        title = result
+                                            .advertisementData.serviceUuids.first
+                                            .toString();
+                                      }
+                                      if (result
+                                          .advertisementData.advName
+                                          .isNotEmpty) {
+                                        title = result.advertisementData.advName;
+                                      }
                                       String remoteId = result.device.remoteId
                                           .toString();
                                       final typeLabel = _inferDeviceTypeLabel(
@@ -299,7 +303,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                               AddDevice(device),
                                             );
                                           },
-                                          child: Text("Add Device"),
+                                          child: Text("Pair"),
                                         ),
                                       );
                                     },

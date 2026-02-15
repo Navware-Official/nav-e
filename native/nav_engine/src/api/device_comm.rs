@@ -231,6 +231,100 @@ pub fn chunk_message_for_ble(
     Ok(frame_bytes)
 }
 
+/// Build a MapRegionMetadata protobuf message and return serialized bytes.
+/// region_json: JSON object with id, name, north, south, east, west, min_zoom, max_zoom.
+/// total_tiles: number of tiles the device should expect (TileChunk count).
+pub fn prepare_map_region_metadata_message(
+    region_json: String,
+    total_tiles: u32,
+) -> Result<Vec<u8>> {
+    use device_comm::proto;
+    use prost::Message as ProstMessage;
+
+    let region: serde_json::Value =
+        serde_json::from_str(&region_json).context("Parse region JSON")?;
+    let region_id = region["id"].as_str().unwrap_or("").to_string();
+    let name = region["name"].as_str().unwrap_or("").to_string();
+    let north = region["north"].as_f64().unwrap_or(0.0);
+    let south = region["south"].as_f64().unwrap_or(0.0);
+    let east = region["east"].as_f64().unwrap_or(0.0);
+    let west = region["west"].as_f64().unwrap_or(0.0);
+    let min_zoom = region["min_zoom"].as_i64().unwrap_or(0) as u32;
+    let max_zoom = region["max_zoom"].as_i64().unwrap_or(0) as u32;
+
+    let metadata = proto::MapRegionMetadata {
+        region_id,
+        name,
+        north,
+        south,
+        east,
+        west,
+        min_zoom,
+        max_zoom,
+        total_tiles,
+    };
+
+    let message = proto::Message {
+        payload: Some(proto::message::Payload::MapRegionMetadata(metadata)),
+    };
+
+    let mut buf = Vec::new();
+    message
+        .encode(&mut buf)
+        .context("Encode MapRegionMetadata message")?;
+    Ok(buf)
+}
+
+/// Build a MapStyle protobuf message for syncing map source to device.
+pub fn prepare_map_style_message(map_source_id: String) -> Result<Vec<u8>> {
+    use device_comm::proto;
+    use prost::Message as ProstMessage;
+
+    let map_style = proto::MapStyle {
+        map_source_id,
+    };
+
+    let message = proto::Message {
+        payload: Some(proto::message::Payload::MapStyle(map_style)),
+    };
+
+    let mut buf = Vec::new();
+    message
+        .encode(&mut buf)
+        .context("Encode MapStyle message")?;
+    Ok(buf)
+}
+
+/// Build a TileChunk protobuf message and return serialized bytes.
+pub fn prepare_tile_chunk_message(
+    region_id: String,
+    z: i32,
+    x: i32,
+    y: i32,
+    data: Vec<u8>,
+) -> Result<Vec<u8>> {
+    use device_comm::proto;
+    use prost::Message as ProstMessage;
+
+    let chunk = proto::TileChunk {
+        region_id,
+        z,
+        x,
+        y,
+        data,
+    };
+
+    let message = proto::Message {
+        payload: Some(proto::message::Payload::TileChunk(chunk)),
+    };
+
+    let mut buf = Vec::new();
+    message
+        .encode(&mut buf)
+        .context("Encode TileChunk message")?;
+    Ok(buf)
+}
+
 /// Reassemble BLE frames back into a complete message
 /// Returns the reassembled message bytes
 pub fn reassemble_frames(frame_bytes: Vec<Vec<u8>>) -> Result<Vec<u8>> {
@@ -302,11 +396,12 @@ pub fn create_control_message(
         message_version: 1,
     };
 
-    // Create control message
+    // Parse route_id as UUID so we send 16 bytes (proto expects bytes route_id = 16 bytes UUID)
+    let route_uuid = Uuid::parse_str(&route_id).context("Invalid route UUID for control message")?;
     let control = proto::Control {
         header: Some(header),
         r#type: control_type as i32,
-        route_id: route_id.into_bytes(),
+        route_id: route_uuid.as_bytes().to_vec(),
         status_code,
         message_text: message,
         seq_no: 0,

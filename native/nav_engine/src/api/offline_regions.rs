@@ -1,6 +1,7 @@
 //! Offline map regions API: registry in Rust DB, tile download and file write in Rust.
 
 use anyhow::{Context, Result};
+use std::fs;
 use std::path::Path;
 
 use super::helpers::*;
@@ -40,6 +41,74 @@ pub fn delete_offline_region(id: String) -> Result<()> {
         let _ = std::fs::remove_dir_all(&dir);
     }
     Ok(())
+}
+
+/// Get list of tiles for a region as JSON array of {z, x, y}.
+/// Walks storage_base/region_<id>/z/x/y.pbf.
+pub fn get_offline_region_tile_list(region_id: String) -> Result<String> {
+    let ctx = super::get_context();
+    let region = ctx
+        .offline_regions_repo
+        .get_by_id(&region_id)?
+        .context("Region not found")?;
+    let storage = ctx.offline_regions_repo.get_storage_path()?;
+    let region_dir = Path::new(&storage).join(&region.relative_path);
+    let mut tiles = Vec::new();
+    let z_dir = fs::read_dir(&region_dir).context("Read region directory")?;
+    for z_entry in z_dir {
+        let z_entry = z_entry?;
+        let z_name = z_entry.file_name();
+        let z_str = z_name.to_string_lossy();
+        let z: i32 = z_str.parse().unwrap_or(-1);
+        if z < 0 {
+            continue;
+        }
+        let x_dir = fs::read_dir(z_entry.path()).context("Read z directory")?;
+        for x_entry in x_dir {
+            let x_entry = x_entry?;
+            let x_name = x_entry.file_name();
+            let x_str = x_name.to_string_lossy();
+            let x: i32 = x_str.parse().unwrap_or(-1);
+            if x < 0 {
+                continue;
+            }
+            let y_dir = fs::read_dir(x_entry.path()).context("Read x directory")?;
+            for y_entry in y_dir {
+                let y_entry = y_entry?;
+                let name = y_entry.file_name();
+                let name_str = name.to_string_lossy();
+                if name_str.ends_with(".pbf") {
+                    let y_str = name_str.trim_end_matches(".pbf");
+                    if let Ok(y) = y_str.parse::<i32>() {
+                        tiles.push(serde_json::json!({"z": z, "x": x, "y": y}));
+                    }
+                }
+            }
+        }
+    }
+    serde_json::to_string(&tiles).map_err(Into::into)
+}
+
+/// Read one tile file for a region. Returns raw .pbf bytes.
+pub fn get_offline_region_tile_bytes(
+    region_id: String,
+    z: i32,
+    x: i32,
+    y: i32,
+) -> Result<Vec<u8>> {
+    let ctx = super::get_context();
+    let region = ctx
+        .offline_regions_repo
+        .get_by_id(&region_id)?
+        .context("Region not found")?;
+    let storage = ctx.offline_regions_repo.get_storage_path()?;
+    let tile_path = Path::new(&storage)
+        .join(&region.relative_path)
+        .join(z.to_string())
+        .join(x.to_string())
+        .join(format!("{}.pbf", y));
+    let bytes = fs::read(&tile_path).context("Read tile file")?;
+    Ok(bytes)
 }
 
 /// Get region for viewport bbox as JSON object (or null).
