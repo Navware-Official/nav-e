@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/device_comm/device_comm_transport.dart';
+import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
+import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
 import 'package:nav_e/features/map_layers/data/data_layer_registry.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
@@ -60,6 +63,11 @@ class MapControlBottomSheet extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 16),
+                _SectionCard(
+                  title: 'Map style on device',
+                  child: _MapStyleOnDeviceDropdown(),
+                ),
+                SizedBox(height: 16),
                 _SectionCard(title: 'Data layers', child: _DataLayersGrid()),
                 SizedBox(height: 16),
                 _SectionCard(title: 'Style', child: _StyleSection()),
@@ -68,6 +76,84 @@ class MapControlBottomSheet extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Dropdown to choose which map style to send to the connected device (nav-c).
+/// Does not change the app's own map source; only sends the selected style to the device.
+class _MapStyleOnDeviceDropdown extends StatefulWidget {
+  @override
+  State<_MapStyleOnDeviceDropdown> createState() =>
+      _MapStyleOnDeviceDropdownState();
+}
+
+class _MapStyleOnDeviceDropdownState extends State<_MapStyleOnDeviceDropdown> {
+  String? _selectedId;
+
+  @override
+  Widget build(BuildContext context) {
+    final bloc = context.read<DeviceCommBloc>();
+
+    return FutureBuilder<List<ConnectedDeviceInfo>>(
+      future: bloc.getConnectedDeviceIds(),
+      builder: (context, deviceSnapshot) {
+        final devices = deviceSnapshot.data ?? const [];
+        final hasDevice = devices.isNotEmpty;
+
+        return BlocBuilder<MapBloc, MapState>(
+          buildWhen: (prev, curr) =>
+              prev.available != curr.available || prev.source != curr.source,
+          builder: (context, state) {
+            final sources = state.available;
+            if (sources.isEmpty) {
+              return Text(
+                'No map sources',
+                style: Theme.of(context).textTheme.bodySmall,
+              );
+            }
+            if (!hasDevice) {
+              return Text(
+                'No device connected',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+              );
+            }
+            final remoteId = devices.first.id;
+            return DropdownButtonFormField<String>(
+          value: _selectedId,
+          decoration: InputDecoration(
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 8,
+            ),
+          ),
+          hint: Text(
+            'Send map style to device…',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          items: sources
+              .map((s) => DropdownMenuItem<String>(
+                    value: s.id,
+                    child: Text(s.name),
+                  ))
+              .toList(),
+          onChanged: (String? sourceId) {
+            if (sourceId == null || !context.mounted) return;
+            context.read<DeviceCommBloc>().add(
+                  SendMapStyleToDevice(
+                    remoteId: remoteId,
+                    mapSourceId: sourceId,
+                  ),
+                );
+            setState(() => _selectedId = null);
+          },
+        );
+          },
+        );
+      },
     );
   }
 }

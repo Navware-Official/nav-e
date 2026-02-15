@@ -65,7 +65,7 @@ class RustBridge
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -522750087;
+  int get rustContentHash => -1747876179;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -135,6 +135,15 @@ abstract class RustBridgeApi extends BaseApi {
     required double west,
   });
 
+  Uint8List crateGetOfflineRegionTileBytes({
+    required String regionId,
+    required int z,
+    required int x,
+    required int y,
+  });
+
+  String crateGetOfflineRegionTileList({required String regionId});
+
   String crateGetOfflineRegionsStoragePath();
 
   String crateGetSavedPlaceById({required PlatformInt64 id});
@@ -143,7 +152,22 @@ abstract class RustBridgeApi extends BaseApi {
 
   Future<void> cratePauseNavigation({required String sessionId});
 
+  Uint8List cratePrepareMapRegionMetadataMessage({
+    required String regionJson,
+    required int totalTiles,
+  });
+
+  Uint8List cratePrepareMapStyleMessage({required String mapSourceId});
+
   Uint8List cratePrepareRouteMessage({required String routeJson});
+
+  Uint8List cratePrepareTileChunkMessage({
+    required String regionId,
+    required int z,
+    required int x,
+    required int y,
+    required List<int> data,
+  });
 
   Uint8List crateReassembleFrames({required List<Uint8List> frameBytes});
 
@@ -681,12 +705,72 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
+  Uint8List crateGetOfflineRegionTileBytes({
+    required String regionId,
+    required int z,
+    required int x,
+    required int y,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(regionId, serializer);
+          sse_encode_i_32(z, serializer);
+          sse_encode_i_32(x, serializer);
+          sse_encode_i_32(y, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateGetOfflineRegionTileBytesConstMeta,
+        argValues: [regionId, z, x, y],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateGetOfflineRegionTileBytesConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_offline_region_tile_bytes",
+        argNames: ["regionId", "z", "x", "y"],
+      );
+
+  @override
+  String crateGetOfflineRegionTileList({required String regionId}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(regionId, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_String,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateGetOfflineRegionTileListConstMeta,
+        argValues: [regionId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateGetOfflineRegionTileListConstMeta =>
+      const TaskConstMeta(
+        debugName: "get_offline_region_tile_list",
+        argNames: ["regionId"],
+      );
+
+  @override
   String crateGetOfflineRegionsStoragePath() {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 18)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 20)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -712,7 +796,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_i_64(id, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 19)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 21)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_String,
@@ -738,7 +822,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 20,
+            funcId: 22,
             port: port_,
           );
         },
@@ -768,7 +852,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 21,
+            funcId: 23,
             port: port_,
           );
         },
@@ -789,13 +873,69 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
+  Uint8List cratePrepareMapRegionMetadataMessage({
+    required String regionJson,
+    required int totalTiles,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(regionJson, serializer);
+          sse_encode_u_32(totalTiles, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 24)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCratePrepareMapRegionMetadataMessageConstMeta,
+        argValues: [regionJson, totalTiles],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCratePrepareMapRegionMetadataMessageConstMeta =>
+      const TaskConstMeta(
+        debugName: "prepare_map_region_metadata_message",
+        argNames: ["regionJson", "totalTiles"],
+      );
+
+  @override
+  Uint8List cratePrepareMapStyleMessage({required String mapSourceId}) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(mapSourceId, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 25)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCratePrepareMapStyleMessageConstMeta,
+        argValues: [mapSourceId],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCratePrepareMapStyleMessageConstMeta =>
+      const TaskConstMeta(
+        debugName: "prepare_map_style_message",
+        argNames: ["mapSourceId"],
+      );
+
+  @override
   Uint8List cratePrepareRouteMessage({required String routeJson}) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(routeJson, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 22)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -814,13 +954,49 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
+  Uint8List cratePrepareTileChunkMessage({
+    required String regionId,
+    required int z,
+    required int x,
+    required int y,
+    required List<int> data,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(regionId, serializer);
+          sse_encode_i_32(z, serializer);
+          sse_encode_i_32(x, serializer);
+          sse_encode_i_32(y, serializer);
+          sse_encode_list_prim_u_8_loose(data, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_list_prim_u_8_strict,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCratePrepareTileChunkMessageConstMeta,
+        argValues: [regionId, z, x, y, data],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCratePrepareTileChunkMessageConstMeta =>
+      const TaskConstMeta(
+        debugName: "prepare_tile_chunk_message",
+        argNames: ["regionId", "z", "x", "y", "data"],
+      );
+
+  @override
   Uint8List crateReassembleFrames({required List<Uint8List> frameBytes}) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_list_list_prim_u_8_strict(frameBytes, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 23)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 28)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_prim_u_8_strict,
@@ -848,7 +1024,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 24,
+            funcId: 29,
             port: port_,
           );
         },
@@ -882,7 +1058,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 25,
+            funcId: 30,
             port: port_,
           );
         },
@@ -909,7 +1085,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(deviceJson, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 26)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 31)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_i_64,
@@ -946,7 +1122,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           sse_encode_opt_String(source, serializer);
           sse_encode_opt_box_autoadd_i_64(typeId, serializer);
           sse_encode_opt_String(remoteId, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 27)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 32)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_i_64,
@@ -978,7 +1154,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 28,
+            funcId: 33,
             port: port_,
           );
         },
@@ -1012,7 +1188,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 29,
+            funcId: 34,
             port: port_,
           );
         },
@@ -1043,7 +1219,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 30,
+            funcId: 35,
             port: port_,
           );
         },
@@ -1074,7 +1250,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_i_64(id, serializer);
           sse_encode_String(deviceJson, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 31)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 36)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -1108,7 +1284,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 32,
+            funcId: 37,
             port: port_,
           );
         },

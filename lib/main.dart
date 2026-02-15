@@ -4,6 +4,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/app/app_router.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
+import 'package:nav_e/core/device_comm/ble_device_comm_transport.dart';
+import 'package:nav_e/core/device_comm/device_communication_service.dart';
+import 'package:nav_e/core/device_comm/device_comm_transport.dart';
 import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
@@ -158,7 +161,13 @@ class _AppLoaderState extends State<_AppLoader> {
             create: (ctx) => DevicesBloc(ctx.read<IDeviceRepository>()),
           ),
           BlocProvider(create: (_) => BluetoothBloc()),
-          BlocProvider(create: (_) => DeviceCommBloc()),
+          BlocProvider(
+            create: (_) {
+              final DeviceCommTransport transport = BleDeviceCommTransport();
+              final service = DeviceCommunicationService(transport);
+              return DeviceCommBloc(deviceCommService: service);
+            },
+          ),
         ],
         child: BlocBuilder<ThemeCubit, AppThemeMode>(
           builder: (context, mode) {

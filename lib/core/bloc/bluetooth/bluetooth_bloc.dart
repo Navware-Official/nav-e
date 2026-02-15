@@ -85,31 +85,26 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
 
     emit(BluetoothScanInProgress());
 
-    late List<ScanResult> latestScanResult;
+    List<ScanResult> latestScanResult = [];
 
     // Start listening before scanning so we don't miss anything
     var subscription = FlutterBluePlus.scanResults.listen((results) {
-      if (results.isNotEmpty) {
-        latestScanResult = results;
-      }
+      latestScanResult = results;
     });
 
     // cleanup: cancel subscription when scanning stops
     FlutterBluePlus.cancelWhenScanComplete(subscription);
 
-    // initiate the scan
+    // Scan for BLE devices (no service filter - withServices can yield no results on some devices)
     await FlutterBluePlus.startScan(
-      androidScanMode: AndroidScanMode
-          .lowLatency, // AndroidScanMode.lowPower might be a better fit in the future
-      // withServices: navwareBluetoothServiceUUIDs, // match any of the specified services
+      androidScanMode: AndroidScanMode.lowLatency,
     );
 
-    // wait for scanning to stop
-    await Future.delayed(Duration(seconds: 2)).then((value) async {
-      await FlutterBluePlus.stopScan();
-      debugPrint(latestScanResult.toString());
-      emit(BluetoothScanComplete(latestScanResult));
-    });
+    // Run scan long enough for watch to be discovered (BLE can take several seconds)
+    await Future.delayed(const Duration(seconds: 10));
+    await FlutterBluePlus.stopScan();
+    debugPrint(latestScanResult.toString());
+    emit(BluetoothScanComplete(latestScanResult));
   }
 
   void _awaitConnectionCheck(

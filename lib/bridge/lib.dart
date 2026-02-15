@@ -184,6 +184,53 @@ String getAllOfflineRegions() =>
 String getOfflineRegionById({required String id}) =>
     RustBridge.instance.api.crateGetOfflineRegionById(id: id);
 
+/// Get list of tiles for a region as JSON array of {z, x, y}
+String getOfflineRegionTileList({required String regionId}) =>
+    RustBridge.instance.api.crateGetOfflineRegionTileList(regionId: regionId);
+
+/// Read one tile file for a region. Returns raw .pbf bytes.
+Uint8List getOfflineRegionTileBytes({
+  required String regionId,
+  required int z,
+  required int x,
+  required int y,
+}) => RustBridge.instance.api.crateGetOfflineRegionTileBytes(
+  regionId: regionId,
+  z: z,
+  x: x,
+  y: y,
+);
+
+/// Build MapRegionMetadata protobuf message bytes for BLE transfer.
+Uint8List prepareMapRegionMetadataMessage({
+  required String regionJson,
+  required int totalTiles,
+}) => RustBridge.instance.api.cratePrepareMapRegionMetadataMessage(
+  regionJson: regionJson,
+  totalTiles: totalTiles,
+);
+
+/// Build MapStyle protobuf message bytes for BLE transfer (sync map source to device).
+Uint8List prepareMapStyleMessage({required String mapSourceId}) => RustBridge
+    .instance
+    .api
+    .cratePrepareMapStyleMessage(mapSourceId: mapSourceId);
+
+/// Build TileChunk protobuf message bytes for BLE transfer.
+Uint8List prepareTileChunkMessage({
+  required String regionId,
+  required int z,
+  required int x,
+  required int y,
+  required List<int> data,
+}) => RustBridge.instance.api.cratePrepareTileChunkMessage(
+  regionId: regionId,
+  z: z,
+  x: x,
+  y: y,
+  data: data,
+);
+
 /// Delete an offline region by id and remove its tile directory
 void deleteOfflineRegion({required String id}) =>
     RustBridge.instance.api.crateDeleteOfflineRegion(id: id);

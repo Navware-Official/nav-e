@@ -144,12 +144,37 @@ class _HomeViewState extends State<HomeView> {
                 const RotateNorthFAB(),
                 const MapControlsFAB(),
 
+                BottomSearchBarWidget(
+                  onResultSelected: (r) {
+                    FocusScope.of(context).unfocus();
+                    AppNav.homeWithCoords(
+                      lat: r.lat,
+                      lon: r.lon,
+                      label: r.displayName,
+                      placeId: r.id,
+                      zoom: 14,
+                    );
+                  },
+                ),
+
                 if (state is LocationPreviewShowing)
                   LocationPreviewWidget(
                     route: state.result,
                     onClose: () {
                       context.read<PreviewCubit>().hide();
-                      context.read<MapBloc>().add(ToggleFollowUser(true));
+                      final mapBloc = context.read<MapBloc>();
+                      mapBloc.add(ReplacePolylines(const [], fit: false));
+                      final userPos =
+                          context.read<LocationBloc>().state.position;
+                      final mapState = mapBloc.state;
+                      if (userPos != null) {
+                        mapBloc.add(MapMoved(
+                          userPos,
+                          mapState.zoom,
+                          force: true,
+                        ));
+                      }
+                      mapBloc.add(ToggleFollowUser(true));
                     },
                     onSave: () async {
                       final r = state.result;
@@ -178,19 +203,6 @@ class _HomeViewState extends State<HomeView> {
                       }
                     },
                   ),
-
-                BottomSearchBarWidget(
-                  onResultSelected: (r) {
-                    FocusScope.of(context).unfocus();
-                    AppNav.homeWithCoords(
-                      lat: r.lat,
-                      lon: r.lon,
-                      label: r.displayName,
-                      placeId: r.id,
-                      zoom: 14,
-                    );
-                  },
-                ),
               ],
             );
           },
