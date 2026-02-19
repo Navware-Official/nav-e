@@ -22,11 +22,18 @@ class MapBloc extends Bloc<MapEvent, MapState> {
       try {
         final current = await sources.getCurrent();
         final all = await sources.getAll();
+        // Demotiles (custom/custom_dark) only has zoom 0–6; clamp so tiles are visible.
+        final isLimitedZoom =
+            current.id == 'custom' || current.id == 'custom_dark';
+        final zoom = isLimitedZoom && state.zoom > current.maxZoom
+            ? current.maxZoom.toDouble()
+            : null;
         emit(
           state.copyWith(
             isReady: true,
             source: current,
             available: all,
+            zoom: zoom,
             error: null,
           ),
         );
@@ -41,15 +48,34 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     on<ReplacePolylines>(_onReplacePolylines);
     on<MapAutoFitDone>(_onAutoFitDone);
     on<ToggleFollowUser>(_onToggleFollow);
+    on<ResetBearing>(_onResetBearing);
     on<MapSourceChanged>(_onSourceChanged, transformer: restartable());
+    on<ToggleDataLayer>(_onToggleDataLayer);
+    on<SetMapStyleConfig>(_onSetMapStyleConfig);
+    on<ResetMapStyleConfig>(_onResetMapStyleConfig);
   }
 
   void _onMoved(MapMoved event, Emitter<MapState> emit) {
-    emit(state.copyWith(center: event.center, zoom: event.zoom));
+    // When followUser is true we are driving the camera from state (e.g.
+    // "go to my location"); ignore camera position reports so we don't
+    // overwrite the target and prevent the move from completing.
+    if (state.followUser && !event.force) return;
+    emit(
+      state.copyWith(
+        center: event.center,
+        zoom: event.zoom,
+        tilt: event.tilt ?? state.tilt,
+        bearing: event.bearing ?? state.bearing,
+      ),
+    );
   }
 
   void _onToggleFollow(ToggleFollowUser event, Emitter<MapState> emit) {
     emit(state.copyWith(followUser: event.follow));
+  }
+
+  void _onResetBearing(ResetBearing event, Emitter<MapState> emit) {
+    emit(state.copyWith(resetBearingTick: state.resetBearingTick + 1));
   }
 
   Future<void> _onSourceChanged(
@@ -60,7 +86,12 @@ class MapBloc extends Bloc<MapEvent, MapState> {
     try {
       await sources.setCurrent(event.sourceId);
       final src = await sources.getCurrent();
-      emit(state.copyWith(source: src, loadingSource: false));
+      // Demotiles (custom/custom_dark) only has zoom 0–6; clamp so tiles are visible.
+      final isLimitedZoom = src.id == 'custom' || src.id == 'custom_dark';
+      final zoom = isLimitedZoom && state.zoom > src.maxZoom
+          ? src.maxZoom.toDouble()
+          : null;
+      emit(state.copyWith(source: src, zoom: zoom, loadingSource: false));
     } catch (e) {
       emit(state.copyWith(loadingSource: false, error: e));
     }
@@ -73,6 +104,38 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   void _onAutoFitDone(MapAutoFitDone event, Emitter<MapState> emit) {
     // clear the autoFit flag after the widget performed the fit
     if (state.autoFit) emit(state.copyWith(autoFit: false));
+  }
+
+  void _onToggleDataLayer(ToggleDataLayer event, Emitter<MapState> emit) {
+    final next = Set<String>.from(state.enabledDataLayerIds);
+    if (next.contains(event.layerId)) {
+      next.remove(event.layerId);
+    } else {
+      next.add(event.layerId);
+    }
+    emit(state.copyWith(enabledDataLayerIds: next));
+  }
+
+  void _onSetMapStyleConfig(SetMapStyleConfig event, Emitter<MapState> emit) {
+    emit(
+      state.copyWith(
+        defaultPolylineColorArgb:
+            event.defaultPolylineColorArgb ?? state.defaultPolylineColorArgb,
+        defaultPolylineWidth:
+            event.defaultPolylineWidth ?? state.defaultPolylineWidth,
+        markerFillColorArgb:
+            event.markerFillColorArgb ?? state.markerFillColorArgb,
+        markerStrokeColorArgb:
+            event.markerStrokeColorArgb ?? state.markerStrokeColorArgb,
+      ),
+    );
+  }
+
+  void _onResetMapStyleConfig(
+    ResetMapStyleConfig event,
+    Emitter<MapState> emit,
+  ) {
+    emit(state.copyWith(clearStyleOverrides: true));
   }
 
   EventTransformer<T> _throttle<T>(Duration d) {

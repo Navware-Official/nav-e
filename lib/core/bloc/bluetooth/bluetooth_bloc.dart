@@ -85,31 +85,26 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
 
     emit(BluetoothScanInProgress());
 
-    late List<ScanResult> latestScanResult;
+    List<ScanResult> latestScanResult = [];
 
     // Start listening before scanning so we don't miss anything
     var subscription = FlutterBluePlus.scanResults.listen((results) {
-      if (results.isNotEmpty) {
-        latestScanResult = results;
-      }
+      latestScanResult = results;
     });
 
     // cleanup: cancel subscription when scanning stops
     FlutterBluePlus.cancelWhenScanComplete(subscription);
 
-    // initiate the scan
+    // Scan for BLE devices (no service filter - withServices can yield no results on some devices)
     await FlutterBluePlus.startScan(
-      androidScanMode: AndroidScanMode
-          .lowLatency, // AndroidScanMode.lowPower might be a better fit in the future
-      // withServices: navwareBluetoothServiceUUIDs, // match any of the specified services
+      androidScanMode: AndroidScanMode.lowLatency,
     );
 
-    // wait for scanning to stop
-    await Future.delayed(Duration(seconds: 2)).then((value) async {
-      await FlutterBluePlus.stopScan();
-      debugPrint(latestScanResult.toString());
-      emit(BluetoothScanComplete(latestScanResult));
-    });
+    // Run scan long enough for watch to be discovered (BLE can take several seconds)
+    await Future.delayed(const Duration(seconds: 10));
+    await FlutterBluePlus.stopScan();
+    debugPrint(latestScanResult.toString());
+    emit(BluetoothScanComplete(latestScanResult));
   }
 
   void _awaitConnectionCheck(
@@ -139,39 +134,35 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     Emitter<ApplicationBluetoothState> emit,
   ) async {
     emit(AquiringBluetoothConnetionStatus());
-    var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
+    final bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
 
-    var subscription = bluetoothDevice.connectionState.listen((
-      BluetoothConnectionState connectionState,
-    ) async {
+    try {
       if (bluetoothDevice.isDisconnected) {
-        await bluetoothDevice.connectionState
-            .where((val) => val == BluetoothConnectionState.connected)
-            .first
-            .then((val) async {
-              emit(BluetoothConnetionStatusAquired("Connected"));
-            });
-      } else if (bluetoothDevice.isConnected) {
-        await bluetoothDevice.connectionState
-            .where((val) => val == BluetoothConnectionState.disconnected)
-            .first
-            .then((val) async {
-              emit(BluetoothConnetionStatusAquired("Disconnected"));
-            });
+        await bluetoothDevice.connect(
+          timeout: Duration(seconds: 35),
+          autoConnect: false,
+        );
+      } else {
+        await bluetoothDevice.disconnect();
+      }
+      // Emit current state after operation so UI updates even if stream is slow
+      if (bluetoothDevice.isConnected) {
+        emit(BluetoothConnetionStatusAquired("Connected"));
+      } else if (bluetoothDevice.isDisconnected) {
+        emit(BluetoothConnetionStatusAquired("Disconnected"));
       } else {
         emit(BluetoothConnetionStatusAquired("Unknown"));
       }
-    });
-
-    if (bluetoothDevice.isDisconnected) {
-      await bluetoothDevice.connect(
-        timeout: Duration(seconds: 35),
-        autoConnect: false,
+    } catch (e, st) {
+      debugPrint("Bluetooth connect/disconnect failed: $e\n$st");
+      emit(
+        BluetoothOperationFailure(
+          e.toString().replaceFirst(
+            RegExp(r'^Exception:?\s*', caseSensitive: false),
+            '',
+          ),
+        ),
       );
-    } else {
-      await bluetoothDevice.disconnect();
     }
-
-    subscription.cancel();
   }
 }

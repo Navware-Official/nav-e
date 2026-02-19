@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/core/theme/colors.dart';
 
 class RoutePreviewWidget extends StatefulWidget {
   final VoidCallback onClose;
@@ -13,6 +12,9 @@ class RoutePreviewWidget extends StatefulWidget {
 class _RoutePreviewWidgetState extends State<RoutePreviewWidget> {
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.3,
       minChildSize: 0.2,
@@ -20,17 +22,17 @@ class _RoutePreviewWidgetState extends State<RoutePreviewWidget> {
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: colorScheme.surface,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black12,
+                color: colorScheme.shadow.withValues(alpha: 0.12),
                 blurRadius: 8,
-                offset: Offset(0, -2),
+                offset: const Offset(0, -2),
               ),
             ],
             border: Border(
-              top: BorderSide(color: AppColors.lightGray, width: 3),
+              top: BorderSide(color: colorScheme.outline, width: 3),
             ),
           ),
           child: Column(
@@ -44,7 +46,7 @@ class _RoutePreviewWidgetState extends State<RoutePreviewWidget> {
                       height: 5,
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: colorScheme.outlineVariant,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     ),
@@ -52,8 +54,7 @@ class _RoutePreviewWidgetState extends State<RoutePreviewWidget> {
                       children: [
                         Text(
                           (widget.route?.adress.street),
-                          style: const TextStyle(
-                            fontSize: 18,
+                          style: textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),

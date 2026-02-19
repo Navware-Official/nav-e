@@ -13,6 +13,17 @@ class AppColors {
   // Extra colors
   static const Color capeCodDark02 = Color.fromARGB(255, 24, 24, 24);
 
-  // Dark red
+  // Semantic colors (work in both light and dark)
+  static const Color success = Color(0xFF2E7D32);
+  static const Color successContainer = Color(0xFFC8E6C9);
+  static const Color error = Color(0xFFC62828);
+  static const Color errorContainer = Color(0xFFFFCDD2);
+  static const Color warning = Color(0xFFF9A825);
+  static const Color warningContainer = Color(0xFFFFF8E1);
+
+  // Muted / secondary text (replaces ad hoc grey)
+  static const Color onSurfaceVariant = Color(0xFF6F7070);
+
+  // Dark red (legacy; prefer semantic error for UI)
   static const Color redDark = Color.fromARGB(255, 155, 0, 0);
 }

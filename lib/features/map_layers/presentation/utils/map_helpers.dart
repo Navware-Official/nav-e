@@ -38,22 +38,13 @@ Future<void> focusMapOnPreview(
   final LatLng pos = state.result.position;
   final targetZoom = desiredZoom ?? 14.0;
 
-  // First, enable followUser mode so that the MapWidget listener will move the camera
-  context.read<MapBloc>().add(ToggleFollowUser(true));
+  final bloc = context.read<MapBloc>();
+  bloc.add(MapMoved(pos, targetZoom, force: true));
+  bloc.add(ToggleFollowUser(true));
 
-  // Give it a moment to process
-  await Future.delayed(const Duration(milliseconds: 50));
+  // Wait for camera to move then release follow so user can pan
+  await Future.delayed(const Duration(milliseconds: 400));
 
-  if (!context.mounted) return;
-
-  // Now update the position - this will trigger the MapWidget listener
-  // which will move the camera because followUser is true
-  context.read<MapBloc>().add(MapMoved(pos, targetZoom));
-
-  // Wait for camera to move
-  await Future.delayed(const Duration(milliseconds: 150));
-
-  // Disable followUser so the user can interact with the map freely
   if (context.mounted) {
     context.read<MapBloc>().add(ToggleFollowUser(false));
   }

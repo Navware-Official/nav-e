@@ -5,12 +5,12 @@ class AppDecorations {
   static final BoxDecoration userLocationMarker = BoxDecoration(
     shape: BoxShape.circle,
     color: AppColors.white,
-    border: Border.all(color: AppColors.blueRibbon, width: 2),
+    border: Border.all(color: AppColors.blueRibbonDark02, width: 2),
     boxShadow: const [
       BoxShadow(
-        color: AppColors.blueRibbon,
-        blurRadius: 10,
-        spreadRadius: 1,
+        color: AppColors.blueRibbonDark02,
+        blurRadius: 12,
+        spreadRadius: 2,
         offset: Offset(0, 1),
       ),
     ],

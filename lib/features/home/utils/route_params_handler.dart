@@ -12,10 +12,11 @@ class RouteParamsHandler {
   String? _lastHandledRouteKey;
   bool _handlingRoute = false;
   bool _mapReady = false;
+  bool _listenerAdded = false;
 
   /// Initializes route parameter handling for the given context.
   void initialize(BuildContext context) {
-    // Handle initial route parameters
+    // Handle initial route parameters (once per route)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
       final uri = GoRouterState.of(context).uri;
@@ -23,7 +24,8 @@ class RouteParamsHandler {
       _handleRouteParams(context, uri);
     });
 
-    // Listen for route changes
+    // Listen for route changes - only add listener once to avoid duplicate callbacks
+    if (_listenerAdded) return;
     final router = GoRouter.of(context);
     _routerListener ??= () {
       if (!context.mounted) return;
@@ -40,6 +42,7 @@ class RouteParamsHandler {
       _handlePolylineCleanup(context, uri, previousUriString);
     };
     router.routerDelegate.addListener(_routerListener!);
+    _listenerAdded = true;
   }
 
   /// Updates the map ready state.
@@ -50,12 +53,14 @@ class RouteParamsHandler {
   /// Cleans up the route listener.
   void dispose() {
     _routerListener = null;
+    _listenerAdded = false;
   }
 
   /// Removes the listener from the router.
   void removeListener(BuildContext context) {
-    if (_routerListener != null) {
+    if (_routerListener != null && _listenerAdded) {
       GoRouter.of(context).routerDelegate.removeListener(_routerListener!);
+      _listenerAdded = false;
     }
   }
 

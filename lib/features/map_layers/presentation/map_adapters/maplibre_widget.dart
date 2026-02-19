@@ -1,7 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math' show Point;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as ml;
+import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/features/map_layers/models/data_layer_definition.dart';
 
 /// Converts a Color to hex string format for MapLibre (#RRGGBB).
 String _colorToHex(Color color) {
@@ -25,9 +31,25 @@ class MapLibreWidget extends StatefulWidget {
   final int maxZoom;
   final Function(MapLibreMapController)? onMapCreated;
   final Function(LatLng center, double zoom)? onCameraMove;
+  final VoidCallback? onCameraIdle;
   final Function(LatLng)? onMapTap;
+
+  /// Long press: e.g. reverse geosearch on home.
+  final void Function(LatLng)? onMapLongPress;
+
+  /// Called when the user taps a data layer feature (e.g. parking polygon).
+  /// [layerId] is the data layer id (e.g. "parking"); [properties] are the GeoJSON feature properties.
+  final void Function(String layerId, Map<String, dynamic> properties)?
+  onDataLayerFeatureTap;
   final List<MapLibrePolyline> polylines;
   final List<MapLibreMarker> markers;
+  final Set<String> enabledDataLayerIds;
+  final List<DataLayerDefinition> dataLayerDefinitions;
+  final int? markerFillColorArgb;
+  final int? markerStrokeColorArgb;
+
+  /// When set, used as the map style JSON instead of loading from [styleUrl] / [rasterTileUrl].
+  final String? styleStringOverride;
 
   const MapLibreWidget({
     super.key,
@@ -39,9 +61,17 @@ class MapLibreWidget extends StatefulWidget {
     this.maxZoom = 22,
     this.onMapCreated,
     this.onCameraMove,
+    this.onCameraIdle,
     this.onMapTap,
+    this.onMapLongPress,
+    this.onDataLayerFeatureTap,
     this.polylines = const [],
     this.markers = const [],
+    this.enabledDataLayerIds = const {},
+    this.dataLayerDefinitions = const [],
+    this.markerFillColorArgb,
+    this.markerStrokeColorArgb,
+    this.styleStringOverride,
   });
 
   @override
@@ -52,8 +82,14 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
   ml.MapLibreMapController? _nativeController;
   MapLibreMapController? _controller;
   final Map<String, ml.Line> _polylineObjects = {};
-  final Map<String, ml.Symbol> _markerSymbols = {};
+
+  /// Native map circles used as markers (integrated into map layer).
+  final Map<String, ml.Circle> _markerCircles = {};
+
+  /// Data layer ids for which we have added source+layer (so we can remove them).
+  final Set<String> _dataLayerIdsAdded = {};
   late Future<String> _styleFuture;
+  bool _styleLoaded = false;
 
   @override
   void initState() {
@@ -67,8 +103,13 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
 
     // Reload style if source parameters changed
     if (oldWidget.styleUrl != widget.styleUrl ||
-        oldWidget.rasterTileUrl != widget.rasterTileUrl) {
+        oldWidget.rasterTileUrl != widget.rasterTileUrl ||
+        oldWidget.styleStringOverride != widget.styleStringOverride) {
       setState(() {
+        _styleLoaded = false;
+        _polylineObjects.clear();
+        _markerCircles.clear();
+        _dataLayerIdsAdded.clear();
         _styleFuture = _loadStyleString();
       });
     }
@@ -82,26 +123,49 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
     if (widget.markers != oldWidget.markers) {
       _syncMarkers();
     }
+
+    // Update data layers if enabled set or definitions changed
+    if (widget.enabledDataLayerIds != oldWidget.enabledDataLayerIds ||
+        widget.dataLayerDefinitions != oldWidget.dataLayerDefinitions) {
+      _syncDataLayers();
+    }
   }
 
   /// Loads the map style from URL, asset, or generates raster tile style.
   Future<String> _loadStyleString() async {
+    if (widget.styleStringOverride != null) {
+      return widget.styleStringOverride!;
+    }
     // Custom style URL (HTTP/HTTPS or asset://)
     if (widget.styleUrl != null) {
       final styleUrl = widget.styleUrl!;
 
-      // Handle asset:// protocol by loading from asset bundle
+      // Handle asset:// protocol by loading from root bundle (reliable for any context)
       if (styleUrl.startsWith('asset://')) {
         try {
           final assetPath = styleUrl.replaceFirst('asset://', '');
-          final styleJson = await DefaultAssetBundle.of(
-            context,
-          ).loadString(assetPath);
+          final styleJson = await rootBundle.loadString(assetPath);
           return styleJson;
-        } catch (e) {
+        } catch (e, stack) {
           debugPrint('[MapLibreWidget] Failed to load asset style: $e');
+          debugPrint('[MapLibreWidget] $stack');
           return ml.MapLibreStyles.demo;
         }
+      }
+
+      // Fetch remote style JSON (e.g. OpenFreeMap) so native SDK gets full JSON
+      if (styleUrl.startsWith('http://') || styleUrl.startsWith('https://')) {
+        try {
+          final response = await http.get(Uri.parse(styleUrl));
+          if (response.statusCode == 200) return response.body;
+          debugPrint(
+            '[MapLibreWidget] Style URL returned ${response.statusCode}: $styleUrl',
+          );
+        } catch (e, stack) {
+          debugPrint('[MapLibreWidget] Failed to fetch style URL: $e');
+          debugPrint('[MapLibreWidget] $stack');
+        }
+        return ml.MapLibreStyles.demo;
       }
 
       return styleUrl;
@@ -156,48 +220,86 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        return ml.MapLibreMap(
-          styleString: snapshot.data!,
-          initialCameraPosition: ml.CameraPosition(
-            target: ml.LatLng(
-              widget.initialCenter.latitude,
-              widget.initialCenter.longitude,
+        return Stack(
+          children: [
+            ml.MapLibreMap(
+              styleString: snapshot.data!,
+              initialCameraPosition: ml.CameraPosition(
+                target: ml.LatLng(
+                  widget.initialCenter.latitude,
+                  widget.initialCenter.longitude,
+                ),
+                zoom: widget.initialZoom,
+              ),
+              onMapCreated: _handleMapCreated,
+              onStyleLoadedCallback: _handleStyleLoaded,
+              onCameraMove: _handleCameraMove,
+              onCameraIdle: _handleCameraIdle,
+              onMapClick:
+                  (widget.onMapTap != null ||
+                      (widget.onDataLayerFeatureTap != null &&
+                          widget.enabledDataLayerIds.isNotEmpty))
+                  ? (point, coordinates) => _handleMapClick(
+                      point,
+                      LatLng(coordinates.latitude, coordinates.longitude),
+                    )
+                  : null,
+              onMapLongClick: widget.onMapLongPress != null
+                  ? (point, coordinates) => _handleMapLongClick(
+                      LatLng(coordinates.latitude, coordinates.longitude),
+                    )
+                  : null,
+              trackCameraPosition: true,
+              myLocationEnabled: false,
+              compassEnabled: true,
+              rotateGesturesEnabled: true,
+              scrollGesturesEnabled: true,
+              tiltGesturesEnabled: true,
+              zoomGesturesEnabled: true,
+              doubleClickZoomEnabled: true,
             ),
-            zoom: widget.initialZoom,
-          ),
-          onMapCreated: _handleMapCreated,
-          onCameraIdle: _handleCameraIdle,
-          onMapClick: widget.onMapTap != null
-              ? (point, coordinates) => widget.onMapTap!(
-                  LatLng(coordinates.latitude, coordinates.longitude),
-                )
-              : null,
-          trackCameraPosition: true,
-          myLocationEnabled: false,
-          compassEnabled: true,
-          rotateGesturesEnabled: true,
-          scrollGesturesEnabled: true,
-          tiltGesturesEnabled: true,
-          zoomGesturesEnabled: true,
-          doubleClickZoomEnabled: true,
+          ],
         );
       },
     );
   }
 
   void _handleMapCreated(ml.MapLibreMapController nativeController) async {
-    _nativeController = nativeController;
-    _controller = MapLibreMapController._(nativeController);
+    setState(() {
+      _nativeController = nativeController;
+      _controller = MapLibreMapController._(nativeController);
+    });
 
-    // Initialize map overlays
+    if (_styleLoaded) {
+      await _syncPolylines();
+      await _syncMarkers();
+    }
+
+    if (mounted) widget.onMapCreated?.call(_controller!);
+  }
+
+  void _handleStyleLoaded() async {
+    _styleLoaded = true;
+    debugPrint('[MapLibreWidget] style loaded');
+    _polylineObjects.clear();
+    _markerCircles.clear();
+    _dataLayerIdsAdded.clear();
     await _syncPolylines();
     await _syncMarkers();
+    await _syncDataLayers();
+  }
 
-    widget.onMapCreated?.call(_controller!);
+  void _handleCameraMove(ml.CameraPosition position) {
+    widget.onCameraMove?.call(
+      LatLng(position.target.latitude, position.target.longitude),
+      position.zoom,
+    );
   }
 
   void _handleCameraIdle() {
     if (_nativeController == null) return;
+
+    widget.onCameraIdle?.call();
 
     final position = _nativeController!.cameraPosition;
     if (position != null && widget.onCameraMove != null) {
@@ -208,9 +310,56 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
     }
   }
 
+  /// Handles tap: data layer feature hit → onDataLayerFeatureTap; else → onMapTap.
+  void _handleMapClick(Point point, LatLng coordinates) {
+    if (widget.onDataLayerFeatureTap != null &&
+        widget.enabledDataLayerIds.isNotEmpty &&
+        _nativeController != null) {
+      final layerIds = widget.enabledDataLayerIds
+          .map((id) => 'data-layer-$id')
+          .toList();
+      final pt = Point<double>(point.x.toDouble(), point.y.toDouble());
+      _nativeController!
+          .queryRenderedFeatures(pt, layerIds, null)
+          .then((features) {
+            if (features.isNotEmpty) {
+              final first = features[0];
+              if (first is Map<String, dynamic>) {
+                final props = first['properties'];
+                final layer = first['layer'];
+                final propsMap = props is Map
+                    ? Map<String, dynamic>.from(props)
+                    : <String, dynamic>{};
+                final layerId = layer is Map
+                    ? (layer['id'] as String?) ?? ''
+                    : layer?.toString() ?? '';
+                final dataLayerId = layerId.startsWith('data-layer-')
+                    ? layerId.substring('data-layer-'.length)
+                    : layerId;
+                if (dataLayerId.isNotEmpty) {
+                  widget.onDataLayerFeatureTap?.call(dataLayerId, propsMap);
+                  return;
+                }
+              }
+            }
+            widget.onMapTap?.call(coordinates);
+          })
+          .catchError((_) {
+            widget.onMapTap?.call(coordinates);
+          });
+    } else {
+      widget.onMapTap?.call(coordinates);
+    }
+  }
+
+  /// Handles long press: e.g. reverse geosearch (onMapLongPress).
+  void _handleMapLongClick(LatLng coordinates) {
+    widget.onMapLongPress?.call(coordinates);
+  }
+
   /// Synchronizes polylines with the map (removes old, adds new).
   Future<void> _syncPolylines() async {
-    if (_nativeController == null) return;
+    if (_nativeController == null || !_styleLoaded) return;
 
     // Remove existing polylines
     for (final line in _polylineObjects.values) {
@@ -238,31 +387,138 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
     }
   }
 
-  /// Synchronizes markers with the map (removes old, adds new).
-  Future<void> _syncMarkers() async {
-    if (_nativeController == null) return;
+  /// Syncs data layers (GeoJSON overlays): add source+layer for enabled ids,
+  /// remove layer+source for disabled ids.
+  Future<void> _syncDataLayers() async {
+    if (_nativeController == null || !_styleLoaded) return;
 
-    // Remove existing markers
-    for (final symbol in _markerSymbols.values) {
-      await _nativeController!.removeSymbol(symbol);
+    final definitionsById = {
+      for (final d in widget.dataLayerDefinitions) d.id: d,
+    };
+
+    // Remove layers that are no longer enabled
+    for (final id in _dataLayerIdsAdded.toList()) {
+      if (!widget.enabledDataLayerIds.contains(id)) {
+        try {
+          final layerId = 'data-layer-$id';
+          final sourceId = 'data-source-$id';
+          await _nativeController!.removeLayer(layerId);
+          await _nativeController!.removeSource(sourceId);
+          _dataLayerIdsAdded.remove(id);
+        } catch (e) {
+          debugPrint('[MapLibreWidget] Error removing data layer $id: $e');
+        }
+      }
     }
-    _markerSymbols.clear();
 
-    // Add new markers
-    for (final marker in widget.markers) {
+    // Add layers that are enabled and have a definition
+    for (final id in widget.enabledDataLayerIds) {
+      if (_dataLayerIdsAdded.contains(id)) continue;
+      final definition = definitionsById[id];
+      if (definition == null) continue;
+
       try {
-        final symbol = await _nativeController!.addSymbol(
-          ml.SymbolOptions(
-            geometry: ml.LatLng(
-              marker.position.latitude,
-              marker.position.longitude,
-            ),
-            iconSize: 1.5,
-          ),
+        final jsonString = await rootBundle.loadString(
+          definition.geojsonAssetPath,
         );
-        _markerSymbols[marker.id] = symbol;
+        final geojsonMap = jsonDecode(jsonString) as Map<String, dynamic>;
+        final sourceId = 'data-source-$id';
+        final layerId = 'data-layer-$id';
+
+        await _nativeController!.addGeoJsonSource(sourceId, geojsonMap);
+
+        switch (definition.geometryType) {
+          case DataLayerGeometryType.fill:
+            await _nativeController!.addFillLayer(
+              sourceId,
+              layerId,
+              const ml.FillLayerProperties(
+                fillColor: '#3388ff',
+                fillOpacity: 0.4,
+                fillOutlineColor: '#3388ff',
+              ),
+            );
+            break;
+          case DataLayerGeometryType.circle:
+            await _nativeController!.addCircleLayer(
+              sourceId,
+              layerId,
+              const ml.CircleLayerProperties(
+                circleColor: '#3388ff',
+                circleRadius: 6,
+                circleStrokeWidth: 1,
+                circleStrokeColor: '#2266cc',
+              ),
+            );
+            break;
+          case DataLayerGeometryType.line:
+            await _nativeController!.addLineLayer(
+              sourceId,
+              layerId,
+              const ml.LineLayerProperties(lineColor: '#3388ff', lineWidth: 2),
+            );
+            break;
+        }
+        _dataLayerIdsAdded.add(id);
       } catch (e) {
-        debugPrint('[MapLibreWidget] Error adding marker ${marker.id}: $e');
+        debugPrint(
+          '[MapLibreWidget] Error adding data layer ${definition.id}: $e',
+        );
+      }
+    }
+  }
+
+  /// Syncs markers as native circles on the map (integrated into map layer).
+  /// Only updates when marker positions change (e.g. user location update).
+  Future<void> _syncMarkers() async {
+    if (_nativeController == null || !_styleLoaded) return;
+
+    final currentIds = widget.markers.map((m) => m.id).toSet();
+
+    // Remove circles for markers that are no longer in the list
+    for (final id in _markerCircles.keys.toList()) {
+      if (!currentIds.contains(id)) {
+        await _nativeController!.removeCircle(_markerCircles[id]!);
+        _markerCircles.remove(id);
+      }
+    }
+
+    final fillColor = widget.markerFillColorArgb != null
+        ? Color(widget.markerFillColorArgb!)
+        : AppColors.blueRibbon;
+    final strokeColor = widget.markerStrokeColorArgb != null
+        ? Color(widget.markerStrokeColorArgb!)
+        : AppColors.white;
+
+    // Add or update circles for each marker
+    for (final marker in widget.markers) {
+      final pos = ml.LatLng(
+        marker.position.latitude,
+        marker.position.longitude,
+      );
+      final options = ml.CircleOptions(
+        geometry: pos,
+        circleRadius: 12,
+        circleColor: _colorToHex(fillColor),
+        circleStrokeWidth: 2,
+        circleStrokeColor: _colorToHex(strokeColor),
+      );
+      if (_markerCircles.containsKey(marker.id)) {
+        try {
+          await _nativeController!.updateCircle(
+            _markerCircles[marker.id]!,
+            options,
+          );
+        } catch (e) {
+          debugPrint(
+            '[MapLibreWidget] updateCircle failed, recreating ${marker.id}: $e',
+          );
+          final circle = await _nativeController!.addCircle(options);
+          _markerCircles[marker.id] = circle;
+        }
+      } else {
+        final circle = await _nativeController!.addCircle(options);
+        _markerCircles[marker.id] = circle;
       }
     }
   }
@@ -282,17 +538,34 @@ class MapLibreMapController {
 
   MapLibreMapController._(this._native);
 
+  /// Native controller for advanced use.
+  ml.MapLibreMapController get native => _native;
+
   // ========== Camera Controls ==========
 
   /// Instantly moves the camera to the specified position and zoom level.
-  void moveCamera(LatLng center, double zoom) {
+  void moveCamera(LatLng center, double zoom, {double? tilt, double? bearing}) {
     try {
-      _native.moveCamera(
-        ml.CameraUpdate.newLatLngZoom(
-          ml.LatLng(center.latitude, center.longitude),
-          zoom,
-        ),
-      );
+      if (tilt == null && bearing == null) {
+        _native.moveCamera(
+          ml.CameraUpdate.newLatLngZoom(
+            ml.LatLng(center.latitude, center.longitude),
+            zoom,
+          ),
+        );
+      } else {
+        final pos = _native.cameraPosition;
+        _native.moveCamera(
+          ml.CameraUpdate.newCameraPosition(
+            ml.CameraPosition(
+              target: ml.LatLng(center.latitude, center.longitude),
+              zoom: zoom,
+              bearing: bearing ?? pos?.bearing ?? 0.0,
+              tilt: tilt ?? pos?.tilt ?? 0.0,
+            ),
+          ),
+        );
+      }
     } catch (e) {
       // Silently ignore if map isn't ready yet
       debugPrint(
@@ -302,15 +575,36 @@ class MapLibreMapController {
   }
 
   /// Animates the camera to the specified position and zoom level.
-  void animateCamera(LatLng center, double zoom, {Duration? duration}) {
+  void animateCamera(
+    LatLng center,
+    double zoom, {
+    Duration? duration,
+    double? tilt,
+    double? bearing,
+  }) {
     try {
-      _native.animateCamera(
-        ml.CameraUpdate.newLatLngZoom(
-          ml.LatLng(center.latitude, center.longitude),
-          zoom,
-        ),
-        duration: duration ?? const Duration(milliseconds: 500),
-      );
+      if (tilt == null && bearing == null) {
+        _native.animateCamera(
+          ml.CameraUpdate.newLatLngZoom(
+            ml.LatLng(center.latitude, center.longitude),
+            zoom,
+          ),
+          duration: duration ?? const Duration(milliseconds: 500),
+        );
+      } else {
+        final pos = _native.cameraPosition;
+        _native.animateCamera(
+          ml.CameraUpdate.newCameraPosition(
+            ml.CameraPosition(
+              target: ml.LatLng(center.latitude, center.longitude),
+              zoom: zoom,
+              bearing: bearing ?? pos?.bearing ?? 0.0,
+              tilt: tilt ?? pos?.tilt ?? 0.0,
+            ),
+          ),
+          duration: duration ?? const Duration(milliseconds: 500),
+        );
+      }
     } catch (e) {
       // Silently ignore if map isn't ready yet
       debugPrint(
@@ -462,6 +756,26 @@ class MapLibreMapController {
 
   /// Gets the current camera tilt.
   double get tilt => _native.cameraPosition?.tilt ?? 0.0;
+
+  /// Resets the camera bearing to north (0°).
+  void resetBearing() {
+    try {
+      final pos = _native.cameraPosition;
+      if (pos == null) return;
+      _native.moveCamera(
+        ml.CameraUpdate.newCameraPosition(
+          ml.CameraPosition(
+            target: pos.target,
+            zoom: pos.zoom,
+            bearing: 0.0,
+            tilt: pos.tilt,
+          ),
+        ),
+      );
+    } catch (e) {
+      debugPrint('[MapLibreMapController] resetBearing failed: $e');
+    }
+  }
 
   void dispose() {
     _native.dispose();

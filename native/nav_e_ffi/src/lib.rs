@@ -229,3 +229,105 @@ pub fn create_control_message(
 ) -> Result<Vec<u8>> {
     nav_engine::api::create_control_message(route_id, command_type, status_code, message)
 }
+
+// ============================================================================
+// Offline regions API
+// ============================================================================
+
+/// Get all offline regions as JSON array
+#[frb(sync)]
+pub fn get_all_offline_regions() -> Result<String> {
+    nav_engine::api::get_all_offline_regions()
+}
+
+/// Get one offline region by id as JSON object (or null)
+#[frb(sync)]
+pub fn get_offline_region_by_id(id: String) -> Result<String> {
+    nav_engine::api::get_offline_region_by_id(id)
+}
+
+/// Get list of tiles for a region as JSON array of {z, x, y}
+#[frb(sync)]
+pub fn get_offline_region_tile_list(region_id: String) -> Result<String> {
+    nav_engine::api::get_offline_region_tile_list(region_id)
+}
+
+/// Read one tile file for a region. Returns raw .pbf bytes.
+#[frb(sync)]
+pub fn get_offline_region_tile_bytes(region_id: String, z: i32, x: i32, y: i32) -> Result<Vec<u8>> {
+    nav_engine::api::get_offline_region_tile_bytes(region_id, z, x, y)
+}
+
+/// Build MapRegionMetadata protobuf message bytes for BLE transfer.
+#[frb(sync)]
+pub fn prepare_map_region_metadata_message(
+    region_json: String,
+    total_tiles: u32,
+) -> Result<Vec<u8>> {
+    nav_engine::api::prepare_map_region_metadata_message(region_json, total_tiles)
+}
+
+/// Build MapStyle protobuf message bytes for BLE transfer (sync map source to device).
+#[frb(sync)]
+pub fn prepare_map_style_message(map_source_id: String) -> Result<Vec<u8>> {
+    nav_engine::api::prepare_map_style_message(map_source_id)
+}
+
+/// Build TileChunk protobuf message bytes for BLE transfer.
+#[frb(sync)]
+pub fn prepare_tile_chunk_message(
+    region_id: String,
+    z: i32,
+    x: i32,
+    y: i32,
+    data: Vec<u8>,
+) -> Result<Vec<u8>> {
+    nav_engine::api::prepare_tile_chunk_message(region_id, z, x, y, data)
+}
+
+/// Delete an offline region by id and remove its tile directory
+#[frb(sync)]
+pub fn delete_offline_region(id: String) -> Result<()> {
+    nav_engine::api::delete_offline_region(id)
+}
+
+/// Get region for viewport bbox as JSON object (or null)
+#[frb(sync)]
+pub fn get_offline_region_for_viewport(
+    north: f64,
+    south: f64,
+    east: f64,
+    west: f64,
+) -> Result<String> {
+    nav_engine::api::get_offline_region_for_viewport(north, south, east, west)
+}
+
+/// Get storage root path for offline regions
+#[frb(sync)]
+pub fn get_offline_regions_storage_path() -> Result<String> {
+    nav_engine::api::get_offline_regions_storage_path()
+}
+
+/// Download a region: fetch tiles, write to directory, insert into DB. Returns region JSON.
+#[frb(sync)]
+pub fn download_offline_region(
+    name: String,
+    north: f64,
+    south: f64,
+    east: f64,
+    west: f64,
+    min_zoom: i32,
+    max_zoom: i32,
+    tile_url_template: Option<String>,
+) -> Result<String> {
+    nav_engine::api::download_offline_region(
+        name,
+        north,
+        south,
+        east,
+        west,
+        min_zoom,
+        max_zoom,
+        tile_url_template,
+    )
+}

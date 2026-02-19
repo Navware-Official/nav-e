@@ -749,6 +749,24 @@ const Message$json = {
       '9': 0,
       '10': 'batteryStatus'
     },
+    {
+      '1': 'map_region_metadata',
+      '3': 11,
+      '4': 1,
+      '5': 11,
+      '6': '.navigation.MapRegionMetadata',
+      '9': 0,
+      '10': 'mapRegionMetadata'
+    },
+    {
+      '1': 'tile_chunk',
+      '3': 12,
+      '4': 1,
+      '5': 11,
+      '6': '.navigation.TileChunk',
+      '9': 0,
+      '10': 'tileChunk'
+    },
   ],
   '8': [
     {'1': 'payload'},

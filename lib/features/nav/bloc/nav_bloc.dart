@@ -17,6 +17,7 @@ class NavBloc extends Bloc<NavEvent, NavState> {
     on<PositionUpdate>(_onPositionUpdate);
     on<CueFromNative>(_onCue);
     on<SetFollowMode>(_onSetFollow);
+    on<SetTurnFeed>(_onSetTurnFeed);
   }
 
   void _onStart(NavStart event, Emitter<NavState> emit) {
@@ -50,6 +51,10 @@ class NavBloc extends Bloc<NavEvent, NavState> {
 
   void _onSetFollow(SetFollowMode event, Emitter<NavState> emit) {
     emit(state.copyWith(following: event.follow));
+  }
+
+  void _onSetTurnFeed(SetTurnFeed event, Emitter<NavState> emit) {
+    emit(state.copyWith(turnFeed: event.feed));
   }
 
   double _computeTotalDistance(List<LatLng> pts) {
@@ -98,6 +103,7 @@ class NavBloc extends Bloc<NavEvent, NavState> {
               DateTime.now().millisecondsSinceEpoch.toString(),
           instruction: obj['instruction']?.toString() ?? '',
           distanceToCueM: (obj['distance_to_cue_m'] as num?)?.toDouble() ?? 0.0,
+          distanceToCueText: obj['distance_to_cue_text']?.toString() ?? '',
           location: LatLng(
             (obj['location']?[0] as num?)?.toDouble() ?? 0.0,
             (obj['location']?[1] as num?)?.toDouble() ?? 0.0,

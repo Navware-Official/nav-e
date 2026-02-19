@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
-import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
+
+/// Navware BLE service UUID (nav-c watch); used to label the watch in the scan list.
+const _navwareServiceUuid = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
 
 class AddDeviceScreen extends StatefulWidget {
   const AddDeviceScreen({super.key});
@@ -15,24 +17,80 @@ class AddDeviceScreen extends StatefulWidget {
 }
 
 class _AddDeviceScreenState extends State<AddDeviceScreen> {
+  String _inferDeviceTypeLabel(ScanResult result) {
+    final name = result.advertisementData.advName.toLowerCase();
+    final services = result.advertisementData.serviceUuids
+        .map((uuid) => uuid.toString().toLowerCase())
+        .toList();
+
+    bool containsAny(List<String> keys) {
+      return keys.any(
+        (key) => name.contains(key) || services.any((s) => s.contains(key)),
+      );
+    }
+
+    if (containsAny([
+      'watch',
+      'wear',
+      'garmin',
+      'fitbit',
+      _navwareServiceUuid,
+    ])) {
+      return 'Watch';
+    }
+    if (containsAny(['phone', 'ios', 'android'])) {
+      return 'Phone';
+    }
+    if (containsAny(['gps'])) {
+      return 'GPS';
+    }
+    if (containsAny(['tracker', 'tag'])) {
+      return 'Tracker';
+    }
+    if (containsAny(['headset', 'buds', 'airpods', 'headphone'])) {
+      return 'Headphones';
+    }
+    if (containsAny(['sensor', 'heart', 'hrm'])) {
+      return 'Sensor';
+    }
+    return 'Bluetooth Device';
+  }
+
+  IconData _inferDeviceTypeIcon(ScanResult result) {
+    final label = _inferDeviceTypeLabel(result);
+    switch (label) {
+      case 'Watch':
+        return Icons.watch;
+      case 'Phone':
+        return Icons.smartphone;
+      case 'GPS':
+        return Icons.gps_fixed;
+      case 'Tracker':
+        return Icons.track_changes;
+      case 'Headphones':
+        return Icons.headphones;
+      case 'Sensor':
+        return Icons.sensors;
+      default:
+        return Icons.bluetooth;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Check for required bluetooth support, adapter status and permissions
     context.read<BluetoothBloc>().add(CheckBluetoothRequirements());
+
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.capeCodDark02),
-          onPressed: () {
-            // Navigate to devices list using named route
-            context.push('/devices');
-          },
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.push('/devices'),
         ),
-        title: Text(
-          'Add a new bluetooth device',
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const Text('Pair with watch'),
       ),
       body: Container(
         padding: EdgeInsets.all(8),
@@ -97,11 +155,10 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                         if (state is BluetoothCheckInProgress) {
                           return Expanded(
                             child: Text(
-                              "Checking bluetooth requirements...",
+                              'Checking bluetooth requirements...',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 24,
-                                color: Colors.grey,
+                              style: textTheme.titleLarge?.copyWith(
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                           );
@@ -115,7 +172,9 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                             child: Text("Try again"),
                           );
                         } else if (state is BluetoothScanInProgress) {
-                          return CircularProgressIndicator();
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         } else if (state is BluetoothScanComplete) {
                           return Expanded(
                             child: Column(
@@ -132,7 +191,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                     child: Row(
                                       children: [
                                         Icon(Icons.refresh),
-                                        Text(" Scan Again"),
+                                        Text(" Scan again"),
                                       ],
                                     ),
                                   ),
@@ -143,31 +202,115 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                     itemCount: state.results.length,
                                     itemBuilder: (context, index) {
                                       ScanResult result = state.results[index];
-                                      String title = "Unknown";
-                                      title =
-                                          result
-                                              .advertisementData
-                                              .serviceUuids
-                                              .isNotEmpty
-                                          ? result
-                                                .advertisementData
-                                                .serviceUuids
-                                                .first
+                                      final hasNavwareService = result
+                                          .advertisementData
+                                          .serviceUuids
+                                          .any(
+                                            (u) => u
                                                 .toString()
-                                          : title;
-                                      title =
-                                          result
-                                              .advertisementData
-                                              .advName
-                                              .isNotEmpty
-                                          ? result.advertisementData.advName
-                                          : title;
-                                      String remoteId = result.device.remoteId
-                                          .toString();
+                                                .toLowerCase()
+                                                .contains(
+                                                  _navwareServiceUuid
+                                                      .toLowerCase(),
+                                                ),
+                                          );
+                                      String title = "Unknown";
+                                      if (hasNavwareService) {
+                                        title = "Navware watch (nav-c)";
+                                      } else if (result
+                                          .advertisementData
+                                          .serviceUuids
+                                          .isNotEmpty) {
+                                        title = result
+                                            .advertisementData
+                                            .serviceUuids
+                                            .first
+                                            .toString();
+                                      }
+                                      if (result
+                                          .advertisementData
+                                          .advName
+                                          .isNotEmpty) {
+                                        title =
+                                            result.advertisementData.advName;
+                                      }
+                                      final String remoteId =
+                                          result.device.remoteId.str;
+                                      final typeLabel = _inferDeviceTypeLabel(
+                                        result,
+                                      );
+                                      final typeIcon = _inferDeviceTypeIcon(
+                                        result,
+                                      );
+
                                       return ListTile(
-                                        leading: Text("RSSI: ${result.rssi}"),
+                                        leading: CircleAvatar(
+                                          backgroundColor: colorScheme
+                                              .surfaceContainerHighest,
+                                          child: Icon(
+                                            typeIcon,
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
                                         title: Text(title),
-                                        subtitle: Text(remoteId),
+                                        subtitle: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(remoteId),
+                                            const SizedBox(height: 4),
+                                            Wrap(
+                                              spacing: 8,
+                                              runSpacing: 4,
+                                              crossAxisAlignment:
+                                                  WrapCrossAlignment.center,
+                                              children: [
+                                                Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      typeIcon,
+                                                      size: 14,
+                                                      color: colorScheme
+                                                          .onSurfaceVariant,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      typeLabel,
+                                                      style: textTheme.bodySmall
+                                                          ?.copyWith(
+                                                            color: colorScheme
+                                                                .onSurfaceVariant,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.network_cell,
+                                                      size: 14,
+                                                      color: colorScheme
+                                                          .onSurfaceVariant,
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      'RSSI ${result.rssi}',
+                                                      style: textTheme.bodySmall
+                                                          ?.copyWith(
+                                                            color: colorScheme
+                                                                .onSurfaceVariant,
+                                                          ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
                                         trailing: FilledButton(
                                           onPressed: () {
                                             Device device = Device(
@@ -178,7 +321,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                               AddDevice(device),
                                             );
                                           },
-                                          child: Text("Add Device"),
+                                          child: Text("Pair"),
                                         ),
                                       );
                                     },
@@ -188,14 +331,12 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                             ),
                           );
                         } else {
-                          // if something unexpected goed wrong
                           return Expanded(
                             child: Text(
-                              "Error: Something went wrong! Unable to add devices.",
+                              'Error: Something went wrong! Unable to add devices.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 24,
-                                color: Colors.redAccent,
+                              style: textTheme.titleLarge?.copyWith(
+                                color: colorScheme.error,
                               ),
                             ),
                           );

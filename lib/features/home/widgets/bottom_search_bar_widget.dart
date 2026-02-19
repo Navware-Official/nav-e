@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
-import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/features/search/search_screen.dart';
 import 'package:nav_e/widgets/search_bar_widget.dart';
@@ -14,6 +13,8 @@ class BottomSearchBarWidget extends StatelessWidget {
   final ValueChanged<GeocodingResult> onResultSelected;
 
   void _showMenuBottomSheet(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -29,7 +30,7 @@ class BottomSearchBarWidget extends StatelessWidget {
               height: 4,
               margin: const EdgeInsets.only(bottom: 20),
               decoration: BoxDecoration(
-                color: Colors.grey[300],
+                color: colorScheme.outlineVariant,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -65,58 +66,29 @@ class BottomSearchBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bottomPadding = MediaQuery.paddingOf(context).bottom;
     return Positioned(
-      top: 26,
       left: 16,
       right: 16,
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Hero(
-                tag: 'searchBarHero',
-                child: SearchBarWidget(
-                  onTap: () async {
-                    final result = await Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => BlocProvider(
-                          create: (ctx) =>
-                              SearchBloc(ctx.read<IGeocodingRepository>()),
-                          child: const SearchScreen(),
-                        ),
-                      ),
-                    );
-                    if (result != null) {
-                      onResultSelected(result);
-                    }
-                  },
+      bottom: bottomPadding + 16,
+      child: Hero(
+        tag: 'searchBarHero',
+        child: SearchBarWidget(
+          hintText: 'Search for a place ',
+          onTap: () async {
+            final result = await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => BlocProvider(
+                  create: (ctx) => SearchBloc(ctx.read<IGeocodingRepository>()),
+                  child: const SearchScreen(),
                 ),
               ),
-            ),
-            Container(
-              width: 1,
-              height: 40,
-              color: AppColors.lightGray,
-              margin: const EdgeInsets.symmetric(horizontal: 8),
-            ),
-            IconButton(
-              icon: const Icon(Icons.menu, size: 28),
-              tooltip: 'Menu',
-              onPressed: () => _showMenuBottomSheet(context),
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-          ],
+            );
+            if (result != null) {
+              onResultSelected(result);
+            }
+          },
+          onMenuTap: () => _showMenuBottomSheet(context),
         ),
       ),
     );

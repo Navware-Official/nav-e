@@ -18,13 +18,17 @@ class NavBanner extends StatelessWidget {
             : '—';
         final instruction = state.nextCue?.instruction ?? 'Proceed';
 
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+        final textTheme = theme.textTheme;
+
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Material(
               elevation: 8,
               borderRadius: BorderRadius.circular(8),
-              color: Colors.white,
+              color: colorScheme.surface,
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -32,7 +36,7 @@ class NavBanner extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.navigation, color: Colors.black87),
+                    Icon(Icons.navigation, color: colorScheme.onSurface),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -40,17 +44,15 @@ class NavBanner extends StatelessWidget {
                         children: [
                           Text(
                             instruction,
-                            style: const TextStyle(
-                              fontSize: 16,
+                            style: textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             distance,
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.black54,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
                             ),
                           ),
                         ],

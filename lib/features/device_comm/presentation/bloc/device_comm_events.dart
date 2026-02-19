@@ -20,6 +20,31 @@ class SendRouteToDevice extends DeviceCommEvent {
   List<Object?> get props => [remoteId, routeJson];
 }
 
+/// Send a map region to a connected device
+class SendMapRegionToDevice extends DeviceCommEvent {
+  final String remoteId;
+  final String regionId;
+
+  const SendMapRegionToDevice({required this.remoteId, required this.regionId});
+
+  @override
+  List<Object?> get props => [remoteId, regionId];
+}
+
+/// Send current map style/source to device so both show the same map
+class SendMapStyleToDevice extends DeviceCommEvent {
+  final String remoteId;
+  final String mapSourceId;
+
+  const SendMapStyleToDevice({
+    required this.remoteId,
+    required this.mapSourceId,
+  });
+
+  @override
+  List<Object?> get props => [remoteId, mapSourceId];
+}
+
 /// Send a control command to a device
 class SendControlCommand extends DeviceCommEvent {
   final String remoteId;

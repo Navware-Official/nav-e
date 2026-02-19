@@ -1,0 +1,66 @@
+{
+  "version": 8,
+  "name": "Nav-E Dark Style",
+  "metadata": { "maputnik:renderer": "mbgljs" },
+  "glyphs": "https://demotiles.maplibre.org/fonts/{fontstack}/{range}.pbf",
+  "sources": {
+    "openmaptiles": {
+      "type": "vector",
+      "url": "https://demotiles.maplibre.org/tiles/tiles.json"
+    },
+    "satellite": {
+      "type": "raster",
+      "tiles": ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
+      "tileSize": 256,
+      "minzoom": 0,
+      "maxzoom": 19
+    }
+  },
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": { "background-color": "#1a1a1a" }
+    },
+    {
+      "id": "countries",
+      "type": "fill",
+      "source": "openmaptiles",
+      "source-layer": "countries",
+      "filter": ["==", "$type", "Polygon"],
+      "paint": {
+        "fill-color": "#2d3748",
+        "fill-outline-color": "#4a5568"
+      }
+    },
+    {
+      "id": "geolines",
+      "type": "line",
+      "source": "openmaptiles",
+      "source-layer": "geolines",
+      "filter": ["==", "$type", "LineString"],
+      "paint": {
+        "line-color": "#63b3ed",
+        "line-width": 2
+      }
+    },
+    {
+      "id": "country_labels",
+      "type": "symbol",
+      "source": "openmaptiles",
+      "source-layer": "centroids",
+      "minzoom": 2,
+      "layout": {
+        "text-field": "{NAME}",
+        "text-font": ["Open Sans Regular"],
+        "text-size": 14,
+        "text-max-width": 8
+      },
+      "paint": {
+        "text-color": "#e2e8f0",
+        "text-halo-color": "#1a1a1a",
+        "text-halo-width": 2
+      }
+    }
+  ]
+}

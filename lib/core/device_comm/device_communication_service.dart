@@ -1,148 +1,140 @@
-import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:nav_e/bridge/lib.dart' as api;
+import 'package:nav_e/core/device_comm/device_comm_transport.dart';
 import 'package:nav_e/core/device_comm/proto/navigation.pb.dart' as proto;
+import 'package:uuid/uuid.dart';
 
-/// Service for communicating with external devices via BLE
-/// Handles message serialization, chunking, and transmission
+/// Service for communicating with external devices via a transport (BLE or Wear).
+/// Handles message serialization, chunking, and delegates sending to the transport.
 class DeviceCommunicationService {
-  static const int _maxRetries = 3;
+  DeviceCommunicationService(this._transport);
 
-  final _messageStreamController = StreamController<DeviceMessage>.broadcast();
+  final DeviceCommTransport _transport;
 
   /// Stream of incoming messages from devices
-  Stream<DeviceMessage> get messageStream => _messageStreamController.stream;
+  Stream<DeviceMessage> get messageStream => _transport.messageStream;
+
+  /// Connected devices (from transport).
+  Future<List<ConnectedDeviceInfo>> getConnectedDeviceIds() =>
+      _transport.getConnectedDeviceIds();
 
   /// Send a route to a connected device
-  ///
-  /// [device] - The connected Bluetooth device
-  /// [routeJson] - JSON string containing route data
-  /// [onProgress] - Optional callback for transmission progress (0.0 to 1.0)
   Future<void> sendRoute({
-    required BluetoothDevice device,
+    required String remoteId,
     required String routeJson,
     void Function(double progress)? onProgress,
   }) async {
-    // 1. Prepare the route message using FFI
     final messageBytes = api.prepareRouteMessage(routeJson: routeJson);
-
-    // 2. Get MTU for the device
-    final mtu = await device.mtu.first;
-
-    // 3. Chunk the message for BLE transmission
+    final mtu = await _transport.getMtu(remoteId);
     final routeId = _generateRouteId();
     final frames = api.chunkMessageForBle(
       messageBytes: messageBytes,
       routeId: routeId,
       mtu: mtu,
     );
+    await _transport.sendFrames(remoteId, frames, onProgress: onProgress);
+  }
 
-    // 4. Find writable characteristic
-    final characteristic = await _findWriteCharacteristic(device);
-    if (characteristic == null) {
-      throw DeviceCommunicationException(
-        'No writable characteristic found on device',
-      );
+  /// Send a map region (metadata + tile chunks) to a connected device.
+  Future<void> sendMapRegion({
+    required String remoteId,
+    required String regionId,
+    void Function(int tilesSent, int totalTiles)? onProgress,
+  }) async {
+    final regionJson = api.getOfflineRegionById(id: regionId);
+    if (regionJson == 'null' || regionJson.isEmpty) {
+      throw DeviceCommunicationException('Region not found: $regionId');
+    }
+    final tileListJson = api.getOfflineRegionTileList(regionId: regionId);
+    final tileList = (jsonDecode(tileListJson) as List)
+        .cast<Map<Object?, Object?>>();
+    final totalTiles = tileList.length;
+    if (totalTiles == 0) {
+      throw DeviceCommunicationException('Region has no tiles');
     }
 
-    // 5. Send frames with retry logic
-    await _sendFramesWithRetry(
-      characteristic: characteristic,
-      frames: frames,
-      onProgress: onProgress,
+    final metadataBytes = api.prepareMapRegionMetadataMessage(
+      regionJson: regionJson,
+      totalTiles: totalTiles,
     );
+    final mtu = await _transport.getMtu(remoteId);
+    final mapTransferId = regionId.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+    final metadataFrames = api.chunkMessageForBle(
+      messageBytes: metadataBytes,
+      routeId: mapTransferId,
+      mtu: mtu,
+    );
+    await _transport.sendFrames(remoteId, metadataFrames);
+
+    int sent = 0;
+    for (final tile in tileList) {
+      final z = tile['z']! as int;
+      final x = tile['x']! as int;
+      final y = tile['y']! as int;
+      final tileBytes = api.getOfflineRegionTileBytes(
+        regionId: regionId,
+        z: z,
+        x: x,
+        y: y,
+      );
+      final chunkBytes = api.prepareTileChunkMessage(
+        regionId: regionId,
+        z: z,
+        x: x,
+        y: y,
+        data: tileBytes,
+      );
+      final frames = api.chunkMessageForBle(
+        messageBytes: chunkBytes,
+        routeId: mapTransferId,
+        mtu: mtu,
+      );
+      await _transport.sendFrames(remoteId, frames);
+      sent++;
+      onProgress?.call(sent, totalTiles);
+    }
+  }
+
+  /// Send map style/source to device so nav-c shows the same map as nav-e
+  Future<void> sendMapStyle({
+    required String remoteId,
+    required String mapSourceId,
+  }) async {
+    final messageBytes = api.prepareMapStyleMessage(mapSourceId: mapSourceId);
+    final mtu = await _transport.getMtu(remoteId);
+    final routeId = _generateRouteId();
+    final frames = api.chunkMessageForBle(
+      messageBytes: messageBytes,
+      routeId: routeId,
+      mtu: mtu,
+    );
+    await _transport.sendFrames(remoteId, frames);
   }
 
   /// Send a control command to a device
   Future<void> sendControlCommand({
-    required BluetoothDevice device,
+    required String remoteId,
     required String routeId,
     required ControlType controlType,
     int statusCode = 0,
     String message = '',
   }) async {
-    // Create control message using FFI
     final messageBytes = api.createControlMessage(
       routeId: routeId,
       commandType: controlType.name,
       statusCode: statusCode,
       message: message,
     );
-
-    // Find writable characteristic
-    final characteristic = await _findWriteCharacteristic(device);
-    if (characteristic == null) {
-      throw DeviceCommunicationException(
-        'No writable characteristic found on device',
-      );
-    }
-
-    // Send control message (no chunking needed - small message)
-    await characteristic.write(messageBytes, withoutResponse: false);
+    await _transport.sendFrames(remoteId, [Uint8List.fromList(messageBytes)]);
   }
 
-  /// Find a writable characteristic on the device
-  Future<BluetoothCharacteristic?> _findWriteCharacteristic(
-    BluetoothDevice device,
-  ) async {
-    final services = await device.discoverServices();
-
-    for (final service in services) {
-      for (final characteristic in service.characteristics) {
-        if (characteristic.properties.write) {
-          return characteristic;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /// Send frames with retry logic and progress tracking
-  Future<void> _sendFramesWithRetry({
-    required BluetoothCharacteristic characteristic,
-    required List<Uint8List> frames,
-    void Function(double progress)? onProgress,
-  }) async {
-    for (int i = 0; i < frames.length; i++) {
-      final frame = frames[i];
-      bool success = false;
-      int retryCount = 0;
-
-      while (!success && retryCount < _maxRetries) {
-        try {
-          await characteristic.write(frame, withoutResponse: false);
-          success = true;
-
-          // Update progress
-          if (onProgress != null) {
-            final progress = (i + 1) / frames.length;
-            onProgress(progress);
-          }
-        } catch (e) {
-          retryCount++;
-          if (retryCount >= _maxRetries) {
-            throw DeviceCommunicationException(
-              'Failed to send frame $i after $_maxRetries attempts: $e',
-            );
-          }
-
-          // Wait before retry
-          await Future.delayed(Duration(milliseconds: 100 * retryCount));
-        }
-      }
-    }
-  }
-
-  /// Generate a unique route ID
   String _generateRouteId() {
-    return DateTime.now().millisecondsSinceEpoch.toString();
+    return const Uuid().v4();
   }
 
-  /// Clean up resources
   void dispose() {
-    _messageStreamController.close();
+    _transport.dispose();
   }
 }
 

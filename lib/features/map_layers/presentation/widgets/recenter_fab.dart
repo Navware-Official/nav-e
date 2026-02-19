@@ -16,18 +16,28 @@ class RecenterFAB extends StatelessWidget {
         final isFollowing = mapState.followUser;
         final location = context.watch<LocationBloc>().state.position;
 
+        final colorScheme = Theme.of(context).colorScheme;
         return DraggableFAB(
           key: const Key('recenter_fab'),
           icon: Icons.my_location,
           tooltip: 'Recenter map to user location',
-          iconColor: isFollowing ? Colors.white : Colors.lightBlue,
+          iconColor: isFollowing ? colorScheme.onPrimary : colorScheme.primary,
+          backgroundColor: isFollowing
+              ? colorScheme.primary
+              : colorScheme.surfaceContainerHighest,
           onPressed: () {
-            // Enable follow user mode - MapWidget will handle camera movement
-            context.read<MapBloc>().add(ToggleFollowUser(true));
-
-            // Move camera to current location if available
+            final bloc = context.read<MapBloc>();
+            final mapState = bloc.state;
+            debugPrint(
+              '[RecenterFAB] pressed | followUser=${mapState.followUser} '
+              'center=${mapState.center} zoom=${mapState.zoom} '
+              'location=${location ?? 'null'}',
+            );
             if (location != null) {
-              context.read<MapBloc>().add(MapMoved(location, 16.0));
+              bloc.add(ToggleFollowUser(true));
+              bloc.add(MapMoved(location, 16.0, force: true));
+            } else {
+              bloc.add(ToggleFollowUser(true));
             }
           },
         );

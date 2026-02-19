@@ -2090,6 +2090,260 @@ class ErrorReport extends $pb.GeneratedMessage {
   void clearTimestampMs() => $_clearField(5);
 }
 
+/// Map region metadata: sent first so device knows how many TileChunk messages to expect
+class MapRegionMetadata extends $pb.GeneratedMessage {
+  factory MapRegionMetadata({
+    $core.String? regionId,
+    $core.String? name,
+    $core.double? north,
+    $core.double? south,
+    $core.double? east,
+    $core.double? west,
+    $core.int? minZoom,
+    $core.int? maxZoom,
+    $core.int? totalTiles,
+  }) {
+    final result = create();
+    if (regionId != null) result.regionId = regionId;
+    if (name != null) result.name = name;
+    if (north != null) result.north = north;
+    if (south != null) result.south = south;
+    if (east != null) result.east = east;
+    if (west != null) result.west = west;
+    if (minZoom != null) result.minZoom = minZoom;
+    if (maxZoom != null) result.maxZoom = maxZoom;
+    if (totalTiles != null) result.totalTiles = totalTiles;
+    return result;
+  }
+
+  MapRegionMetadata._();
+
+  factory MapRegionMetadata.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MapRegionMetadata.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MapRegionMetadata',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'navigation'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'regionId')
+    ..aOS(2, _omitFieldNames ? '' : 'name')
+    ..aD(3, _omitFieldNames ? '' : 'north')
+    ..aD(4, _omitFieldNames ? '' : 'south')
+    ..aD(5, _omitFieldNames ? '' : 'east')
+    ..aD(6, _omitFieldNames ? '' : 'west')
+    ..aI(7, _omitFieldNames ? '' : 'minZoom', fieldType: $pb.PbFieldType.OU3)
+    ..aI(8, _omitFieldNames ? '' : 'maxZoom', fieldType: $pb.PbFieldType.OU3)
+    ..aI(9, _omitFieldNames ? '' : 'totalTiles', fieldType: $pb.PbFieldType.OU3)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MapRegionMetadata clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MapRegionMetadata copyWith(void Function(MapRegionMetadata) updates) =>
+      super.copyWith((message) => updates(message as MapRegionMetadata))
+          as MapRegionMetadata;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MapRegionMetadata create() => MapRegionMetadata._();
+  @$core.override
+  MapRegionMetadata createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MapRegionMetadata getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<MapRegionMetadata>(create);
+  static MapRegionMetadata? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get regionId => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set regionId($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRegionId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRegionId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get name => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set name($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearName() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.double get north => $_getN(2);
+  @$pb.TagNumber(3)
+  set north($core.double value) => $_setDouble(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasNorth() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearNorth() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.double get south => $_getN(3);
+  @$pb.TagNumber(4)
+  set south($core.double value) => $_setDouble(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasSouth() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSouth() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.double get east => $_getN(4);
+  @$pb.TagNumber(5)
+  set east($core.double value) => $_setDouble(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasEast() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearEast() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.double get west => $_getN(5);
+  @$pb.TagNumber(6)
+  set west($core.double value) => $_setDouble(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasWest() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearWest() => $_clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.int get minZoom => $_getIZ(6);
+  @$pb.TagNumber(7)
+  set minZoom($core.int value) => $_setUnsignedInt32(6, value);
+  @$pb.TagNumber(7)
+  $core.bool hasMinZoom() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearMinZoom() => $_clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.int get maxZoom => $_getIZ(7);
+  @$pb.TagNumber(8)
+  set maxZoom($core.int value) => $_setUnsignedInt32(7, value);
+  @$pb.TagNumber(8)
+  $core.bool hasMaxZoom() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearMaxZoom() => $_clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.int get totalTiles => $_getIZ(8);
+  @$pb.TagNumber(9)
+  set totalTiles($core.int value) => $_setUnsignedInt32(8, value);
+  @$pb.TagNumber(9)
+  $core.bool hasTotalTiles() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearTotalTiles() => $_clearField(9);
+}
+
+/// One vector tile (.pbf) for a region
+class TileChunk extends $pb.GeneratedMessage {
+  factory TileChunk({
+    $core.String? regionId,
+    $core.int? z,
+    $core.int? x,
+    $core.int? y,
+    $core.List<$core.int>? data,
+  }) {
+    final result = create();
+    if (regionId != null) result.regionId = regionId;
+    if (z != null) result.z = z;
+    if (x != null) result.x = x;
+    if (y != null) result.y = y;
+    if (data != null) result.data = data;
+    return result;
+  }
+
+  TileChunk._();
+
+  factory TileChunk.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory TileChunk.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'TileChunk',
+      package: const $pb.PackageName(_omitMessageNames ? '' : 'navigation'),
+      createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'regionId')
+    ..a<$core.int>(2, _omitFieldNames ? '' : 'z', $pb.PbFieldType.O3)
+    ..a<$core.int>(3, _omitFieldNames ? '' : 'x', $pb.PbFieldType.O3)
+    ..a<$core.int>(4, _omitFieldNames ? '' : 'y', $pb.PbFieldType.O3)
+    ..a<$core.List<$core.int>>(
+        5, _omitFieldNames ? '' : 'data', $pb.PbFieldType.OY)
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  TileChunk clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  TileChunk copyWith(void Function(TileChunk) updates) =>
+      super.copyWith((message) => updates(message as TileChunk)) as TileChunk;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static TileChunk create() => TileChunk._();
+  @$core.override
+  TileChunk createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static TileChunk getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<TileChunk>(create);
+  static TileChunk? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get regionId => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set regionId($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasRegionId() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearRegionId() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get z => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set z($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasZ() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearZ() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get x => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set x($core.int value) => $_setSignedInt32(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasX() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearX() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get y => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set y($core.int value) => $_setSignedInt32(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasY() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearY() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.List<$core.int> get data => $_getN(4);
+  @$pb.TagNumber(5)
+  set data($core.List<$core.int> value) => $_setBytes(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasData() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearData() => $_clearField(5);
+}
+
 /// Frame wrapper for chunked transmission over BLE
 class Frame extends $pb.GeneratedMessage {
   factory Frame({
@@ -2266,6 +2520,8 @@ enum Message_Payload {
   waypointUpdate,
   deviceCapabilities,
   batteryStatus,
+  mapRegionMetadata,
+  tileChunk,
   notSet
 }
 
@@ -2282,6 +2538,8 @@ class Message extends $pb.GeneratedMessage {
     WaypointUpdate? waypointUpdate,
     DeviceCapabilities? deviceCapabilities,
     BatteryStatus? batteryStatus,
+    MapRegionMetadata? mapRegionMetadata,
+    TileChunk? tileChunk,
   }) {
     final result = create();
     if (routeSummary != null) result.routeSummary = routeSummary;
@@ -2295,6 +2553,8 @@ class Message extends $pb.GeneratedMessage {
     if (deviceCapabilities != null)
       result.deviceCapabilities = deviceCapabilities;
     if (batteryStatus != null) result.batteryStatus = batteryStatus;
+    if (mapRegionMetadata != null) result.mapRegionMetadata = mapRegionMetadata;
+    if (tileChunk != null) result.tileChunk = tileChunk;
     return result;
   }
 
@@ -2318,13 +2578,15 @@ class Message extends $pb.GeneratedMessage {
     8: Message_Payload.waypointUpdate,
     9: Message_Payload.deviceCapabilities,
     10: Message_Payload.batteryStatus,
+    11: Message_Payload.mapRegionMetadata,
+    12: Message_Payload.tileChunk,
     0: Message_Payload.notSet
   };
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       _omitMessageNames ? '' : 'Message',
       package: const $pb.PackageName(_omitMessageNames ? '' : 'navigation'),
       createEmptyInstance: create)
-    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    ..oo(0, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])
     ..aOM<RouteSummary>(1, _omitFieldNames ? '' : 'routeSummary',
         subBuilder: RouteSummary.create)
     ..aOM<RouteBlob>(2, _omitFieldNames ? '' : 'routeBlob',
@@ -2345,6 +2607,10 @@ class Message extends $pb.GeneratedMessage {
         subBuilder: DeviceCapabilities.create)
     ..aOM<BatteryStatus>(10, _omitFieldNames ? '' : 'batteryStatus',
         subBuilder: BatteryStatus.create)
+    ..aOM<MapRegionMetadata>(11, _omitFieldNames ? '' : 'mapRegionMetadata',
+        subBuilder: MapRegionMetadata.create)
+    ..aOM<TileChunk>(12, _omitFieldNames ? '' : 'tileChunk',
+        subBuilder: TileChunk.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -2375,6 +2641,8 @@ class Message extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   Message_Payload whichPayload() => _Message_PayloadByTag[$_whichOneof(0)]!;
   @$pb.TagNumber(1)
   @$pb.TagNumber(2)
@@ -2386,6 +2654,8 @@ class Message extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   @$pb.TagNumber(9)
   @$pb.TagNumber(10)
+  @$pb.TagNumber(11)
+  @$pb.TagNumber(12)
   void clearPayload() => $_clearField($_whichOneof(0));
 
   @$pb.TagNumber(1)
@@ -2497,6 +2767,28 @@ class Message extends $pb.GeneratedMessage {
   void clearBatteryStatus() => $_clearField(10);
   @$pb.TagNumber(10)
   BatteryStatus ensureBatteryStatus() => $_ensure(9);
+
+  @$pb.TagNumber(11)
+  MapRegionMetadata get mapRegionMetadata => $_getN(10);
+  @$pb.TagNumber(11)
+  set mapRegionMetadata(MapRegionMetadata value) => $_setField(11, value);
+  @$pb.TagNumber(11)
+  $core.bool hasMapRegionMetadata() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearMapRegionMetadata() => $_clearField(11);
+  @$pb.TagNumber(11)
+  MapRegionMetadata ensureMapRegionMetadata() => $_ensure(10);
+
+  @$pb.TagNumber(12)
+  TileChunk get tileChunk => $_getN(11);
+  @$pb.TagNumber(12)
+  set tileChunk(TileChunk value) => $_setField(12, value);
+  @$pb.TagNumber(12)
+  $core.bool hasTileChunk() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearTileChunk() => $_clearField(12);
+  @$pb.TagNumber(12)
+  TileChunk ensureTileChunk() => $_ensure(11);
 }
 
 const $core.bool _omitFieldNames =

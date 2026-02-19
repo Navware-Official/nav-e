@@ -12,6 +12,9 @@ class DraggableFAB extends StatefulWidget {
   final ShapeBorder shape;
   final Color iconColor;
 
+  /// When null, uses theme's FAB default. Use for inactive state (e.g. muted).
+  final Color? backgroundColor;
+
   const DraggableFAB({
     super.key,
     this.onPressed,
@@ -24,6 +27,7 @@ class DraggableFAB extends StatefulWidget {
       borderRadius: BorderRadius.all(Radius.circular(30)),
     ),
     this.iconColor = AppColors.blueRibbonDark02,
+    this.backgroundColor,
   });
 
   @override
@@ -108,6 +112,7 @@ class _DraggableFABState extends State<DraggableFAB> {
         child: FloatingActionButton(
           heroTag: null,
           onPressed: widget.onPressed,
+          backgroundColor: widget.backgroundColor,
           shape: widget.shape,
           tooltip: widget.tooltip,
           child: Icon(widget.icon, size: widget.size, color: widget.iconColor),

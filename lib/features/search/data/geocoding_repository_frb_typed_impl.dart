@@ -57,4 +57,18 @@ class GeocodingRepositoryFrbTypedImpl implements IGeocodingRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<GeocodingResult> reverseGeocode({
+    required double lat,
+    required double lon,
+  }) async {
+    final label = await rust.reverseGeocode(latitude: lat, longitude: lon);
+
+    final resolvedLabel = label.trim().isEmpty
+        ? '${lat.toStringAsFixed(5)}, ${lon.toStringAsFixed(5)}'
+        : label;
+
+    return GeocodingResult.minimal(lat: lat, lon: lon, label: resolvedLabel);
+  }
 }

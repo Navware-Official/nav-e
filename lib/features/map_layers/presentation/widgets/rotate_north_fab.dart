@@ -15,13 +15,13 @@ class RotateNorthFAB extends StatelessWidget {
       tooltip: 'Rotate map to North',
       shape: const CircleBorder(),
       onPressed: () {
-        // Reset bearing to 0 (north) via MapBloc
         final mapBloc = context.read<MapBloc>();
         final currentState = mapBloc.state;
-        // Trigger a camera update to reset rotation
-        context.read<MapBloc>().add(
-          MapMoved(currentState.center, currentState.zoom),
+        debugPrint(
+          '[RotateNorthFAB] pressed | center=${currentState.center} '
+          'zoom=${currentState.zoom} followUser=${currentState.followUser}',
         );
+        mapBloc.add(ResetBearing());
       },
     );
   }

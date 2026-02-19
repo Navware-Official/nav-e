@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_bloc.dart';
+import 'package:uuid/uuid.dart';
+import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/device_comm/device_comm_transport.dart';
+import 'package:nav_e/core/device_comm/device_communication_service.dart';
+import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_states.dart';
-import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 
 /// Debug screen for testing device communication
 class DeviceCommDebugScreen extends StatefulWidget {
@@ -29,20 +32,42 @@ class DeviceCommDebugScreen extends StatefulWidget {
 class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
   final List<String> _eventLog = [];
   String? _selectedDeviceId;
+  late Future<List<ConnectedDeviceInfo>> _devicesFuture;
 
   @override
   void initState() {
     super.initState();
-    // Load devices when screen opens
-    context.read<DevicesBloc>().add(LoadDevices());
+    _devicesFuture = context.read<DeviceCommBloc>().getConnectedDeviceIds();
     _addLog('Screen initialized');
   }
 
   void _addLog(String message) {
+    if (!mounted) return;
     setState(() {
       final timestamp = DateTime.now().toString().substring(11, 19);
       _eventLog.insert(0, '[$timestamp] $message');
     });
+  }
+
+  void _sendHeartbeat() {
+    if (_selectedDeviceId == null) {
+      _addLog('ERROR: No device selected');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a device first')),
+      );
+      return;
+    }
+    final routeId = const Uuid().v4();
+    _addLog('Sending HEARTBEAT to $_selectedDeviceId (routeId: $routeId)');
+    context.read<DeviceCommBloc>().add(
+      SendControlCommand(
+        remoteId: _selectedDeviceId!,
+        routeId: routeId,
+        controlType: ControlType.heartbeat,
+        statusCode: 200,
+        message: 'ping',
+      ),
+    );
   }
 
   void _sendRoute() {
@@ -59,11 +84,20 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
         .map((p) => [p.latitude, p.longitude])
         .toList();
 
+    // Polyline: send as array [[lat, lon], ...] so nav-e sends RawPoints and nav-c can draw the line.
+    // If you have an encoded polyline string from an API, send it as 'polyline': "encoded..." instead.
+    final polylineJson = widget.polyline.isNotEmpty
+        ? widget.polyline
+        : waypoints; // use waypoints as polyline so the route line is visible on device
+
+    // Optional: next_turn_text is shown on the device banner. When building route JSON
+    // from an external API (e.g. plan_route / navigate), include the first step instruction here.
     final routeJson = jsonEncode({
       'waypoints': waypoints,
       'distance_m': widget.distanceM ?? 0.0,
       'duration_s': widget.durationS ?? 0.0,
-      'polyline': widget.polyline,
+      'polyline': polylineJson,
+      'next_turn_text': 'Turn left onto Veemarktplein',
     });
 
     _addLog('Sending route to device: $_selectedDeviceId');
@@ -97,16 +131,30 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
           // Device Comm State
           _buildDeviceCommState(colorScheme),
 
-          // Send Button
+          // Send Buttons
           Padding(
             padding: const EdgeInsets.all(16),
-            child: FilledButton.icon(
-              onPressed: _sendRoute,
-              icon: const Icon(Icons.send),
-              label: const Text('Send Route to Device'),
-              style: FilledButton.styleFrom(
-                minimumSize: const Size(double.infinity, 48),
-              ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: _sendHeartbeat,
+                  icon: const Icon(Icons.favorite),
+                  label: const Text('Send Heartbeat (Step 1 test)'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 44),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                FilledButton.icon(
+                  onPressed: _sendRoute,
+                  icon: const Icon(Icons.send),
+                  label: const Text('Send Route to Device'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 48),
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -119,80 +167,88 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
 
   Widget _buildDeviceSelector(ColorScheme colorScheme) {
     final theme = Theme.of(context);
-    return BlocConsumer<DevicesBloc, DevicesState>(
-      listener: (context, state) {
-        if (state is DeviceLoadSuccess) {
-          _addLog('Loaded ${state.devices.length} devices');
-        } else if (state is DeviceOperationFailure) {
-          _addLog('ERROR: ${state.message}');
+    return FutureBuilder<List<ConnectedDeviceInfo>>(
+      future: _devicesFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
         }
-      },
-      builder: (context, state) {
-        if (state is DeviceLoadSuccess) {
-          final devices = state.devices;
+        final devices = snapshot.data!;
 
-          return Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: colorScheme.outline),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        return Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: colorScheme.outline),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Select Device',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _devicesFuture = context
+                            .read<DeviceCommBloc>()
+                            .getConnectedDeviceIds();
+                      });
+                    },
+                    child: const Text('Refresh'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (devices.isEmpty)
                 Text(
-                  'Select Device',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  'No devices connected. Connect a device (Wear or BLE).',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                )
+              else
+                RadioGroup<String>(
+                  groupValue: _selectedDeviceId,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedDeviceId = value;
+                    });
+
+                    if (value != null) {
+                      final device = devices.firstWhere(
+                        (d) => d.id == value,
+                        orElse: () => devices.first,
+                      );
+                      _addLog(
+                        'Selected device: ${device.name ?? device.id} (${device.id})',
+                      );
+                    }
+                  },
+                  child: Column(
+                    children: [
+                      for (final device in devices)
+                        RadioListTile<String>(
+                          title: Text(device.name ?? device.id),
+                          subtitle: Text(device.id),
+                          value: device.id,
+                          contentPadding: EdgeInsets.zero,
+                          dense: true,
+                        ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                if (devices.isEmpty)
-                  Text(
-                    'No devices found. Add devices first.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  )
-                else
-                  RadioGroup<String>(
-                    groupValue: _selectedDeviceId,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedDeviceId = value;
-                      });
-
-                      if (value != null) {
-                        final device = devices.firstWhere(
-                          (d) => d.remoteId == value,
-                          orElse: () => devices.first,
-                        );
-                        _addLog(
-                          'Selected device: ${device.name} (${device.remoteId})',
-                        );
-                      }
-                    },
-                    child: Column(
-                      children: [
-                        for (final device in devices)
-                          RadioListTile<String>(
-                            title: Text(device.name),
-                            subtitle: Text(device.remoteId),
-                            value: device.remoteId,
-                            contentPadding: EdgeInsets.zero,
-                            dense: true,
-                          ),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          );
-        }
-
-        return const Center(child: CircularProgressIndicator());
+            ],
+          ),
+        );
       },
     );
   }
@@ -243,6 +299,7 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
   Widget _buildDeviceCommState(ColorScheme colorScheme) {
     return BlocConsumer<DeviceCommBloc, DeviceCommState>(
       listener: (context, state) {
+        if (!mounted) return;
         if (state is DeviceCommSending) {
           _addLog('Sending... ${(state.progress * 100).toInt()}%');
         } else if (state is DeviceCommSuccess) {
@@ -262,18 +319,18 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
         IconData icon;
 
         if (state is DeviceCommSending) {
-          bgColor = Colors.blue.shade50;
-          borderColor = Colors.blue.shade300;
+          bgColor = colorScheme.primaryContainer;
+          borderColor = colorScheme.primary;
           stateText = 'Sending... ${(state.progress * 100).toInt()}%';
           icon = Icons.sync;
         } else if (state is DeviceCommSuccess) {
-          bgColor = Colors.green.shade50;
-          borderColor = Colors.green.shade300;
+          bgColor = AppColors.successContainer;
+          borderColor = AppColors.success;
           stateText = 'Success!';
           icon = Icons.check_circle;
         } else if (state is DeviceCommError) {
-          bgColor = Colors.red.shade50;
-          borderColor = Colors.red.shade300;
+          bgColor = colorScheme.errorContainer;
+          borderColor = colorScheme.error;
           stateText = 'Error: ${state.message}';
           icon = Icons.error;
         } else {
@@ -332,14 +389,17 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Event Log',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  child: Text(
+                    'Event Log',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 TextButton.icon(
@@ -357,56 +417,60 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
           ),
           const Divider(height: 1),
           Expanded(
-            child: _eventLog.isEmpty
-                ? Center(
-                    child: Text(
-                      'No events yet',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: _eventLog.length,
-                    itemBuilder: (context, index) {
-                      final log = _eventLog[index];
-                      final isError =
-                          log.contains('ERROR') || log.contains('✗');
-                      final isSuccess =
-                          log.contains('SUCCESS') || log.contains('✓');
-
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
+            child: SingleChildScrollView(
+              child: _eventLog.isEmpty
+                  ? Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Center(
+                        child: Text(
+                          'No events yet',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
-                        decoration: BoxDecoration(
-                          color: isError
-                              ? Colors.red.shade50
-                              : isSuccess
-                              ? Colors.green.shade50
-                              : null,
-                          border: Border(
-                            bottom: BorderSide(
-                              color: colorScheme.outlineVariant,
-                              width: 0.5,
+                      ),
+                    )
+                  : Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: List.generate(_eventLog.length, (index) {
+                        final log = _eventLog[index];
+                        final isError =
+                            log.contains('ERROR') || log.contains('✗');
+                        final isSuccess =
+                            log.contains('SUCCESS') || log.contains('✓');
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isError
+                                ? colorScheme.errorContainer
+                                : isSuccess
+                                ? AppColors.successContainer
+                                : null,
+                            border: Border(
+                              bottom: BorderSide(
+                                color: colorScheme.outlineVariant,
+                                width: 0.5,
+                              ),
                             ),
                           ),
-                        ),
-                        child: Text(
-                          log,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontFamily: 'monospace',
-                            color: isError
-                                ? Colors.red.shade900
-                                : isSuccess
-                                ? Colors.green.shade900
-                                : colorScheme.onSurface,
+                          child: Text(
+                            log,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontFamily: 'monospace',
+                              color: isError
+                                  ? colorScheme.error
+                                  : isSuccess
+                                  ? AppColors.success
+                                  : colorScheme.onSurface,
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
+                        );
+                      }),
+                    ),
+            ),
           ),
         ],
       ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/data/map_adapter.dart';
 import 'package:nav_e/core/domain/entities/map_source.dart';
+import 'package:nav_e/features/map_layers/models/data_layer_definition.dart';
 import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 import 'package:nav_e/features/map_layers/presentation/map_adapters/maplibre_widget.dart';
@@ -18,16 +19,26 @@ class MapLibreMapAdapter implements MapAdapter {
   MapLibreMapController? _controller;
   LatLng _currentCenter;
   double _currentZoom;
+  double _currentTilt;
+  double _currentBearing;
 
   MapLibreMapAdapter({LatLng? initialCenter, double? initialZoom})
     : _currentCenter = initialCenter ?? const LatLng(52.3791, 4.9),
-      _currentZoom = initialZoom ?? 13.0;
+      _currentZoom = initialZoom ?? 13.0,
+      _currentTilt = 0.0,
+      _currentBearing = 0.0;
 
   @override
   LatLng get currentCenter => _currentCenter;
 
   @override
   double get currentZoom => _currentZoom;
+
+  @override
+  double get currentTilt => _currentTilt;
+
+  @override
+  double get currentBearing => _currentBearing;
 
   @override
   Widget buildMap({
@@ -39,12 +50,25 @@ class MapLibreMapAdapter implements MapAdapter {
     required VoidCallback onMapReady,
     required void Function(LatLng center, double zoom) onPositionChanged,
     required void Function(bool hasGesture) onUserGesture,
+    VoidCallback? onCameraIdle,
     required void Function(LatLng)? onMapTap,
+    void Function(LatLng)? onMapLongPress,
+    Set<String> enabledDataLayerIds = const {},
+    List<DataLayerDefinition> dataLayerDefinitions = const [],
+    int? markerFillColorArgb,
+    int? markerStrokeColorArgb,
+    int? defaultPolylineColorArgb,
+    double? defaultPolylineWidth,
+    void Function(String layerId, Map<String, dynamic> properties)?
+    onDataLayerFeatureTap,
+    String? styleStringOverride,
   }) {
-    _currentCenter = center;
-    _currentZoom = zoom;
+    if (_controller == null) {
+      _currentCenter = center;
+      _currentZoom = zoom;
+    }
 
-    // Convert PolylineModel to MapLibrePolyline
+    // Convert PolylineModel to MapLibrePolyline; apply current style when set
     final mapLibrePolylines = polylines
         .asMap()
         .entries
@@ -52,8 +76,8 @@ class MapLibreMapAdapter implements MapAdapter {
           (entry) => MapLibrePolyline(
             id: 'polyline_${entry.key}',
             points: entry.value.points,
-            color: Color(entry.value.colorArgb),
-            width: entry.value.strokeWidth,
+            color: Color(defaultPolylineColorArgb ?? entry.value.colorArgb),
+            width: defaultPolylineWidth ?? entry.value.strokeWidth,
           ),
         )
         .toList();
@@ -65,15 +89,25 @@ class MapLibreMapAdapter implements MapAdapter {
         )
         .toList();
 
-    // Determine if source is a style.json URL or raster tile URL
-    final isStyleJson =
-        source?.urlTemplate.toLowerCase().contains('style.json') ?? false;
+    // When style override is set (e.g. offline region), use it and ignore source URL
+    final url = styleStringOverride == null ? (source?.urlTemplate ?? '') : '';
+    final lower = url.toLowerCase();
+    final isStyleUrl =
+        lower.contains('style.json') ||
+        lower.startsWith('asset://') ||
+        (lower.startsWith('http') && lower.contains('/styles/'));
 
+    // Markers are drawn as native map circles (integrated into map layer).
     return MapLibreWidget(
       initialCenter: center,
       initialZoom: zoom,
-      styleUrl: isStyleJson ? source?.urlTemplate : null,
-      rasterTileUrl: !isStyleJson ? source?.urlTemplate : null,
+      styleStringOverride: styleStringOverride,
+      styleUrl: styleStringOverride == null && isStyleUrl
+          ? source?.urlTemplate
+          : null,
+      rasterTileUrl: styleStringOverride == null && !isStyleUrl
+          ? source?.urlTemplate
+          : null,
       minZoom: source?.minZoom ?? 0,
       maxZoom: source?.maxZoom ?? 22,
       onMapCreated: (controller) {
@@ -83,20 +117,46 @@ class MapLibreMapAdapter implements MapAdapter {
       onCameraMove: (center, zoom) {
         _currentCenter = center;
         _currentZoom = zoom;
+        if (_controller != null) {
+          _currentTilt = _controller!.tilt;
+          _currentBearing = _controller!.bearing;
+        }
         onPositionChanged(center, zoom);
       },
       onMapTap: onMapTap,
+      onMapLongPress: onMapLongPress,
+      onCameraIdle: onCameraIdle,
       polylines: mapLibrePolylines,
       markers: mapLibreMarkers,
+      enabledDataLayerIds: enabledDataLayerIds,
+      dataLayerDefinitions: dataLayerDefinitions,
+      markerFillColorArgb: markerFillColorArgb,
+      markerStrokeColorArgb: markerStrokeColorArgb,
+      onDataLayerFeatureTap: onDataLayerFeatureTap,
     );
   }
 
   @override
-  void moveCamera(LatLng center, double zoom) {
+  void moveCamera(LatLng center, double zoom, {double? tilt, double? bearing}) {
+    debugPrint('[MapLibreAdapter] moveCamera to $center $zoom');
     _currentCenter = center;
     _currentZoom = zoom;
+    if (tilt != null) {
+      _currentTilt = tilt;
+    }
+    if (bearing != null) {
+      _currentBearing = bearing;
+    }
     if (_controller != null) {
-      _controller!.moveCamera(center, zoom);
+      _controller!.moveCamera(center, zoom, tilt: tilt, bearing: bearing);
+    }
+  }
+
+  @override
+  void resetBearing() {
+    debugPrint('[MapLibreAdapter] resetBearing');
+    if (_controller != null) {
+      _controller!.resetBearing();
     }
   }
 

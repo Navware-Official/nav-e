@@ -47,6 +47,7 @@ dependencies:
   path_provider: ^2.1.5
   flutter_rust_bridge: 2.11.1
   package_info_plus: ^8.3.1
+  url_launcher: ^6.3.0
   protobuf: ^6.0.0
   fixnum: ^1.1.0
 
@@ -69,7 +70,6 @@ dev_dependencies:
   bloc_test: ^10.0.0
   mocktail: ^1.0.4
   protoc_plugin: ^25.0.0
-  freezed: ^2.4.5
   build_runner: ^2.4.6
 
 # The following section is specific to Flutter packages.
@@ -102,7 +102,9 @@ flutter:
     - assets/img/house_cat.jpeg
     - assets/sql/init.sql
     - assets/styles/custom_style.json
+    - assets/styles/custom_style_dark.json
     - assets/config/map_sources.json
+    - assets/data/parking.geojson
 
 # The following section specifies the launcher_icons configuration 
 flutter_launcher_icons:

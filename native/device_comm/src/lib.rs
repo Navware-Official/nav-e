@@ -15,6 +15,10 @@ const PROTOCOL_VERSION: u32 = 1;
 const FRAME_MAGIC: u32 = 0x4E415645; // "NAVE"
 const DEFAULT_MTU: usize = 247;
 const FRAME_OVERHEAD: usize = 40;
+/// Android BLE write-with-response limit; frames must not exceed this.
+const BLE_MAX_WRITE_BYTES: usize = 512;
+/// Conservative overhead for serialized Frame (tags, length prefixes, fixed fields).
+const BLE_FRAME_SERIALIZED_OVERHEAD: usize = 50;
 
 /// Result type for device communication operations
 pub type Result<T> = std::result::Result<T, DeviceError>;
@@ -75,7 +79,9 @@ pub fn chunk_message(
     mtu: usize,
 ) -> Result<Vec<Frame>> {
     let payload = serialize_proto_message(msg)?;
-    let chunk_size = (mtu - FRAME_OVERHEAD).min(512);
+    // Keep serialized frame (header + payload) <= BLE_MAX_WRITE_BYTES (Android limit)
+    let max_payload_per_frame = BLE_MAX_WRITE_BYTES.saturating_sub(BLE_FRAME_SERIALIZED_OVERHEAD);
+    let chunk_size = (mtu - FRAME_OVERHEAD).min(max_payload_per_frame);
     let total_chunks = payload.len().div_ceil(chunk_size);
 
     let mut frames = Vec::new();
