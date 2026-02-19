@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/app/app_nav.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
@@ -96,8 +95,6 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = GoRouterState.of(context);
-
     return Scaffold(
       body: MultiBlocListener(
         listeners: [

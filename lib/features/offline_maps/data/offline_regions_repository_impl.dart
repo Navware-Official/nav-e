@@ -10,7 +10,7 @@ import 'package:nav_e/core/domain/repositories/offline_regions_repository.dart';
 const String _subdir = 'offline_regions';
 const String _registryFileName = 'regions.json';
 
-/// File-based implementation: registry in regions.json, tile dirs (region_<id>/z/x/y.pbf) in same dir.
+/// File-based implementation: registry in regions.json, tile dirs (region_\<id\>/z/x/y.pbf) in same dir.
 class OfflineRegionsRepositoryImpl implements IOfflineRegionsRepository {
   String? _storagePath;
 

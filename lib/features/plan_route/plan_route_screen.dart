@@ -13,7 +13,6 @@ import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/plan_route/widgets/plan_route_map.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.dart';
-import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
 import 'package:nav_e/features/plan_route/widgets/route_top_panel.dart';
 import 'package:nav_e/features/plan_route/widgets/route_bottom_sheet.dart';
@@ -175,6 +174,7 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         _routePoints = pts;
       });
 
+      if (!mounted) return;
       final turnFeed = buildTurnFeed(pts);
       try {
         context.read<NavBloc>().add(SetTurnFeed(turnFeed));

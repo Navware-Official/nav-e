@@ -27,8 +27,8 @@ List<NavCue> buildTurnFeed(
   final cues = <NavCue>[];
   double cumulative = 0.0;
   double sinceLastTurn = 0.0;
-  final useRoadNames = segmentRoadNames != null &&
-      segmentRoadNames.length >= points.length - 1;
+  final useRoadNames =
+      segmentRoadNames != null && segmentRoadNames.length >= points.length - 1;
 
   for (var i = 1; i < points.length - 1; i++) {
     final prev = points[i - 1];

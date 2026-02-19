@@ -51,9 +51,7 @@ class _SendToDeviceLoadingDialog extends StatelessWidget {
             const SnackBar(content: Text('Sent to device')),
           );
         } else if (state is DeviceCommError) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          messenger.showSnackBar(SnackBar(content: Text(state.message)));
         }
       },
       child: AlertDialog(
@@ -107,20 +105,19 @@ Future<void> _onSendToDevice(
     return;
   }
 
-  final devices =
-      await context.read<DeviceCommBloc>().getConnectedDeviceIds();
+  if (!context.mounted) return;
+  final deviceCommBloc = context.read<DeviceCommBloc>();
+  final devices = await deviceCommBloc.getConnectedDeviceIds();
   if (!context.mounted) return;
   if (devices.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No device connected')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('No device connected')));
     return;
   }
 
-  final waypoints =
-      routePoints.map((p) => [p.latitude, p.longitude]).toList();
-  final polylineJson =
-      polyline.isNotEmpty ? polyline : waypoints;
+  final waypoints = routePoints.map((p) => [p.latitude, p.longitude]).toList();
+  final polylineJson = polyline.isNotEmpty ? polyline : waypoints;
   final routeJson = jsonEncode({
     'waypoints': waypoints,
     'distance_m': distanceM ?? 0.0,
@@ -136,11 +133,8 @@ Future<void> _onSendToDevice(
   );
   if (!context.mounted) return;
   context.read<DeviceCommBloc>().add(
-        SendRouteToDevice(
-          remoteId: devices.first.id,
-          routeJson: routeJson,
-        ),
-      );
+    SendRouteToDevice(remoteId: devices.first.id, routeJson: routeJson),
+  );
 }
 
 /// Send-to-device block: when connected, sends route; when not, expands to show paired devices and Connect buttons.
@@ -183,8 +177,7 @@ class _SendToDeviceSectionState extends State<_SendToDeviceSection> {
   }
 
   Future<void> _refreshConnected() async {
-    final list =
-        await context.read<DeviceCommBloc>().getConnectedDeviceIds();
+    final list = await context.read<DeviceCommBloc>().getConnectedDeviceIds();
     if (!mounted) return;
     setState(() => _connectedDevices = list);
   }
@@ -212,16 +205,14 @@ class _SendToDeviceSectionState extends State<_SendToDeviceSection> {
         _connectedDevices != null && _connectedDevices!.isNotEmpty;
 
     return BlocListener<BluetoothBloc, ApplicationBluetoothState>(
-      listenWhen: (_, current) =>
-          current is BluetoothConnetionStatusAquired,
-      listener: (_, __) => _refreshConnected(),
+      listenWhen: (_, current) => current is BluetoothConnetionStatusAquired,
+      listener: (_, _) => _refreshConnected(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
           FilledButton.tonalIcon(
-            onPressed:
-                widget.routeReady ? _onSendToDeviceTap : null,
+            onPressed: widget.routeReady ? _onSendToDeviceTap : null,
             icon: Icon(
               Icons.bluetooth,
               color: hasConnected ? AppColors.success : null,
@@ -280,9 +271,9 @@ class _ConnectDeviceExpandedState extends State<_ConnectDeviceExpanded> {
           if (mounted) setState(() => _connectingRemoteId = null);
           widget.onConnected();
           if (state is BluetoothOperationFailure && context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         }
       },
@@ -343,14 +334,12 @@ class _ConnectDeviceExpandedState extends State<_ConnectDeviceExpanded> {
                     children: devices.map((device) {
                       return _PairedDeviceRow(
                         device: device,
-                        isConnecting:
-                            _connectingRemoteId == device.remoteId,
+                        isConnecting: _connectingRemoteId == device.remoteId,
                         onConnect: () {
-                          setState(
-                              () => _connectingRemoteId = device.remoteId);
-                          context
-                              .read<BluetoothBloc>()
-                              .add(ToggleConnection(device));
+                          setState(() => _connectingRemoteId = device.remoteId);
+                          context.read<BluetoothBloc>().add(
+                            ToggleConnection(device),
+                          );
                         },
                       );
                     }).toList(),
@@ -396,10 +385,7 @@ class _PairedDeviceRow extends StatelessWidget {
           FilledButton.tonal(
             onPressed: isConnecting ? null : onConnect,
             style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
             child: isConnecting
                 ? SizedBox(
@@ -770,32 +756,38 @@ class _RouteTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool useTurnFeed =
-        routePoints.length >= 3;
-    final List<NavCue> cues =
-        useTurnFeed ? buildTurnFeed(routePoints) : const [];
+    final bool useTurnFeed = routePoints.length >= 3;
+    final List<NavCue> cues = useTurnFeed
+        ? buildTurnFeed(routePoints)
+        : const [];
 
     final List<_TimelineItem> items = [];
-    items.add(_TimelineItem(
-      icon: Icons.my_location,
-      iconColor: colorScheme.primary,
-      label: 'Current location',
-      sublabel: null,
-    ));
+    items.add(
+      _TimelineItem(
+        icon: Icons.my_location,
+        iconColor: colorScheme.primary,
+        label: 'Current location',
+        sublabel: null,
+      ),
+    );
     for (final cue in cues) {
-      items.add(_TimelineItem(
-        icon: _iconForManeuver(cue.maneuver),
-        iconColor: colorScheme.onSurfaceVariant,
-        label: cue.instruction,
-        sublabel: cue.distanceToCueText,
-      ));
+      items.add(
+        _TimelineItem(
+          icon: _iconForManeuver(cue.maneuver),
+          iconColor: colorScheme.onSurfaceVariant,
+          label: cue.instruction,
+          sublabel: cue.distanceToCueText,
+        ),
+      );
     }
-    items.add(_TimelineItem(
-      icon: Icons.place,
-      iconColor: colorScheme.error,
-      label: destination.displayName,
-      sublabel: null,
-    ));
+    items.add(
+      _TimelineItem(
+        icon: Icons.place,
+        iconColor: colorScheme.error,
+        label: destination.displayName,
+        sublabel: null,
+      ),
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
