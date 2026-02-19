@@ -134,7 +134,7 @@ Production and non-Android builds use **Bluetooth Low Energy (BLE)** to send dat
 
 3. Service Layer
    └─ DeviceCommunicationService.sendRoute()
-      └─ Prepares route JSON (waypoints, distance, polyline)
+      └─ Prepares route JSON (waypoints, distance, polyline; optional next_turn_text for device banner)
       └─ Calls FFI: prepareRouteMessage(routeJson)
 
 4. Rust Processing
@@ -176,6 +176,8 @@ Production and non-Android builds use **Bluetooth Low Energy (BLE)** to send dat
 - `TileChunk` - One vector tile: `region_id`, `z`, `x`, `y`, and raw `.pbf` bytes. The phone sends one message per tile after the metadata.
 
 Map transfer is **push** from phone to device: the phone sends metadata then each tile as `TileChunk` over BLE (chunked with the same frame protocol as routes). The **device** is responsible for reassembling frames, handling `MapRegionMetadata` and `TileChunk`, caching tiles (e.g. by `region_id`, z, x, y), and rendering (e.g. MapLibre or a custom vector renderer). This is not implemented in nav-e; the phone side only sends the data in the format the device will need.
+
+**Route JSON (for sendRoute / prepareRouteMessage):** Must include `waypoints`, `distance_m`, `duration_s`, `polyline`. Optionally include `next_turn_text` (string): the first or current turn instruction from your routing API (e.g. "Turn left onto Main St"). The device uses it for the navigation banner when no RouteSummary is sent; when building route JSON from an external API that returns steps, set `next_turn_text` from the first step's instruction.
 
 ## Integration Examples
 

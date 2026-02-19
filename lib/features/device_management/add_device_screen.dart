@@ -29,7 +29,13 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
       );
     }
 
-    if (containsAny(['watch', 'wear', 'garmin', 'fitbit', _navwareServiceUuid])) {
+    if (containsAny([
+      'watch',
+      'wear',
+      'garmin',
+      'fitbit',
+      _navwareServiceUuid,
+    ])) {
       return 'Watch';
     }
     if (containsAny(['phone', 'ios', 'android'])) {
@@ -197,27 +203,39 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                                     itemBuilder: (context, index) {
                                       ScanResult result = state.results[index];
                                       final hasNavwareService = result
-                                          .advertisementData.serviceUuids
-                                          .any((u) =>
-                                              u.toString().toLowerCase().contains(
-                                                  _navwareServiceUuid.toLowerCase()));
+                                          .advertisementData
+                                          .serviceUuids
+                                          .any(
+                                            (u) => u
+                                                .toString()
+                                                .toLowerCase()
+                                                .contains(
+                                                  _navwareServiceUuid
+                                                      .toLowerCase(),
+                                                ),
+                                          );
                                       String title = "Unknown";
                                       if (hasNavwareService) {
                                         title = "Navware watch (nav-c)";
                                       } else if (result
-                                          .advertisementData.serviceUuids
+                                          .advertisementData
+                                          .serviceUuids
                                           .isNotEmpty) {
                                         title = result
-                                            .advertisementData.serviceUuids.first
+                                            .advertisementData
+                                            .serviceUuids
+                                            .first
                                             .toString();
                                       }
                                       if (result
-                                          .advertisementData.advName
+                                          .advertisementData
+                                          .advName
                                           .isNotEmpty) {
-                                        title = result.advertisementData.advName;
+                                        title =
+                                            result.advertisementData.advName;
                                       }
-                                      String remoteId = result.device.remoteId
-                                          .toString();
+                                      final String remoteId =
+                                          result.device.remoteId.str;
                                       final typeLabel = _inferDeviceTypeLabel(
                                         result,
                                       );

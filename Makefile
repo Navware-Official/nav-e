@@ -180,3 +180,8 @@ migrate-status:
 	@ls -1 native/nav_engine/src/migrations/*.rs 2>/dev/null | grep -v "mod.rs" | sed 's/.*\///;s/\.rs//' | sed 's/^/  /' || echo "  No migrations found"
 	@echo ""
 	@echo "To create a new migration: make migrate-new"
+
+open-logcat-android:
+	@echo "Opening logcat for Android..."
+	adb logcat
+	

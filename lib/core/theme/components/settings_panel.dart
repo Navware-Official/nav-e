@@ -12,12 +12,20 @@ class SettingsPanelStyle {
   static const double sectionHorizontalMargin = 16.0;
 
   /// Padding for the section header label above each panel.
-  static const EdgeInsets sectionHeaderPadding =
-      EdgeInsets.fromLTRB(16, 24, 16, 8);
+  static const EdgeInsets sectionHeaderPadding = EdgeInsets.fromLTRB(
+    16,
+    24,
+    16,
+    8,
+  );
 
   /// Inner padding for panel content (e.g. first block of content).
-  static const EdgeInsets panelContentPadding =
-      EdgeInsets.fromLTRB(16, 16, 16, 8);
+  static const EdgeInsets panelContentPadding = EdgeInsets.fromLTRB(
+    16,
+    16,
+    16,
+    8,
+  );
 
   /// Box decoration for a settings section panel: border, rounded corners, no shadow.
   static BoxDecoration panelDecoration(ThemeData theme) {

@@ -2553,8 +2553,7 @@ class Message extends $pb.GeneratedMessage {
     if (deviceCapabilities != null)
       result.deviceCapabilities = deviceCapabilities;
     if (batteryStatus != null) result.batteryStatus = batteryStatus;
-    if (mapRegionMetadata != null)
-      result.mapRegionMetadata = mapRegionMetadata;
+    if (mapRegionMetadata != null) result.mapRegionMetadata = mapRegionMetadata;
     if (tileChunk != null) result.tileChunk = tileChunk;
     return result;
   }

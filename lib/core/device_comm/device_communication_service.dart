@@ -47,8 +47,8 @@ class DeviceCommunicationService {
       throw DeviceCommunicationException('Region not found: $regionId');
     }
     final tileListJson = api.getOfflineRegionTileList(regionId: regionId);
-    final tileList =
-        (jsonDecode(tileListJson) as List).cast<Map<Object?, Object?>>();
+    final tileList = (jsonDecode(tileListJson) as List)
+        .cast<Map<Object?, Object?>>();
     final totalTiles = tileList.length;
     if (totalTiles == 0) {
       throw DeviceCommunicationException('Region has no tiles');
@@ -126,10 +126,7 @@ class DeviceCommunicationService {
       statusCode: statusCode,
       message: message,
     );
-    await _transport.sendFrames(
-      remoteId,
-      [Uint8List.fromList(messageBytes)],
-    );
+    await _transport.sendFrames(remoteId, [Uint8List.fromList(messageBytes)]);
   }
 
   String _generateRouteId() {

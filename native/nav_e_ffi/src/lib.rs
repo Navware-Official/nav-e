@@ -254,12 +254,7 @@ pub fn get_offline_region_tile_list(region_id: String) -> Result<String> {
 
 /// Read one tile file for a region. Returns raw .pbf bytes.
 #[frb(sync)]
-pub fn get_offline_region_tile_bytes(
-    region_id: String,
-    z: i32,
-    x: i32,
-    y: i32,
-) -> Result<Vec<u8>> {
+pub fn get_offline_region_tile_bytes(region_id: String, z: i32, x: i32, y: i32) -> Result<Vec<u8>> {
     nav_engine::api::get_offline_region_tile_bytes(region_id, z, x, y)
 }
 

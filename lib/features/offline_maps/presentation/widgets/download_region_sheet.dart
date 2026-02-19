@@ -215,10 +215,7 @@ class _DownloadRegionSheetState extends State<DownloadRegionSheet> {
               children: [
                 const Text(
                   'Download map region',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -284,7 +281,9 @@ class _DownloadRegionSheetState extends State<DownloadRegionSheet> {
                 ],
                 const SizedBox(height: 16),
                 FilledButton(
-                  onPressed: isDownloading ? null : () => _startDownload(context),
+                  onPressed: isDownloading
+                      ? null
+                      : () => _startDownload(context),
                   child: Text(isDownloading ? 'Downloading…' : 'Download'),
                 ),
               ],

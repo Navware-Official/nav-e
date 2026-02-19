@@ -47,8 +47,11 @@ class _SelectRegionSheet extends StatelessWidget {
                 const Divider(),
                 ListTile(
                   title: const Text('Custom (enter bounds)'),
-                  subtitle: const Text('Enter north, south, east, west manually'),
-                  onTap: () => Navigator.of(context).pop<PredefinedRegion?>(null),
+                  subtitle: const Text(
+                    'Enter north, south, east, west manually',
+                  ),
+                  onTap: () =>
+                      Navigator.of(context).pop<PredefinedRegion?>(null),
                 ),
               ],
             ),

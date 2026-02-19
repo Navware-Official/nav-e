@@ -79,8 +79,7 @@ class BottomSearchBarWidget extends StatelessWidget {
             final result = await Navigator.of(context).push(
               MaterialPageRoute(
                 builder: (context) => BlocProvider(
-                  create: (ctx) =>
-                      SearchBloc(ctx.read<IGeocodingRepository>()),
+                  create: (ctx) => SearchBloc(ctx.read<IGeocodingRepository>()),
                   child: const SearchScreen(),
                 ),
               ),

@@ -90,12 +90,7 @@ pub fn get_offline_region_tile_list(region_id: String) -> Result<String> {
 }
 
 /// Read one tile file for a region. Returns raw .pbf bytes.
-pub fn get_offline_region_tile_bytes(
-    region_id: String,
-    z: i32,
-    x: i32,
-    y: i32,
-) -> Result<Vec<u8>> {
+pub fn get_offline_region_tile_bytes(region_id: String, z: i32, x: i32, y: i32) -> Result<Vec<u8>> {
     let ctx = super::get_context();
     let region = ctx
         .offline_regions_repo

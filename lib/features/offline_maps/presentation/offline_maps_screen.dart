@@ -76,184 +76,178 @@ class _OfflineMapsView extends StatelessWidget {
       ],
       child: Scaffold(
         appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
-        title: const Text('Offline maps'),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              if (value == 'manual') _openDownloadSheet(context);
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'manual',
-                child: Text('Add manually (enter bounds)'),
-              ),
-            ],
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => context.pop(),
           ),
-        ],
-      ),
-      body: BlocBuilder<OfflineMapsCubit, OfflineMapsState>(
-        buildWhen: (prev, curr) =>
-            prev.status != curr.status ||
-            prev.regions != curr.regions ||
-            prev.errorMessage != curr.errorMessage ||
-            prev.downloadProgress != curr.downloadProgress ||
-            prev.downloadTotal != curr.downloadTotal ||
-            prev.downloadingRegionName != curr.downloadingRegionName,
-        builder: (context, state) {
-          final isDownloading = state.status == OfflineMapsStatus.downloading;
-          if (state.status == OfflineMapsStatus.loading &&
-              state.regions.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state.errorMessage != null && state.regions.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
+          title: const Text('Offline maps'),
+          actions: [
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                if (value == 'manual') _openDownloadSheet(context);
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'manual',
+                  child: Text('Add manually (enter bounds)'),
+                ),
+              ],
+            ),
+          ],
+        ),
+        body: BlocBuilder<OfflineMapsCubit, OfflineMapsState>(
+          buildWhen: (prev, curr) =>
+              prev.status != curr.status ||
+              prev.regions != curr.regions ||
+              prev.errorMessage != curr.errorMessage ||
+              prev.downloadProgress != curr.downloadProgress ||
+              prev.downloadTotal != curr.downloadTotal ||
+              prev.downloadingRegionName != curr.downloadingRegionName,
+          builder: (context, state) {
+            final isDownloading = state.status == OfflineMapsStatus.downloading;
+            if (state.status == OfflineMapsStatus.loading &&
+                state.regions.isEmpty) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state.errorMessage != null && state.regions.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        state.errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                        onPressed: () =>
+                            context.read<OfflineMapsCubit>().loadRegions(),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            final regions = state.regions;
+            Widget listOrEmpty;
+            if (regions.isEmpty && !isDownloading) {
+              listOrEmpty = Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      state.errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.error,
-                      ),
+                    Icon(
+                      Icons.map_outlined,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.outline,
                     ),
                     const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () =>
-                          context.read<OfflineMapsCubit>().loadRegions(),
-                      child: const Text('Retry'),
+                    Text(
+                      'No offline regions yet',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Download a region to use maps without internet',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
-              ),
-            );
-          }
-          final regions = state.regions;
-          Widget listOrEmpty;
-          if (regions.isEmpty && !isDownloading) {
-            listOrEmpty = Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              );
+            } else {
+              listOrEmpty = ListView.builder(
+                itemCount: regions.length,
+                itemBuilder: (context, index) {
+                  final region = regions[index];
+                  return OfflineRegionListTile(
+                    region: region,
+                    onDelete: () =>
+                        _confirmDelete(context, region.name, region.id),
+                    onSendToDevice: () => _openSendToDevice(context, region.id),
+                  );
+                },
+              );
+            }
+            if (isDownloading) {
+              final name = state.downloadingRegionName ?? 'region';
+              final hasProgress =
+                  state.downloadTotal > 0 &&
+                  state.downloadTotal >= state.downloadProgress;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.map_outlined,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No offline regions yet',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Download a region to use maps without internet',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          } else {
-            listOrEmpty = ListView.builder(
-              itemCount: regions.length,
-              itemBuilder: (context, index) {
-                final region = regions[index];
-                return OfflineRegionListTile(
-                  region: region,
-                  onDelete: () =>
-                      _confirmDelete(context, region.name, region.id),
-                  onSendToDevice: () =>
-                      _openSendToDevice(context, region.id),
-                );
-              },
-            );
-          }
-          if (isDownloading) {
-            final name = state.downloadingRegionName ?? 'region';
-            final hasProgress =
-                state.downloadTotal > 0 && state.downloadTotal >= state.downloadProgress;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Material(
-                  elevation: 1,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primaryContainer
-                        .withOpacity(0.5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Row(
-                          children: [
-                            const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
+                  Material(
+                    elevation: 1,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primaryContainer.withOpacity(0.5),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            children: [
+                              const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Downloading $name…',
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (hasProgress) ...[
+                            const SizedBox(height: 8),
+                            LinearProgressIndicator(
+                              value: state.downloadTotal > 0
+                                  ? state.downloadProgress / state.downloadTotal
+                                  : null,
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Downloading $name…',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                              ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${state.downloadProgress} / ${state.downloadTotal} tiles (zoom ${state.downloadZoom})',
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
                           ],
-                        ),
-                        if (hasProgress) ...[
-                          const SizedBox(height: 8),
-                          LinearProgressIndicator(
-                            value: state.downloadTotal > 0
-                                ? state.downloadProgress /
-                                    state.downloadTotal
-                                : null,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${state.downloadProgress} / ${state.downloadTotal} tiles (zoom ${state.downloadZoom})',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
                         ],
-                      ],
+                      ),
                     ),
                   ),
-                ),
-                Expanded(child: listOrEmpty),
-              ],
-            );
-          }
-          return listOrEmpty;
-        },
+                  Expanded(child: listOrEmpty),
+                ],
+              );
+            }
+            return listOrEmpty;
+          },
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => _openAddRegion(context),
+          icon: const Icon(Icons.add),
+          label: const Text('Add region'),
+        ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openAddRegion(context),
-        icon: const Icon(Icons.add),
-        label: const Text('Add region'),
-      ),
-    ),
     );
   }
 
@@ -293,16 +287,15 @@ class _OfflineMapsView extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => BlocProvider.value(
-        value: cubit,
-        child: const DownloadRegionSheet(),
-      ),
+      builder: (_) =>
+          BlocProvider.value(value: cubit, child: const DownloadRegionSheet()),
     );
   }
 
   void _openSendToDevice(BuildContext context, String regionId) {
-    final devicesFuture =
-        context.read<DeviceCommBloc>().getConnectedDeviceIds();
+    final devicesFuture = context
+        .read<DeviceCommBloc>()
+        .getConnectedDeviceIds();
     showModalBottomSheet<void>(
       context: context,
       builder: (sheetContext) => FutureBuilder<List<ConnectedDeviceInfo>>(

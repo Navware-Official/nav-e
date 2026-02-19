@@ -1,10 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:nav_e/core/constants/app_version.dart';
 import 'package:nav_e/core/theme/components/settings_panel.dart';
+
+/// SharedPreferences key for device comm developer mode (7-tap in About).
+const String _kDeviceCommDeveloperModeKey = 'device_comm_developer_mode';
 
 /// GitHub repository URL for the nav-e app.
 const String _githubRepoUrl = 'https://github.com/Navware-Official/nav-e';
@@ -20,11 +26,62 @@ class _AboutSectionState extends State<AboutSection> {
   String? _localVersion;
   String? _buildNumber;
   bool _isLoading = true;
+  bool? _developerMode;
+  int _tapCount = 0;
+  Timer? _tapResetTimer;
+
+  @override
+  void dispose() {
+    _tapResetTimer?.cancel();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
     _getVersionInfo();
+    _loadDeveloperMode();
+  }
+
+  Future<void> _loadDeveloperMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getBool(_kDeviceCommDeveloperModeKey) ?? false;
+    if (mounted) setState(() => _developerMode = value);
+  }
+
+  Future<void> _onBuildInfoTap() async {
+    _tapResetTimer?.cancel();
+    setState(() {
+      _tapCount++;
+    });
+    if (_tapCount == 7) {
+      _tapCount = 0;
+      final prefs = await SharedPreferences.getInstance();
+      final current = prefs.getBool(_kDeviceCommDeveloperModeKey) ?? false;
+      await prefs.setBool(_kDeviceCommDeveloperModeKey, !current);
+      if (!mounted) return;
+      setState(() => _developerMode = !current);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(!current ? 'Developer mode enabled' : 'Developer mode disabled'),
+        ),
+      );
+    } else {
+      _tapResetTimer = Timer(const Duration(milliseconds: 1500), () {
+        if (mounted) setState(() => _tapCount = 0);
+      });
+    }
+  }
+
+  Future<void> _onDeveloperModeChanged(bool value) async {
+    if (value) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kDeviceCommDeveloperModeKey, false);
+    if (!mounted) return;
+    setState(() => _developerMode = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Developer mode disabled')),
+    );
   }
 
   Future<void> _getVersionInfo() async {
@@ -66,19 +123,34 @@ class _AboutSectionState extends State<AboutSection> {
             children: [
               Padding(
                 padding: SettingsPanelStyle.panelContentPadding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'App Version',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 12),
-                    _buildVersionContent(theme),
-                  ],
+                child: GestureDetector(
+                  onTap: _onBuildInfoTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'App Version',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildVersionContent(theme),
+                    ],
+                  ),
                 ),
               ),
+              if (_developerMode == true) ...[
+                const Divider(height: 1),
+                SwitchListTile(
+                  secondary: const Icon(Icons.bug_report_outlined),
+                  title: const Text('Developer mode'),
+                  subtitle: const Text('Send to Device opens developer screen'),
+                  value: true,
+                  onChanged: _onDeveloperModeChanged,
+                ),
+              ],
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: Row(
@@ -179,11 +251,7 @@ class _AboutSectionState extends State<AboutSection> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.code,
-                  size: 16,
-                  color: theme.colorScheme.secondary,
-                ),
+                Icon(Icons.code, size: 16, color: theme.colorScheme.secondary),
                 const SizedBox(width: 4),
                 Text(
                   'Development Build',

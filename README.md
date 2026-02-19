@@ -204,6 +204,16 @@ flutter test integration_test/
 - Follow [Effective Dart](https://dart.dev/guides/language/effective-dart) guidelines
 - Use `flutter analyze` for static analysis
 
+### Developer mode
+
+A hidden developer mode can be enabled for device communication and future developer features:
+
+- **Enable/disable:** In the app, go to **Settings → About** and tap the **build/version info** (e.g. "App Version", version text) **7 times** quickly. A SnackBar confirms "Developer mode enabled" or "Developer mode disabled". The setting is persisted (SharedPreferences) across app restarts.
+- **When developer mode is ON:** The plan-route **Send to Device** button opens the **Device Communication Debug** screen (device picker, send route/heartbeat, event log).
+- **When developer mode is OFF:** **Send to Device** sends the current route to the first connected device immediately and shows a loading bar until done (no developer screen).
+
+This toggle can be reused for other developer-only features later.
+
 ### Contributing
 Please read [CONTRIBUTING.MD](CONTRIBUTING.MD) for details on our development process and pull request guidelines.
 
