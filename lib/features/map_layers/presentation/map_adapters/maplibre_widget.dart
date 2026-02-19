@@ -158,7 +158,9 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
         try {
           final response = await http.get(Uri.parse(styleUrl));
           if (response.statusCode == 200) return response.body;
-          debugPrint('[MapLibreWidget] Style URL returned ${response.statusCode}: $styleUrl');
+          debugPrint(
+            '[MapLibreWidget] Style URL returned ${response.statusCode}: $styleUrl',
+          );
         } catch (e, stack) {
           debugPrint('[MapLibreWidget] Failed to fetch style URL: $e');
           debugPrint('[MapLibreWidget] $stack');

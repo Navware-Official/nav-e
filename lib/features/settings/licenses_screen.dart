@@ -18,10 +18,7 @@ class LicensesScreen extends StatelessWidget {
         ),
         title: const Text('Open source licenses'),
       ),
-      body: const LicensePage(
-        applicationName: '',
-        applicationVersion: '',
-      ),
+      body: const LicensePage(applicationName: '', applicationVersion: ''),
     );
   }
 }

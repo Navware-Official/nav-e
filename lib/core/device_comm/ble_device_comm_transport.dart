@@ -124,7 +124,10 @@ class BleDeviceCommTransport implements DeviceCommTransport {
     final txUuidNorm = _txCharacteristicUuid.toLowerCase().replaceAll('-', '');
     for (final service in services) {
       for (final characteristic in service.characteristics) {
-        final charUuidNorm = characteristic.uuid.toString().toLowerCase().replaceAll('-', '');
+        final charUuidNorm = characteristic.uuid
+            .toString()
+            .toLowerCase()
+            .replaceAll('-', '');
         if (charUuidNorm == txUuidNorm &&
             (characteristic.properties.write ||
                 characteristic.properties.writeWithoutResponse)) {
@@ -143,7 +146,10 @@ class BleDeviceCommTransport implements DeviceCommTransport {
     final rxUuidNorm = _rxCharacteristicUuid.toLowerCase().replaceAll('-', '');
     for (final service in services) {
       for (final characteristic in service.characteristics) {
-        final charUuidNorm = characteristic.uuid.toString().toLowerCase().replaceAll('-', '');
+        final charUuidNorm = characteristic.uuid
+            .toString()
+            .toLowerCase()
+            .replaceAll('-', '');
         if (charUuidNorm == rxUuidNorm &&
             (characteristic.properties.notify ||
                 characteristic.properties.indicate)) {

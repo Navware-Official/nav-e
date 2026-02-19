@@ -84,11 +84,20 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
         .map((p) => [p.latitude, p.longitude])
         .toList();
 
+    // Polyline: send as array [[lat, lon], ...] so nav-e sends RawPoints and nav-c can draw the line.
+    // If you have an encoded polyline string from an API, send it as 'polyline': "encoded..." instead.
+    final polylineJson = widget.polyline.isNotEmpty
+        ? widget.polyline
+        : waypoints; // use waypoints as polyline so the route line is visible on device
+
+    // Optional: next_turn_text is shown on the device banner. When building route JSON
+    // from an external API (e.g. plan_route / navigate), include the first step instruction here.
     final routeJson = jsonEncode({
       'waypoints': waypoints,
       'distance_m': widget.distanceM ?? 0.0,
       'duration_s': widget.durationS ?? 0.0,
-      'polyline': widget.polyline,
+      'polyline': polylineJson,
+      'next_turn_text': 'Turn left onto Veemarktplein',
     });
 
     _addLog('Sending route to device: $_selectedDeviceId');
@@ -189,8 +198,9 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
                   TextButton(
                     onPressed: () {
                       setState(() {
-                        _devicesFuture =
-                            context.read<DeviceCommBloc>().getConnectedDeviceIds();
+                        _devicesFuture = context
+                            .read<DeviceCommBloc>()
+                            .getConnectedDeviceIds();
                       });
                     },
                     child: const Text('Refresh'),
@@ -414,9 +424,8 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
                       child: Center(
                         child: Text(
                           'No events yet',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
                         ),
                       ),
                     )

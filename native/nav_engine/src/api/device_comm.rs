@@ -137,7 +137,37 @@ pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
         .ok_or_else(|| anyhow::anyhow!("Route missing waypoints array"))?;
     let _distance_m = route["distance_m"].as_f64().unwrap_or(0.0) as u32;
     let _duration_s = route["duration_s"].as_f64().unwrap_or(0.0) as u32;
-    let polyline = route["polyline"].as_str().unwrap_or("").to_string();
+    let next_turn_text = route["next_turn_text"]
+        .as_str()
+        .unwrap_or("")
+        .trim()
+        .to_string();
+
+    // Polyline: accept either "encoded_string" (Google encoding) or [[lat, lon], ...] (raw points)
+    let polyline_data = if let Some(arr) = route["polyline"].as_array() {
+        let points: Vec<device_comm::proto::Point> = arr
+            .iter()
+            .filter_map(|v| {
+                let pair = v.as_array()?;
+                let lat = pair.first()?.as_f64()?;
+                let lon = pair.get(1)?.as_f64()?;
+                Some(device_comm::proto::Point {
+                    lat_e5: (lat * 1e5).round() as i32,
+                    lon_e5: (lon * 1e5).round() as i32,
+                })
+            })
+            .collect();
+        if points.is_empty() {
+            Some(device_comm::proto::route_blob::PolylineData::EncodedPolyline(String::new()))
+        } else {
+            Some(device_comm::proto::route_blob::PolylineData::RawPoints(
+                device_comm::proto::RawPoints { points },
+            ))
+        }
+    } else {
+        let encoded = route["polyline"].as_str().unwrap_or("").to_string();
+        Some(device_comm::proto::route_blob::PolylineData::EncodedPolyline(encoded))
+    };
 
     // Convert waypoints to protobuf format
     let proto_waypoints: Vec<proto::Waypoint> = waypoints
@@ -169,12 +199,12 @@ pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
         route_id: route_id.as_bytes().to_vec(),
         waypoints: proto_waypoints,
         legs: vec![], // Can be populated from route segments if needed
-        polyline_data: Some(proto::route_blob::PolylineData::EncodedPolyline(polyline)),
+        polyline_data,
         metadata: Some(proto::Metadata {
             zoom_hint: 0,
-            preferred_zoom: 13,
+            preferred_zoom: 10,
             total_points: 0,
-            route_name: String::new(),
+            route_name: next_turn_text,
             created_at_ms: std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap_or_default()
@@ -280,9 +310,7 @@ pub fn prepare_map_style_message(map_source_id: String) -> Result<Vec<u8>> {
     use device_comm::proto;
     use prost::Message as ProstMessage;
 
-    let map_style = proto::MapStyle {
-        map_source_id,
-    };
+    let map_style = proto::MapStyle { map_source_id };
 
     let message = proto::Message {
         payload: Some(proto::message::Payload::MapStyle(map_style)),
@@ -397,7 +425,8 @@ pub fn create_control_message(
     };
 
     // Parse route_id as UUID so we send 16 bytes (proto expects bytes route_id = 16 bytes UUID)
-    let route_uuid = Uuid::parse_str(&route_id).context("Invalid route UUID for control message")?;
+    let route_uuid =
+        Uuid::parse_str(&route_id).context("Invalid route UUID for control message")?;
     let control = proto::Control {
         header: Some(header),
         r#type: control_type as i32,

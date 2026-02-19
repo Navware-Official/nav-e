@@ -139,12 +139,18 @@ class _MapWidgetState extends State<MapWidget> {
               const centerTolerance = 1e-6;
               const zoomTolerance = 0.001;
               final centerMatch =
-                  (_adapter!.currentCenter.latitude - state.center.latitude).abs() < centerTolerance &&
-                  (_adapter!.currentCenter.longitude - state.center.longitude).abs() < centerTolerance;
+                  (_adapter!.currentCenter.latitude - state.center.latitude)
+                          .abs() <
+                      centerTolerance &&
+                  (_adapter!.currentCenter.longitude - state.center.longitude)
+                          .abs() <
+                      centerTolerance;
               final zoomMatch =
                   (_adapter!.currentZoom - state.zoom).abs() < zoomTolerance;
-              final tiltMatch = (_adapter!.currentTilt - state.tilt).abs() < 0.01;
-              final bearingMatch = (_adapter!.currentBearing - state.bearing).abs() < 0.01;
+              final tiltMatch =
+                  (_adapter!.currentTilt - state.tilt).abs() < 0.01;
+              final bearingMatch =
+                  (_adapter!.currentBearing - state.bearing).abs() < 0.01;
               if (centerMatch && zoomMatch && tiltMatch && bearingMatch) {
                 return;
               }

@@ -7,7 +7,19 @@ import 'package:nav_e/features/nav/models/nav_models.dart';
 const _turnThresholdDeg = 25.0;
 const _minTurnSpacingM = 30.0;
 
-List<NavCue> buildTurnFeed(List<LatLng> points) {
+/// Builds turn-by-turn cues from a route polyline.
+///
+/// [points] is the route geometry (start to end).
+/// [segmentRoadNames] is optional: names of the road for each segment, so
+/// `segmentRoadNames[i]` is the name of the road from `points[i]` to
+/// `points[i + 1]`. Length should be `points.length - 1`. When provided,
+/// each cue's instruction includes " onto &lt;name&gt;" when the name is
+/// non-empty (e.g. "Turn left onto Main St"). When the routing API returns
+/// step/road names (e.g. from OSRM steps), pass them here.
+List<NavCue> buildTurnFeed(
+  List<LatLng> points, {
+  List<String?>? segmentRoadNames,
+}) {
   debugPrint('[TurnFeed] buildTurnFeed points=${points.length}');
   if (points.length < 3) return const [];
 
@@ -15,6 +27,8 @@ List<NavCue> buildTurnFeed(List<LatLng> points) {
   final cues = <NavCue>[];
   double cumulative = 0.0;
   double sinceLastTurn = 0.0;
+  final useRoadNames = segmentRoadNames != null &&
+      segmentRoadNames.length >= points.length - 1;
 
   for (var i = 1; i < points.length - 1; i++) {
     final prev = points[i - 1];
@@ -44,14 +58,21 @@ List<NavCue> buildTurnFeed(List<LatLng> points) {
         : '${cumulative.toStringAsFixed(0)} m';
 
     final maneuver = _turnType(delta);
+    final String? streetName = useRoadNames && i < segmentRoadNames.length
+        ? segmentRoadNames[i]
+        : null;
+    final name = streetName != null && streetName.trim().isNotEmpty
+        ? streetName.trim()
+        : null;
     cues.add(
       NavCue(
         id: 'turn_$i',
-        instruction: _instructionFor(maneuver),
+        instruction: _instructionFor(maneuver, ontoStreetName: name),
         distanceToCueM: cumulative,
         distanceToCueText: cumulativeText,
         location: curr,
         maneuver: maneuver,
+        streetName: name,
       ),
     );
     sinceLastTurn = 0.0;
@@ -88,27 +109,22 @@ String _turnType(double delta) {
   return 'slight_$dir';
 }
 
-String _instructionFor(String maneuver) {
-  switch (maneuver) {
-    case 'uturn_left':
-      return 'Make a U-turn left';
-    case 'uturn_right':
-      return 'Make a U-turn right';
-    case 'sharp_left':
-      return 'Turn sharp left';
-    case 'sharp_right':
-      return 'Turn sharp right';
-    case 'left':
-      return 'Turn left';
-    case 'right':
-      return 'Turn right';
-    case 'slight_left':
-      return 'Slight left';
-    case 'slight_right':
-      return 'Slight right';
-    default:
-      return 'Continue';
+String _instructionFor(String maneuver, {String? ontoStreetName}) {
+  final base = switch (maneuver) {
+    'uturn_left' => 'Make a U-turn left',
+    'uturn_right' => 'Make a U-turn right',
+    'sharp_left' => 'Turn sharp left',
+    'sharp_right' => 'Turn sharp right',
+    'left' => 'Turn left',
+    'right' => 'Turn right',
+    'slight_left' => 'Slight left',
+    'slight_right' => 'Slight right',
+    _ => 'Continue',
+  };
+  if (ontoStreetName != null && ontoStreetName.isNotEmpty) {
+    return '$base onto $ontoStreetName';
   }
+  return base;
 }
 
 double _degToRad(double deg) => deg * math.pi / 180.0;

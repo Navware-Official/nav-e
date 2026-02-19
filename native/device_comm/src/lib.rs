@@ -80,8 +80,7 @@ pub fn chunk_message(
 ) -> Result<Vec<Frame>> {
     let payload = serialize_proto_message(msg)?;
     // Keep serialized frame (header + payload) <= BLE_MAX_WRITE_BYTES (Android limit)
-    let max_payload_per_frame =
-        BLE_MAX_WRITE_BYTES.saturating_sub(BLE_FRAME_SERIALIZED_OVERHEAD);
+    let max_payload_per_frame = BLE_MAX_WRITE_BYTES.saturating_sub(BLE_FRAME_SERIALIZED_OVERHEAD);
     let chunk_size = (mtu - FRAME_OVERHEAD).min(max_payload_per_frame);
     let total_chunks = payload.len().div_ceil(chunk_size);
 

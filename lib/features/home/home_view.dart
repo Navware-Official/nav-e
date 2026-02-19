@@ -164,15 +164,15 @@ class _HomeViewState extends State<HomeView> {
                       context.read<PreviewCubit>().hide();
                       final mapBloc = context.read<MapBloc>();
                       mapBloc.add(ReplacePolylines(const [], fit: false));
-                      final userPos =
-                          context.read<LocationBloc>().state.position;
+                      final userPos = context
+                          .read<LocationBloc>()
+                          .state
+                          .position;
                       final mapState = mapBloc.state;
                       if (userPos != null) {
-                        mapBloc.add(MapMoved(
-                          userPos,
-                          mapState.zoom,
-                          force: true,
-                        ));
+                        mapBloc.add(
+                          MapMoved(userPos, mapState.zoom, force: true),
+                        );
                       }
                       mapBloc.add(ToggleFollowUser(true));
                     },

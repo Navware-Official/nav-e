@@ -342,7 +342,6 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
 
           // Map control widgets (same as HomeView)
           const RecenterFAB(),
-          const RotateNorthFAB(),
           const MapControlsFAB(),
 
           // Bottom sheet

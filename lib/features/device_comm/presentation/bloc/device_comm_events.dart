@@ -25,10 +25,7 @@ class SendMapRegionToDevice extends DeviceCommEvent {
   final String remoteId;
   final String regionId;
 
-  const SendMapRegionToDevice({
-    required this.remoteId,
-    required this.regionId,
-  });
+  const SendMapRegionToDevice({required this.remoteId, required this.regionId});
 
   @override
   List<Object?> get props => [remoteId, regionId];

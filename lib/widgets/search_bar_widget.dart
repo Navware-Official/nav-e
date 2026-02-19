@@ -5,6 +5,7 @@ class SearchBarWidget extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final VoidCallback? onTap;
   final String? hintText;
+
   /// When set, a burger menu icon is shown on the right and this is called on tap.
   final VoidCallback? onMenuTap;
 
@@ -38,53 +39,52 @@ class SearchBarWidget extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: TextField(
-        readOnly: onTap != null,
-        onTap: onTap,
-        onChanged: onChanged,
-        style: TextStyle(color: colorScheme.onSurface),
-        decoration: InputDecoration(
-          hintText: hintText ?? 'Hinted search text',
-          hintStyle: TextStyle(
-            color: AppColors.capeCodLight02,
-            fontWeight: FontWeight.w400,
-          ),
-          prefixIcon: Icon(
-            Icons.search,
-            color: AppColors.capeCodDark02,
-            size: 22,
-          ),
-          suffixIcon: onMenuTap != null
-              ? IconButton(
-                  icon: const Icon(Icons.menu, size: 24),
-                  onPressed: onMenuTap,
-                  style: IconButton.styleFrom(
-                    foregroundColor: AppColors.capeCodDark02,
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                )
-              : null,
-          filled: true,
-          fillColor: fillColor,
-          border: OutlineInputBorder(
-            borderRadius: borderRadiusValue,
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: borderRadiusValue,
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: borderRadiusValue,
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
+          readOnly: onTap != null,
+          onTap: onTap,
+          onChanged: onChanged,
+          style: TextStyle(color: colorScheme.onSurface),
+          decoration: InputDecoration(
+            hintText: hintText ?? 'Hinted search text',
+            hintStyle: TextStyle(
+              color: AppColors.capeCodLight02,
+              fontWeight: FontWeight.w400,
+            ),
+            prefixIcon: Icon(
+              Icons.search,
+              color: AppColors.capeCodDark02,
+              size: 22,
+            ),
+            suffixIcon: onMenuTap != null
+                ? IconButton(
+                    icon: const Icon(Icons.menu, size: 24),
+                    onPressed: onMenuTap,
+                    style: IconButton.styleFrom(
+                      foregroundColor: AppColors.capeCodDark02,
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                  )
+                : null,
+            filled: true,
+            fillColor: fillColor,
+            border: OutlineInputBorder(
+              borderRadius: borderRadiusValue,
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: borderRadiusValue,
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: borderRadiusValue,
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
           ),
         ),
-      ),
       ),
     );
   }
 }
-

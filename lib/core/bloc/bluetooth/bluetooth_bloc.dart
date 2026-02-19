@@ -134,39 +134,35 @@ class BluetoothBloc extends Bloc<BluetoothEvent, ApplicationBluetoothState> {
     Emitter<ApplicationBluetoothState> emit,
   ) async {
     emit(AquiringBluetoothConnetionStatus());
-    var bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
+    final bluetoothDevice = BluetoothDevice.fromId(event.device.remoteId);
 
-    var subscription = bluetoothDevice.connectionState.listen((
-      BluetoothConnectionState connectionState,
-    ) async {
+    try {
       if (bluetoothDevice.isDisconnected) {
-        await bluetoothDevice.connectionState
-            .where((val) => val == BluetoothConnectionState.connected)
-            .first
-            .then((val) async {
-              emit(BluetoothConnetionStatusAquired("Connected"));
-            });
-      } else if (bluetoothDevice.isConnected) {
-        await bluetoothDevice.connectionState
-            .where((val) => val == BluetoothConnectionState.disconnected)
-            .first
-            .then((val) async {
-              emit(BluetoothConnetionStatusAquired("Disconnected"));
-            });
+        await bluetoothDevice.connect(
+          timeout: Duration(seconds: 35),
+          autoConnect: false,
+        );
+      } else {
+        await bluetoothDevice.disconnect();
+      }
+      // Emit current state after operation so UI updates even if stream is slow
+      if (bluetoothDevice.isConnected) {
+        emit(BluetoothConnetionStatusAquired("Connected"));
+      } else if (bluetoothDevice.isDisconnected) {
+        emit(BluetoothConnetionStatusAquired("Disconnected"));
       } else {
         emit(BluetoothConnetionStatusAquired("Unknown"));
       }
-    });
-
-    if (bluetoothDevice.isDisconnected) {
-      await bluetoothDevice.connect(
-        timeout: Duration(seconds: 35),
-        autoConnect: false,
+    } catch (e, st) {
+      debugPrint("Bluetooth connect/disconnect failed: $e\n$st");
+      emit(
+        BluetoothOperationFailure(
+          e.toString().replaceFirst(
+            RegExp(r'^Exception:?\s*', caseSensitive: false),
+            '',
+          ),
+        ),
       );
-    } else {
-      await bluetoothDevice.disconnect();
     }
-
-    subscription.cancel();
   }
 }

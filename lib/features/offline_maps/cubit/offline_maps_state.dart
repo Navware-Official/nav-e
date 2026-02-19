@@ -9,6 +9,7 @@ class OfflineMapsState {
   final int downloadProgress;
   final int downloadTotal;
   final int downloadZoom;
+
   /// Name of the region currently being downloaded (for progress banner).
   final String? downloadingRegionName;
 

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:nav_e/core/device_comm/device_comm_transport.dart';
@@ -71,9 +70,7 @@ class WearDeviceCommTransport implements DeviceCommTransport {
       });
       onProgress?.call(1.0);
     } on PlatformException catch (e) {
-      throw DeviceCommunicationException(
-        'sendFrames failed: ${e.message}',
-      );
+      throw DeviceCommunicationException('sendFrames failed: ${e.message}');
     }
   }
 

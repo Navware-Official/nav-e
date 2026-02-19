@@ -122,7 +122,7 @@ class _MapStyleOnDeviceDropdownState extends State<_MapStyleOnDeviceDropdown> {
             }
             final remoteId = devices.first.id;
             return DropdownButtonFormField<String>(
-          value: _selectedId,
+          initialValue: _selectedId,
           decoration: InputDecoration(
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(

@@ -100,6 +100,7 @@ class OfflineRegionsRepositoryImpl implements IOfflineRegionsRepository {
   }
 
   /// Full path to the region's tile directory (z/x/y.pbf under it).
+  @override
   Future<String> getAbsolutePath(OfflineRegion region) async {
     final base = await _ensureStoragePath();
     return path.join(base, region.relativePath);
