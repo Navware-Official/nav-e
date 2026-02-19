@@ -67,5 +67,8 @@ native/nav_engine/src/frb_generated.web.rs
 native/nav_e_ffi/src/frb_generated.rs
 native/nav_e_ffi/src/frb_generated.web.rs
 
+# Cursor IDE
+.cursor/
+
 # Misc
 .github/copilot-instructions.md
