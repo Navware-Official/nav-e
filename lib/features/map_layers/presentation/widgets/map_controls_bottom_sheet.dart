@@ -116,41 +116,43 @@ class _MapStyleOnDeviceDropdownState extends State<_MapStyleOnDeviceDropdown> {
               return Text(
                 'No device connected',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               );
             }
             final remoteId = devices.first.id;
             return DropdownButtonFormField<String>(
-          initialValue: _selectedId,
-          decoration: InputDecoration(
-            isDense: true,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: 8,
-            ),
-          ),
-          hint: Text(
-            'Send map style to device…',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          items: sources
-              .map((s) => DropdownMenuItem<String>(
-                    value: s.id,
-                    child: Text(s.name),
-                  ))
-              .toList(),
-          onChanged: (String? sourceId) {
-            if (sourceId == null || !context.mounted) return;
-            context.read<DeviceCommBloc>().add(
+              initialValue: _selectedId,
+              decoration: InputDecoration(
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+              ),
+              hint: Text(
+                'Send map style to device…',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              items: sources
+                  .map(
+                    (s) => DropdownMenuItem<String>(
+                      value: s.id,
+                      child: Text(s.name),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (String? sourceId) {
+                if (sourceId == null || !context.mounted) return;
+                context.read<DeviceCommBloc>().add(
                   SendMapStyleToDevice(
                     remoteId: remoteId,
                     mapSourceId: sourceId,
                   ),
                 );
-            setState(() => _selectedId = null);
-          },
-        );
+                setState(() => _selectedId = null);
+              },
+            );
           },
         );
       },
@@ -245,7 +247,7 @@ int _markerStrokeForFill(int fillArgb) {
   final g = (fillArgb >> 8) & 0xFF;
   final b = fillArgb & 0xFF;
   final luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance < 0.5 ? AppColors.white.value : 0xFF343535;
+  return luminance < 0.5 ? AppColors.white.toARGB32() : 0xFF343535;
 }
 
 class _StyleSection extends StatelessWidget {
@@ -263,7 +265,7 @@ class _StyleSection extends StatelessWidget {
         final polylineWidth =
             state.defaultPolylineWidth ?? _defaultPolylineWidth;
         final markerFill =
-            state.markerFillColorArgb ?? AppColors.blueRibbon.value;
+            state.markerFillColorArgb ?? AppColors.blueRibbon.toARGB32();
         final hasOverrides =
             state.defaultPolylineColorArgb != null ||
             state.defaultPolylineWidth != null ||

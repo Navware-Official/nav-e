@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const String _prefsKey = 'selected_map_source_id';
 
 /// Merges base map sources with offline regions. Offline regions appear as
-/// MapSources with id "offline_region_<id>" and urlTemplate "offline://<id>".
+/// MapSources with id "offline_region_\<id\>" and urlTemplate "offline://\<id\>".
 class CompositeMapSourceRepository implements IMapSourceRepository {
   CompositeMapSourceRepository(this._base, this._offlineRegions);
 

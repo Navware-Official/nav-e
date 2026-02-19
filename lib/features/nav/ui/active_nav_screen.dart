@@ -119,7 +119,7 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
                       PolylineModel(
                         id: '${widget.routeId}-prog',
                         points: state.progressPolyline,
-                        colorArgb: AppColors.blueRibbonDark02.value,
+                        colorArgb: AppColors.blueRibbonDark02.toARGB32(),
                         strokeWidth: 6.0,
                       ),
                     ], fit: false),
@@ -397,7 +397,7 @@ class _TurnFeedSheet extends StatelessWidget {
         return ListView.separated(
           padding: const EdgeInsets.all(16),
           itemCount: state.turnFeed.length,
-          separatorBuilder: (_, __) => const Divider(height: 16),
+          separatorBuilder: (_, _) => const Divider(height: 16),
           itemBuilder: (context, index) {
             final cue = state.turnFeed[index];
             return InkWell(

@@ -63,7 +63,9 @@ class _AboutSectionState extends State<AboutSection> {
       setState(() => _developerMode = !current);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(!current ? 'Developer mode enabled' : 'Developer mode disabled'),
+          content: Text(
+            !current ? 'Developer mode enabled' : 'Developer mode disabled',
+          ),
         ),
       );
     } else {
@@ -79,9 +81,9 @@ class _AboutSectionState extends State<AboutSection> {
     await prefs.setBool(_kDeviceCommDeveloperModeKey, false);
     if (!mounted) return;
     setState(() => _developerMode = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Developer mode disabled')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Developer mode disabled')));
   }
 
   Future<void> _getVersionInfo() async {

@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help codegen build-native build-android build-android-all clean-native clean-android fmt fmt-rust fmt-flutter lint-rust fix-rust cs-fix test test-rust ci migrate-new migrate-status full-rebuild android-dev rust-only playground api-playground
+.PHONY: help codegen build-native build-android build-android-all clean-native clean-android fmt fmt-rust fmt-flutter lint-rust fix-rust cs-fix test test-rust ci migrate-new migrate-status full-rebuild android-dev rust-only playground api-playground analyze
 
 help:
 	@echo "Workflow commands:"
@@ -23,7 +23,8 @@ help:
 	@echo "  make fmt-flutter       # Format Flutter/Dart code only"
 	@echo "  make lint              # Run linters on both Rust and Flutter code"
 	@echo "  make lint-rust         # Run clippy on Rust code"
-	@echo "  make lint-flutter      # Run dart analyze on Flutter code"
+	@echo "  make analyze           # Run dart analyze (static analysis)"
+	@echo "  make lint-flutter      # Same as analyze"
 	@echo "  make test              # run flutter test"
 	@echo "  make ci                # run codegen + build-native (for CI)"
 	@echo "  make migrate-new       # Create a new database migration file with timestamp"
@@ -121,7 +122,8 @@ cs-check:
 	@echo "✓ Code style checks passed"
 
 ## Run linters on Flutter code
-lint-flutter:
+## Run Dart static analysis (same as CI)
+analyze lint-flutter:
 	@command -v dart >/dev/null 2>&1 || { echo "dart not found. Install Flutter SDK"; exit 1; }
 	@echo "Running dart analyze..."
 	@dart analyze

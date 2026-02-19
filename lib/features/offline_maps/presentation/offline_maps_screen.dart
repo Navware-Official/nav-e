@@ -194,7 +194,7 @@ class _OfflineMapsView extends StatelessWidget {
                       ),
                       color: Theme.of(
                         context,
-                      ).colorScheme.primaryContainer.withOpacity(0.5),
+                      ).colorScheme.primaryContainer.withValues(alpha: 0.5),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
