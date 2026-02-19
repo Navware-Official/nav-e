@@ -21,6 +21,10 @@ class RouteTopPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+
     return Positioned(
       top: MediaQuery.of(context).padding.top + 8,
       left: 12,
@@ -28,7 +32,7 @@ class RouteTopPanel extends StatelessWidget {
       child: Material(
         elevation: 6,
         borderRadius: BorderRadius.circular(12),
-        color: Colors.white,
+        color: colorScheme.surface,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           child: Row(
@@ -38,7 +42,7 @@ class RouteTopPanel extends StatelessWidget {
                 onPressed: onBack ?? () => Navigator.of(context).pop(),
               ),
               const SizedBox(width: 4),
-              const Icon(Icons.directions, color: Colors.black54),
+              Icon(Icons.directions, color: colorScheme.onSurfaceVariant),
               const SizedBox(width: 8),
               Expanded(
                 child: Column(
@@ -46,8 +50,7 @@ class RouteTopPanel extends StatelessWidget {
                   children: [
                     Text(
                       startLabel ?? 'Current location',
-                      style: const TextStyle(
-                        fontSize: 14,
+                      style: textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -55,9 +58,8 @@ class RouteTopPanel extends StatelessWidget {
                       destination.displayName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black87,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ],

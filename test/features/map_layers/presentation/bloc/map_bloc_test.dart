@@ -149,7 +149,8 @@ void main() {
       blocTest<MapBloc, MapState>(
         'should update center and zoom',
         build: () => mapBloc,
-        act: (bloc) => bloc.add(MapMoved(const LatLng(50.0, 60.0), 15.0)),
+        act: (bloc) =>
+            bloc.add(MapMoved(const LatLng(50.0, 60.0), 15.0, force: true)),
         expect: () => [
           predicate<MapState>(
             (state) =>

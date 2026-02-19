@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:nav_e/app/app_nav.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/extensions/geocoding_to_saved.dart';
+import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 import 'package:nav_e/features/home/utils/route_params_handler.dart';
 import 'package:nav_e/features/home/widgets/bottom_search_bar_widget.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
@@ -12,6 +13,7 @@ import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_state.dart';
 import 'package:nav_e/features/map_layers/presentation/utils/map_helpers.dart';
+import 'package:nav_e/features/map_layers/presentation/widgets/data_layer_info_bottom_sheet.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
@@ -42,6 +44,42 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   final _routeHandler = RouteParamsHandler();
 
+  void _handleDataLayerFeatureTap(
+    String layerId,
+    Map<String, dynamic> properties,
+  ) {
+    if (!mounted) return;
+    showDataLayerInfoBottomSheet(
+      context,
+      layerId: layerId,
+      properties: properties,
+    );
+  }
+
+  Future<void> _handleMapTap(LatLng latlng) async {
+    final geocoder = context.read<IGeocodingRepository>();
+
+    context.read<MapBloc>().add(ToggleFollowUser(false));
+
+    try {
+      final result = await geocoder.reverseGeocode(
+        lat: latlng.latitude,
+        lon: latlng.longitude,
+      );
+      if (!mounted) return;
+      context.read<PreviewCubit>().showResolved(result);
+    } catch (_) {
+      if (!mounted) return;
+      final label =
+          '${latlng.latitude.toStringAsFixed(5)}, ${latlng.longitude.toStringAsFixed(5)}';
+      context.read<PreviewCubit>().showCoords(
+        lat: latlng.latitude,
+        lon: latlng.longitude,
+        label: label,
+      );
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -57,9 +95,6 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    final state = GoRouterState.of(context);
-    debugPrint('[HomeView] build uri = ${state.uri}');
-
     return Scaffold(
       body: MultiBlocListener(
         listeners: [
@@ -96,18 +131,47 @@ class _HomeViewState extends State<HomeView> {
             final markers = markersForPreview(state);
             return Stack(
               children: [
-                MapSection(extraMarkers: markers),
+                MapSection(
+                  extraMarkers: markers,
+                  onMapLongPress: _handleMapTap,
+                  onDataLayerFeatureTap: _handleDataLayerFeatureTap,
+                ),
 
                 const RecenterFAB(),
                 const RotateNorthFAB(),
                 const MapControlsFAB(),
+
+                BottomSearchBarWidget(
+                  onResultSelected: (r) {
+                    FocusScope.of(context).unfocus();
+                    AppNav.homeWithCoords(
+                      lat: r.lat,
+                      lon: r.lon,
+                      label: r.displayName,
+                      placeId: r.id,
+                      zoom: 14,
+                    );
+                  },
+                ),
 
                 if (state is LocationPreviewShowing)
                   LocationPreviewWidget(
                     route: state.result,
                     onClose: () {
                       context.read<PreviewCubit>().hide();
-                      context.read<MapBloc>().add(ToggleFollowUser(true));
+                      final mapBloc = context.read<MapBloc>();
+                      mapBloc.add(ReplacePolylines(const [], fit: false));
+                      final userPos = context
+                          .read<LocationBloc>()
+                          .state
+                          .position;
+                      final mapState = mapBloc.state;
+                      if (userPos != null) {
+                        mapBloc.add(
+                          MapMoved(userPos, mapState.zoom, force: true),
+                        );
+                      }
+                      mapBloc.add(ToggleFollowUser(true));
                     },
                     onSave: () async {
                       final r = state.result;
@@ -136,19 +200,6 @@ class _HomeViewState extends State<HomeView> {
                       }
                     },
                   ),
-
-                BottomSearchBarWidget(
-                  onResultSelected: (r) {
-                    FocusScope.of(context).unfocus();
-                    AppNav.homeWithCoords(
-                      lat: r.lat,
-                      lon: r.lon,
-                      label: r.displayName,
-                      placeId: r.id,
-                      zoom: 14,
-                    );
-                  },
-                ),
               ],
             );
           },

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/utils/snackbar_helper.dart';
+import 'package:nav_e/core/widgets/state_views.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/device_management/widgets/device_card_widget.dart';
@@ -15,148 +16,120 @@ class DeviceManagementScreen extends StatefulWidget {
 
 class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
   @override
-  initState() {
+  void initState() {
     super.initState();
-    // Load devices on page build only once
     context.read<DevicesBloc>().add(LoadDevices());
     BlocProvider.of<BluetoothBloc>(context).add(InitiateConnectionCheck());
   }
 
   @override
   Widget build(BuildContext context) {
-    context.read<DevicesBloc>().add(LoadDevices());
     return Scaffold(
       appBar: AppBar(
+        elevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: AppColors.capeCodDark02),
-          onPressed: () {
-            context.pushReplacement('/');
-          },
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pushReplacement('/'),
         ),
-        title: Text(
-          'Devices',
-          style: TextStyle(color: AppColors.capeCodDark02),
-        ),
+        title: const Text('My Devices'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => context.read<DevicesBloc>().add(LoadDevices()),
+            tooltip: 'Refresh',
+          ),
+        ],
       ),
-      body: Container(
-        padding: EdgeInsets.all(8),
-        child: BackButtonListener(
-          onBackButtonPressed: () async {
-            GoRouter.of(context).go('/');
-            return true;
+      body: BackButtonListener(
+        onBackButtonPressed: () async {
+          GoRouter.of(context).go('/');
+          return true;
+        },
+        child: BlocConsumer<DevicesBloc, DevicesState>(
+          listener: (context, state) {
+            if (state is DeviceOperationSuccess) {
+              showAppSnackBar(context, state.message);
+              context.read<DevicesBloc>().add(LoadDevices());
+            }
           },
-          child: Column(
-            children: [
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    BlocConsumer<DevicesBloc, DevicesState>(
-                      listener: (context, state) {
-                        if (state is DeviceOperationSuccess) {
-                          initState();
-                        }
-                      },
-                      builder: (context, state) {
-                        if (state is DeviceLoadInProgress) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: CircularProgressIndicator(),
-                          );
-                        } else if (state is DeviceLoadSuccess) {
-                          if (state.devices.isNotEmpty) {
-                            return Expanded(
-                              child: ListView.builder(
-                                scrollDirection: Axis.vertical,
-                                shrinkWrap: true,
-                                itemCount: state.devices.length,
-                                itemBuilder: (BuildContext context, int index) {
-                                  final device = state.devices[index];
-                                  return DeviceCard(device: device);
-                                },
-                              ),
-                            );
-                          } else {
-                            return Expanded(
-                              child: Text(
-                                "No devices registered! Add a device using the button below.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 24,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            );
-                          }
-                        } else if (state is DeviceOperationFailure) {
-                          return Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  size: 48,
-                                  color: Colors.redAccent,
-                                ),
-                                SizedBox(height: 16),
-                                Text(
-                                  "Error loading devices",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                SizedBox(height: 8),
-                                Text(
-                                  state.message,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[600],
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                ElevatedButton(
-                                  onPressed: () => context
-                                      .read<DevicesBloc>()
-                                      .add(LoadDevices()),
-                                  child: Text("Retry"),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                        return Expanded(
-                          child: Text(
-                            "Error: Something went wrong. Unable to load devices!",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 24,
-                              color: Colors.redAccent,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              Row(
+          builder: (context, state) {
+            if (state is DeviceLoadInProgress) {
+              return const AppLoadingState(message: 'Loading devices...');
+            }
+
+            if (state is DeviceOperationFailure) {
+              return AppErrorState(
+                title: 'Error Loading Devices',
+                message: state.message,
+                onRetry: () => context.read<DevicesBloc>().add(LoadDevices()),
+              );
+            }
+
+            if (state is DeviceLoadSuccess) {
+              if (state.devices.isEmpty) {
+                return AppEmptyState(
+                  icon: Icons.bluetooth_disabled,
+                  title: 'No Devices Yet',
+                  subtitle:
+                      'Add a Bluetooth device to get started.\nYou can connect to watches, phones, or other devices.',
+                  actionLabel: 'Add Your First Device',
+                  onAction: () => context.pushNamed('addDevice'),
+                );
+              }
+
+              return Column(
                 children: [
                   Expanded(
-                    child: FloatingActionButton(
-                      onPressed: () {
-                        context.pushNamed('addDevice');
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      itemCount: state.devices.length,
+                      itemBuilder: (context, index) {
+                        final device = state.devices[index];
+                        return DeviceCard(device: device);
                       },
-                      child: Text("Add a new device +"),
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.shadow.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: SafeArea(
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => context.pushNamed('addDevice'),
+                          icon: const Icon(Icons.add_circle_outline),
+                          label: const Text('Add New Device'),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ],
-              ),
-            ],
-          ),
+              );
+            }
+
+            return AppErrorState(
+              title: 'Something went wrong',
+              message: 'An unexpected error occurred.',
+              onRetry: () => context.read<DevicesBloc>().add(LoadDevices()),
+            );
+          },
         ),
       ),
     );

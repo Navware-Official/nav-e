@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = [
+  "device_comm",
+  "nav_engine",
+  "nav_e_ffi",
+  "api_playground",
+]

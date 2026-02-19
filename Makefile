@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help codegen build-native build-android build-android-all clean-native clean-android fmt fmt-rust fmt-flutter lint-rust fix-rust cs-fix test ci migrate-new migrate-status full-rebuild android-dev rust-only
+.PHONY: help codegen build-native build-android build-android-all clean-native clean-android fmt fmt-rust fmt-flutter lint-rust fix-rust cs-fix test test-rust ci migrate-new migrate-status full-rebuild android-dev rust-only playground api-playground analyze
 
 help:
 	@echo "Workflow commands:"
@@ -9,8 +9,12 @@ help:
 	@echo "  make rust-only         # Build Android libs only (after changing Rust implementation)"
 	@echo ""
 	@echo "Individual commands:"
+	@echo "  make playground        # Run API playground (nav_e_ffi) at http://127.0.0.1:3030"
+	@echo "  make api-playground   # Same as playground"
+	@echo "  make test-rust         # Run Rust API smoke tests (cargo test -p nav_e_ffi)"
 	@echo "  make codegen           # Run flutter_rust_bridge_codegen (v2.x) and generate Dart bindings into lib/bridge"
 	@echo "  make build-native      # Build native Rust crate (desktop)"
+	@echo "  make android-rust-targets # Install Rust Android targets (once, if build-android fails)"
 	@echo "  make build-android     # Build Android native libs for arm64 and copy to android/app/src/main/jniLibs"
 	@echo "  make build-android-all # Build Android native libs for common ABIs and copy to jniLibs"
 	@echo "  make clean-native      # cargo clean in native/nav_engine"
@@ -19,7 +23,8 @@ help:
 	@echo "  make fmt-flutter       # Format Flutter/Dart code only"
 	@echo "  make lint              # Run linters on both Rust and Flutter code"
 	@echo "  make lint-rust         # Run clippy on Rust code"
-	@echo "  make lint-flutter      # Run dart analyze on Flutter code"
+	@echo "  make analyze           # Run dart analyze (static analysis)"
+	@echo "  make lint-flutter      # Same as analyze"
 	@echo "  make test              # run flutter test"
 	@echo "  make ci                # run codegen + build-native (for CI)"
 	@echo "  make migrate-new       # Create a new database migration file with timestamp"
@@ -36,15 +41,22 @@ build-native:
 	@echo "Building native Rust crate (release)..."
 	@cd native/nav_e_ffi && cargo build --release
 
+## Install Rust targets for Android (run once if build-android fails with "can't find crate for `core`")
+android-rust-targets:
+	@echo "Adding Rust targets for Android..."
+	@rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+
 ## Build Android libs via cargo-ndk (arm64 only). Requires cargo-ndk and NDK installed.
 build-android:
 	@command -v cargo-ndk >/dev/null 2>&1 || { echo "cargo-ndk not found. Install with: cargo install cargo-ndk"; exit 1; }
+	@rustup target add aarch64-linux-android 2>/dev/null || true
 	@echo "Building Android native libs (arm64-v8a) and copying to android/app/src/main/jniLibs"
 	@cd native/nav_e_ffi && cargo ndk -t arm64-v8a -o ../../android/app/src/main/jniLibs build --release
 
 ## Build Android libs for multiple ABIs
 build-android-all:
 	@command -v cargo-ndk >/dev/null 2>&1 || { echo "cargo-ndk not found. Install with: cargo install cargo-ndk"; exit 1; }
+	@rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android 2>/dev/null || true
 	@echo "Building Android native libs (arm64-v8a, armeabi-v7a, x86_64) and copying to android/app/src/main/jniLibs"
 	@cd native/nav_e_ffi && cargo ndk -t arm64-v8a -t armeabi-v7a -t x86_64 -o ../../android/app/src/main/jniLibs build --release
 
@@ -53,7 +65,7 @@ clean-native:
 	@cd native/nav_engine && cargo clean
 
 clean-android: clean-native
-	@rm -rf android/app/src/main/jniLibs/* 2>/dev/null || true
+	@rm -rf android/app/src/main/jniLibs/arm64-v8a android/app/src/main/jniLibs/armeabi-v7a android/app/src/main/jniLibs/x86_64 2>/dev/null || true
 	@echo "Android artifacts cleaned. Rebuild with 'make build-android'."
 
 ## Format Rust code
@@ -110,7 +122,8 @@ cs-check:
 	@echo "✓ Code style checks passed"
 
 ## Run linters on Flutter code
-lint-flutter:
+## Run Dart static analysis (same as CI)
+analyze lint-flutter:
 	@command -v dart >/dev/null 2>&1 || { echo "dart not found. Install Flutter SDK"; exit 1; }
 	@echo "Running dart analyze..."
 	@dart analyze
@@ -124,8 +137,21 @@ test:
 	@echo "Running Flutter tests..."
 	flutter test
 	@echo "Running Rust tests..."
-	@cd native/nav_engine && cargo test
+	@cd native/nav_e_ffi && cargo test
 	@echo "✓ All tests ran"
+
+## Run Rust API smoke tests only (no Flutter) — tests the FFI surface Flutter uses
+test-rust:
+	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
+	@echo "Running nav_e_ffi API smoke tests..."
+	@cd native/nav_e_ffi && cargo test
+	@echo "✓ Rust API tests ran"
+
+## Run API playground (Storybook-style HTTP UI for nav_e_ffi endpoints)
+playground api-playground:
+	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
+	@echo "Starting API playground at http://127.0.0.1:3030"
+	@cd native && cargo run -p api_playground
 
 ci: codegen build-native
 
@@ -156,3 +182,8 @@ migrate-status:
 	@ls -1 native/nav_engine/src/migrations/*.rs 2>/dev/null | grep -v "mod.rs" | sed 's/.*\///;s/\.rs//' | sed 's/^/  /' || echo "  No migrations found"
 	@echo ""
 	@echo "To create a new migration: make migrate-new"
+
+open-logcat-android:
+	@echo "Opening logcat for Android..."
+	adb logcat
+	
