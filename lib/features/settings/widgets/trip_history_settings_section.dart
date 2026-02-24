@@ -25,7 +25,8 @@ class TripHistorySettingsSection extends StatefulWidget {
       _TripHistorySettingsSectionState();
 }
 
-class _TripHistorySettingsSectionState extends State<TripHistorySettingsSection> {
+class _TripHistorySettingsSectionState
+    extends State<TripHistorySettingsSection> {
   bool _autoSave = false;
 
   @override

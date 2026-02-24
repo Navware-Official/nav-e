@@ -19,6 +19,7 @@ class MapWidget extends StatefulWidget {
   final void Function(LatLng latlng)? onMapLongPress;
   final void Function(String layerId, Map<String, dynamic> properties)?
   onDataLayerFeatureTap;
+
   /// When non-null, used for auto-fit bounds (e.g. trip preview). When null,
   /// uses default padding for full-screen nav.
   final EdgeInsets? fitPadding;
@@ -116,7 +117,8 @@ class _MapWidgetState extends State<MapWidget> {
                   '[MapWidget] autoFit | polylines=${state.polylines.length}',
                 );
                 final coords = state.polylines.expand((p) => p.points).toList();
-                final pad = widget.fitPadding ??
+                final pad =
+                    widget.fitPadding ??
                     () {
                       final mq = MediaQuery.of(context);
                       return EdgeInsets.only(
