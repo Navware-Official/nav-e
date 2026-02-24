@@ -147,10 +147,9 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
                     navigator.pop();
                     final rootContext = rootNavigatorKey.currentContext;
                     if (rootContext != null) {
-                      GoRouter.of(rootContext).pushNamed(
-                        'routeFinish',
-                        extra: payload,
-                      );
+                      GoRouter.of(
+                        rootContext,
+                      ).pushNamed('routeFinish', extra: payload);
                     }
                   });
                 } else {

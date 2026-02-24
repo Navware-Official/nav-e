@@ -100,5 +100,4 @@ class _TripHistoryScreenState extends State<TripHistoryScreen> {
     }
     return '${dt.day}/${dt.month}/${dt.year}';
   }
-
 }

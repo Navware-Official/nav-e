@@ -49,8 +49,9 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final points = _decodePolyline(widget.trip.polylineEncoded);
-    final actualDuration =
-        widget.trip.completedAt.difference(widget.trip.startedAt);
+    final actualDuration = widget.trip.completedAt.difference(
+      widget.trip.startedAt,
+    );
     final mapHeight = _mapExpanded
         ? MediaQuery.sizeOf(context).height * 0.6
         : 200.0;
@@ -129,16 +130,14 @@ class _TripDetailScreenState extends State<TripDetailScreen> {
             _StatRow(
               icon: Icons.straighten,
               label: 'Distance',
-              value:
-                  '${(widget.trip.distanceM / 1000).toStringAsFixed(2)} km',
+              value: '${(widget.trip.distanceM / 1000).toStringAsFixed(2)} km',
               colorScheme: colorScheme,
             ),
             const SizedBox(height: 8),
             _StatRow(
               icon: Icons.schedule,
               label: 'Duration',
-              value:
-                  '${(widget.trip.durationSeconds / 60).round()} min',
+              value: '${(widget.trip.durationSeconds / 60).round()} min',
               colorScheme: colorScheme,
             ),
             const SizedBox(height: 8),
@@ -235,18 +234,15 @@ class _TripDetailMapPolylineInitiatorState
       await Future<void>.delayed(const Duration(milliseconds: 400));
       if (!mounted) return;
       context.read<MapBloc>().add(
-            ReplacePolylines(
-              [
-                PolylineModel(
-                  id: 'trip-detail-preview',
-                  points: widget.points,
-                  colorArgb: AppColors.blueRibbonDark02.toARGB32(),
-                  strokeWidth: 4.0,
-                ),
-              ],
-              fit: true,
-            ),
-          );
+        ReplacePolylines([
+          PolylineModel(
+            id: 'trip-detail-preview',
+            points: widget.points,
+            colorArgb: AppColors.blueRibbonDark02.toARGB32(),
+            strokeWidth: 4.0,
+          ),
+        ], fit: true),
+      );
       if (mounted) setState(() => _done = true);
     });
   }
