@@ -43,12 +43,6 @@ List<NavCue> buildTurnFeed(
     final b2 = _bearing(curr, next);
     final delta = _deltaAngle(b1, b2);
 
-    debugPrint(
-      '[TurnFeed] i=$i seg=${seg.toStringAsFixed(1)}m '
-      'b1=${b1.toStringAsFixed(1)} b2=${b2.toStringAsFixed(1)} '
-      'delta=${delta.toStringAsFixed(1)} sinceLast=${sinceLastTurn.toStringAsFixed(1)}',
-    );
-
     if (delta.abs() < _turnThresholdDeg || sinceLastTurn < _minTurnSpacingM) {
       continue;
     }
