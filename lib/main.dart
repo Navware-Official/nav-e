@@ -11,11 +11,13 @@ import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
 import 'package:nav_e/core/domain/repositories/device_repository.dart';
+import 'package:nav_e/core/domain/repositories/trip_repository.dart';
 import 'package:nav_e/features/device_management/data/device_repository_rust.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/saved_places/data/saved_places_repository_rust.dart';
+import 'package:nav_e/features/trip_history/data/trip_repository_rust.dart';
 import 'package:nav_e/features/search/data/geocoding_repository_frb_typed_impl.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 
@@ -121,6 +123,7 @@ class _AppLoaderState extends State<_AppLoader> {
     final geocodingRepo = GeocodingRepositoryFrbTypedImpl();
     final mapSourceRepo = MapSourceRepositoryImpl();
     final savedPlacesRepo = SavedPlacesRepositoryRust();
+    final tripRepo = TripRepositoryRust();
     final deviceRepo = DeviceRepositoryRust();
     final offlineRegionsRepo = OfflineRegionsRepositoryRust();
     final compositeMapSourceRepo = CompositeMapSourceRepository(
@@ -135,6 +138,7 @@ class _AppLoaderState extends State<_AppLoader> {
         RepositoryProvider<ISavedPlacesRepository>.value(
           value: savedPlacesRepo,
         ),
+        RepositoryProvider<ITripRepository>.value(value: tripRepo),
         RepositoryProvider<IMapSourceRepository>.value(
           value: compositeMapSourceRepo,
         ),
