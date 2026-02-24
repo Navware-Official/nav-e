@@ -2,17 +2,33 @@ import 'package:latlong2/latlong.dart';
 
 import '../models/nav_models.dart';
 
-abstract class NavEvent {}
+abstract class NavEvent {
+  const NavEvent();
+}
 
 class NavStart extends NavEvent {
   final String routeId;
   final List<LatLng> routePoints;
   final Map<String, dynamic>? options;
+  final double? distanceM;
+  final double? durationS;
+  final String? destinationLabel;
 
-  NavStart(this.routeId, this.routePoints, {this.options});
+  NavStart(
+    this.routeId,
+    this.routePoints, {
+    this.options,
+    this.distanceM,
+    this.durationS,
+    this.destinationLabel,
+  });
 }
 
-class NavStop extends NavEvent {}
+class NavStop extends NavEvent {
+  final bool completed;
+
+  const NavStop({this.completed = false});
+}
 
 class PositionUpdate extends NavEvent {
   final LatLng position;

@@ -15,6 +15,11 @@ class NavState extends Equatable {
   final LatLng? lastPosition;
   final bool following;
   final bool lightweightMode;
+  final DateTime? startedAt;
+  final double? distanceM;
+  final int? durationS;
+  final String? destinationLabel;
+  final bool completedWithSummary;
 
   const NavState({
     this.active = false,
@@ -28,6 +33,11 @@ class NavState extends Equatable {
     this.lastPosition,
     this.following = false,
     this.lightweightMode = false,
+    this.startedAt,
+    this.distanceM,
+    this.durationS,
+    this.destinationLabel,
+    this.completedWithSummary = false,
   });
 
   NavState copyWith({
@@ -42,6 +52,11 @@ class NavState extends Equatable {
     LatLng? lastPosition,
     bool? following,
     bool? lightweightMode,
+    DateTime? startedAt,
+    double? distanceM,
+    int? durationS,
+    String? destinationLabel,
+    bool? completedWithSummary,
   }) {
     return NavState(
       active: active ?? this.active,
@@ -55,6 +70,11 @@ class NavState extends Equatable {
       lastPosition: lastPosition ?? this.lastPosition,
       following: following ?? this.following,
       lightweightMode: lightweightMode ?? this.lightweightMode,
+      startedAt: startedAt ?? this.startedAt,
+      distanceM: distanceM ?? this.distanceM,
+      durationS: durationS ?? this.durationS,
+      destinationLabel: destinationLabel ?? this.destinationLabel,
+      completedWithSummary: completedWithSummary ?? this.completedWithSummary,
     );
   }
 
@@ -71,5 +91,10 @@ class NavState extends Equatable {
     lastPosition,
     following,
     lightweightMode,
+    startedAt,
+    distanceM,
+    durationS,
+    destinationLabel,
+    completedWithSummary,
   ];
 }

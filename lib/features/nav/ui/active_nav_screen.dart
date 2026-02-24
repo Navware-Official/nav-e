@@ -18,15 +18,24 @@ import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/widgets/user_location_marker.dart';
+import 'package:nav_e/features/nav/ui/route_finish_screen.dart';
+import 'package:nav_e/app/app_router.dart';
+import 'package:go_router/go_router.dart';
 
 class ActiveNavScreen extends StatefulWidget {
   final String routeId;
   final List<LatLng> routePoints;
+  final double? distanceM;
+  final double? durationS;
+  final String? destinationLabel;
 
   const ActiveNavScreen({
     super.key,
     required this.routeId,
     required this.routePoints,
+    this.distanceM,
+    this.durationS,
+    this.destinationLabel,
   });
 
   @override
@@ -42,7 +51,15 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
     _navBloc = NavBloc();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _navBloc.add(NavStart(widget.routeId, widget.routePoints));
+      _navBloc.add(
+        NavStart(
+          widget.routeId,
+          widget.routePoints,
+          distanceM: widget.distanceM,
+          durationS: widget.durationS,
+          destinationLabel: widget.destinationLabel,
+        ),
+      );
       _navBloc.add(SetFollowMode(true));
       _navBloc.add(SetTurnFeed(buildTurnFeed(widget.routePoints)));
       final mapBloc = context.read<MapBloc>();
@@ -110,8 +127,38 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
         listeners: [
           BlocListener<NavBloc, NavState>(
             listener: (context, state) {
-              if (!state.active) Navigator.of(context).maybePop();
+              if (!state.active) {
+                if (state.completedWithSummary &&
+                    state.startedAt != null &&
+                    state.distanceM != null &&
+                    state.durationS != null) {
+                  final payload = RouteFinishPayload(
+                    distanceM: state.distanceM!,
+                    durationS: state.durationS!.toDouble(),
+                    startedAt: state.startedAt!,
+                    completedAt: DateTime.now(),
+                    completed: true,
+                    destinationLabel: state.destinationLabel,
+                    routeId: state.routeId,
+                    routePoints: widget.routePoints,
+                  );
+                  final navigator = Navigator.of(context);
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    navigator.pop();
+                    final rootContext = rootNavigatorKey.currentContext;
+                    if (rootContext != null) {
+                      GoRouter.of(
+                        rootContext,
+                      ).pushNamed('routeFinish', extra: payload);
+                    }
+                  });
+                } else {
+                  Navigator.of(context).maybePop();
+                }
+                return;
+              }
 
+              if (!context.mounted) return;
               try {
                 if (state.progressPolyline.isNotEmpty) {
                   context.read<MapBloc>().add(
@@ -348,8 +395,18 @@ class _BottomNavBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 IconButton(
-                  onPressed: () => context.read<NavBloc>().add(NavStop()),
+                  onPressed: () => context.read<NavBloc>().add(
+                    const NavStop(completed: true),
+                  ),
+                  icon: const Icon(Icons.check_circle),
+                  tooltip: 'Finish route',
+                ),
+                IconButton(
+                  onPressed: () => context.read<NavBloc>().add(
+                    const NavStop(completed: false),
+                  ),
                   icon: const Icon(Icons.close),
+                  tooltip: 'Cancel',
                 ),
               ],
             ),

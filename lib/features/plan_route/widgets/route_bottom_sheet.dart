@@ -525,6 +525,12 @@ class RouteBottomSheet extends StatelessWidget {
                                         builder: (_) => ActiveNavScreen(
                                           routeId: id,
                                           routePoints: routePoints,
+                                          distanceM: distanceM,
+                                          durationS: durationS,
+                                          destinationLabel:
+                                              destination.displayName.isNotEmpty
+                                              ? destination.displayName
+                                              : destination.name,
                                         ),
                                       ),
                                     );

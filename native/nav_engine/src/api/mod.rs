@@ -13,6 +13,7 @@ pub(crate) mod navigation;
 pub(crate) mod offline_regions;
 pub(crate) mod routes;
 pub(crate) mod saved_places;
+pub(crate) mod trips;
 
 // Re-export all public APIs
 pub use device_comm::*;
@@ -22,9 +23,13 @@ pub use navigation::*;
 pub use offline_regions::*;
 pub use routes::*;
 pub use saved_places::*;
+pub use trips::*;
 
 use crate::infrastructure::{
-    database::{Database, DeviceRepository, OfflineRegionsRepository, SavedPlacesRepository},
+    database::{
+        Database, DeviceRepository, OfflineRegionsRepository, SavedPlacesRepository,
+        TripsRepository,
+    },
     geocoding_adapter::PhotonGeocodingService,
     in_memory_repo::InMemoryNavigationRepository,
     osrm_adapter::OsrmRouteService,
@@ -44,6 +49,7 @@ pub(crate) struct AppContext {
     geocoding_service: Arc<dyn GeocodingService>,
     navigation_repo: Arc<dyn NavigationRepository>,
     saved_places_repo: SavedPlacesRepository,
+    trips_repo: TripsRepository,
     device_repo: DeviceRepository,
     offline_regions_repo: OfflineRegionsRepository,
 }
@@ -70,6 +76,7 @@ impl AppContext {
             )),
             navigation_repo: Arc::new(InMemoryNavigationRepository::new()),
             saved_places_repo: SavedPlacesRepository::new(Arc::clone(&db_conn)),
+            trips_repo: TripsRepository::new(Arc::clone(&db_conn)),
             device_repo: DeviceRepository::new(db_conn),
             offline_regions_repo,
         }

@@ -20,12 +20,17 @@ class MapWidget extends StatefulWidget {
   final void Function(String layerId, Map<String, dynamic> properties)?
   onDataLayerFeatureTap;
 
+  /// When non-null, used for auto-fit bounds (e.g. trip preview). When null,
+  /// uses default padding for full-screen nav.
+  final EdgeInsets? fitPadding;
+
   const MapWidget({
     super.key,
     required this.markers,
     this.onMapTap,
     this.onMapLongPress,
     this.onDataLayerFeatureTap,
+    this.fitPadding,
   });
 
   @override
@@ -112,13 +117,17 @@ class _MapWidgetState extends State<MapWidget> {
                   '[MapWidget] autoFit | polylines=${state.polylines.length}',
                 );
                 final coords = state.polylines.expand((p) => p.points).toList();
-                final mq = MediaQuery.of(context);
-                final pad = EdgeInsets.only(
-                  left: 12,
-                  right: 12,
-                  top: mq.padding.top + 88,
-                  bottom: mq.padding.bottom + 220,
-                );
+                final pad =
+                    widget.fitPadding ??
+                    () {
+                      final mq = MediaQuery.of(context);
+                      return EdgeInsets.only(
+                        left: 12,
+                        right: 12,
+                        top: mq.padding.top + 88,
+                        bottom: mq.padding.bottom + 220,
+                      );
+                    }();
                 // Use adapter instead of direct controller
                 _adapter?.fitBounds(
                   coordinates: coords,

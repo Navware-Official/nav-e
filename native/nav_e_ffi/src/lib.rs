@@ -124,6 +124,52 @@ pub fn delete_saved_place(id: i64) -> Result<()> {
 }
 
 // ============================================================================
+// Trips API (completed route history)
+// ============================================================================
+
+/// Get all trips as JSON array
+#[frb(sync)]
+pub fn get_all_trips() -> Result<String> {
+    nav_engine::api::get_all_trips()
+}
+
+/// Get a trip by ID as JSON object
+#[frb(sync)]
+pub fn get_trip_by_id(id: i64) -> Result<String> {
+    nav_engine::api::get_trip_by_id(id)
+}
+
+/// Save a new trip and return the assigned ID
+#[frb(sync)]
+pub fn save_trip(
+    distance_m: f64,
+    duration_seconds: i64,
+    started_at: i64,
+    completed_at: i64,
+    status: String,
+    destination_label: Option<String>,
+    route_id: Option<String>,
+    polyline_encoded: Option<String>,
+) -> Result<i64> {
+    nav_engine::api::save_trip(
+        distance_m,
+        duration_seconds,
+        started_at,
+        completed_at,
+        status,
+        destination_label,
+        route_id,
+        polyline_encoded,
+    )
+}
+
+/// Delete a trip by ID
+#[frb(sync)]
+pub fn delete_trip(id: i64) -> Result<()> {
+    nav_engine::api::delete_trip(id)
+}
+
+// ============================================================================
 // Device Communication API
 // ============================================================================
 
