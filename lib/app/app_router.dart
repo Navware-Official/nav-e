@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
+import 'package:nav_e/core/domain/repositories/trip_repository.dart';
 import 'package:nav_e/features/device_management/add_device_screen.dart';
 import 'package:nav_e/features/device_management/device_management_screen.dart';
 import 'package:nav_e/features/device_comm/presentation/screens/device_comm_debug_screen.dart';
@@ -19,6 +20,11 @@ import 'package:nav_e/features/search/search_screen.dart';
 import 'package:nav_e/features/settings/settings_screen.dart';
 import 'package:nav_e/features/settings/licenses_screen.dart';
 import 'package:nav_e/features/offline_maps/presentation/offline_maps_screen.dart';
+import 'package:nav_e/features/nav/ui/route_finish_screen.dart';
+import 'package:nav_e/core/domain/entities/trip.dart';
+import 'package:nav_e/features/trip_history/trip_history_screen.dart';
+import 'package:nav_e/features/trip_history/trip_detail_screen.dart';
+import 'package:nav_e/features/trip_history/cubit/trip_history_cubit.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
@@ -110,6 +116,36 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
           final g = GeocodingResult.fromPathParams(params);
           if (g == null) return const HomeScreen();
           return PlanRouteScreen(destination: g);
+        },
+      ),
+      GoRoute(
+        path: '/trips',
+        name: 'trips',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (ctx, _) => BlocProvider(
+          create: (c) =>
+              TripHistoryCubit(c.read<ITripRepository>())..loadTrips(),
+          child: const TripHistoryScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/trip-detail',
+        name: 'tripDetail',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (ctx, state) {
+          final trip = state.extra as Trip?;
+          if (trip == null) return const HomeScreen();
+          return TripDetailScreen(trip: trip);
+        },
+      ),
+      GoRoute(
+        path: '/route-finish',
+        name: 'routeFinish',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (ctx, state) {
+          final payload = state.extra as RouteFinishPayload?;
+          if (payload == null) return const HomeScreen();
+          return RouteFinishScreen(payload: payload);
         },
       ),
       GoRoute(

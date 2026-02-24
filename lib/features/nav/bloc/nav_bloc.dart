@@ -30,13 +30,21 @@ class NavBloc extends Bloc<NavEvent, NavState> {
         remainingDistanceM: dist,
         remainingSeconds: secs,
         progressPolyline: event.routePoints,
+        startedAt: DateTime.now(),
+        distanceM: event.distanceM,
+        durationS: event.durationS?.toInt(),
+        destinationLabel: event.destinationLabel,
       ),
     );
     _startCuePolling();
   }
 
   void _onStop(NavStop event, Emitter<NavState> emit) {
-    emit(const NavState());
+    if (event.completed) {
+      emit(state.copyWith(active: false, completedWithSummary: true));
+    } else {
+      emit(const NavState());
+    }
     _stopCuePolling();
   }
 

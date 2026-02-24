@@ -121,9 +121,8 @@ pub fn get_offline_region_for_viewport(
 
 /// Get storage root path for offline regions (e.g. app documents + "offline_regions").
 pub fn get_offline_regions_storage_path() -> Result<String> {
-    super::get_context()
-        .offline_regions_repo
-        .get_storage_path()}
+    super::get_context().offline_regions_repo.get_storage_path()
+}
 
 /// Download a region: fetch tiles, write to directory, insert into DB. Returns region JSON.
 pub fn download_offline_region(

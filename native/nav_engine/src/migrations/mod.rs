@@ -15,6 +15,7 @@ use std::sync::{Arc, Mutex};
 // Migration modules - add new migrations here
 mod m20231201000000_initial_schema;
 mod m20250212000000_offline_regions;
+mod m20250224000000_trips;
 
 // Re-export migrations (internal use only, not for FFI)
 pub use m20231201000000_initial_schema::InitialSchema;
@@ -246,5 +247,6 @@ pub fn get_all_migrations() -> Vec<Box<dyn Migration>> {
     vec![
         Box::new(InitialSchema {}),
         Box::new(m20250212000000_offline_regions::OfflineRegionsSchema {}),
+        Box::new(m20250224000000_trips::TripsSchema {}),
     ]
 }

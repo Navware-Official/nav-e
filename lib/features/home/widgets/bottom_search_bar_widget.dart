@@ -51,6 +51,14 @@ class BottomSearchBarWidget extends StatelessWidget {
               },
             ),
             ListTile(
+              leading: const Icon(Icons.route),
+              title: const Text('Trip history'),
+              onTap: () {
+                Navigator.pop(context);
+                context.pushNamed('trips');
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.settings),
               title: const Text('App Settings'),
               onTap: () {

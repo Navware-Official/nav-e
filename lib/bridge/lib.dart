@@ -94,6 +94,38 @@ PlatformInt64 savePlace({
 void deleteSavedPlace({required PlatformInt64 id}) =>
     RustBridge.instance.api.crateDeleteSavedPlace(id: id);
 
+/// Get all trips as JSON array
+String getAllTrips() => RustBridge.instance.api.crateGetAllTrips();
+
+/// Get a trip by ID as JSON object
+String getTripById({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateGetTripById(id: id);
+
+/// Save a new trip and return the assigned ID
+PlatformInt64 saveTrip({
+  required double distanceM,
+  required PlatformInt64 durationSeconds,
+  required PlatformInt64 startedAt,
+  required PlatformInt64 completedAt,
+  required String status,
+  String? destinationLabel,
+  String? routeId,
+  String? polylineEncoded,
+}) => RustBridge.instance.api.crateSaveTrip(
+  distanceM: distanceM,
+  durationSeconds: durationSeconds,
+  startedAt: startedAt,
+  completedAt: completedAt,
+  status: status,
+  destinationLabel: destinationLabel,
+  routeId: routeId,
+  polylineEncoded: polylineEncoded,
+);
+
+/// Delete a trip by ID
+void deleteTrip({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateDeleteTrip(id: id);
+
 /// Send route data to a connected device via Bluetooth
 ///
 /// # Arguments

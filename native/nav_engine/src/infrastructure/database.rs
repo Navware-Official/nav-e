@@ -226,6 +226,117 @@ impl Repository<SavedPlaceEntity, i64> for SavedPlacesRepository {
     }
 }
 
+// Trip entity (database representation) for completed route history
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct TripEntity {
+    pub id: Option<i64>,
+    pub distance_m: f64,
+    pub duration_seconds: i64,
+    pub started_at: i64,
+    pub completed_at: i64,
+    pub status: String,
+    pub destination_label: Option<String>,
+    pub route_id: Option<String>,
+    pub polyline_encoded: Option<String>,
+    pub created_at: i64,
+}
+
+impl DatabaseEntity for TripEntity {
+    type Id = i64;
+
+    fn table_name() -> &'static str {
+        "trips"
+    }
+
+    fn from_row(row: &Row) -> rusqlite::Result<Self> {
+        Ok(TripEntity {
+            id: Some(row.get(0)?),
+            distance_m: row.get(1)?,
+            duration_seconds: row.get(2)?,
+            started_at: row.get(3)?,
+            completed_at: row.get(4)?,
+            status: row.get(5)?,
+            destination_label: row.get(6)?,
+            route_id: row.get(7)?,
+            polyline_encoded: row.get(8)?,
+            created_at: row.get(9)?,
+        })
+    }
+
+    fn column_names() -> &'static str {
+        "id, distance_m, duration_seconds, started_at, completed_at, status, destination_label, route_id, polyline_encoded, created_at"
+    }
+
+    fn insert_columns() -> &'static str {
+        "distance_m, duration_seconds, started_at, completed_at, status, destination_label, route_id, polyline_encoded, created_at"
+    }
+
+    fn insert_placeholders() -> &'static str {
+        "?, ?, ?, ?, ?, ?, ?, ?, ?"
+    }
+
+    fn bind_insert(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        start_idx: usize,
+    ) -> rusqlite::Result<()> {
+        stmt.raw_bind_parameter(start_idx, self.distance_m)?;
+        stmt.raw_bind_parameter(start_idx + 1, self.duration_seconds)?;
+        stmt.raw_bind_parameter(start_idx + 2, self.started_at)?;
+        stmt.raw_bind_parameter(start_idx + 3, self.completed_at)?;
+        stmt.raw_bind_parameter(start_idx + 4, &self.status)?;
+        stmt.raw_bind_parameter(start_idx + 5, self.destination_label.as_ref())?;
+        stmt.raw_bind_parameter(start_idx + 6, self.route_id.as_ref())?;
+        stmt.raw_bind_parameter(start_idx + 7, self.polyline_encoded.as_ref())?;
+        stmt.raw_bind_parameter(start_idx + 8, self.created_at)?;
+        Ok(())
+    }
+
+    fn bind_update(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        start_idx: usize,
+    ) -> rusqlite::Result<()> {
+        self.bind_insert(stmt, start_idx)
+    }
+}
+
+// Trips Repository
+#[derive(Clone)]
+pub struct TripsRepository {
+    base: BaseRepository<TripEntity, i64>,
+}
+
+impl TripsRepository {
+    pub fn new(db: Arc<Mutex<Connection>>) -> Self {
+        Self {
+            base: BaseRepository::new(db),
+        }
+    }
+}
+
+impl Repository<TripEntity, i64> for TripsRepository {
+    fn get_all(&self) -> Result<Vec<TripEntity>> {
+        self.base.get_all()
+    }
+
+    fn get_by_id(&self, id: i64) -> Result<Option<TripEntity>> {
+        self.base.get_by_id(id)
+    }
+
+    fn insert(&self, entity: TripEntity) -> Result<i64> {
+        self.base.insert(entity)
+    }
+
+    fn update(&self, id: i64, entity: TripEntity) -> Result<()> {
+        self.base.update(id, entity)
+    }
+
+    fn delete(&self, id: i64) -> Result<()> {
+        self.base.delete(id)
+    }
+}
+
 // Device Repository
 #[derive(Clone)]
 pub struct DeviceRepository {
