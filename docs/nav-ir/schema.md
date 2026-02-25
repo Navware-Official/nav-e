@@ -155,6 +155,19 @@ RoutePolicies {
 - **EncodedPolyline** – Newtype around `String`; use a standard encoding (e.g. Google polyline).
 - **BoundingBox** – `min_lat`, `min_lon`, `max_lat`, `max_lon` (f64).
 
+## Validation
+
+The `nav_ir` crate provides `Route::validate()` which checks the following invariants. Use it before converting to RouteBlob or persisting.
+
+- **schema_version** – Must equal the supported version (currently 1). Unsupported versions yield `ValidationError::UnsupportedSchemaVersion`.
+- **segments** – Non-empty (required for device send). Empty list yields `ValidationError::EmptySegments`.
+- **Per segment:**
+  - **waypoints** – At least two waypoints; the first must have `kind == Start`, the last must have `kind == Stop`. Otherwise `ValidationError::SegmentMissingStartOrStop`.
+  - **bounding_box** – `min_lat <= max_lat` and `min_lon <= max_lon`. Otherwise `ValidationError::InvalidBoundingBox`.
+- **Coordinates** (in waypoints and instructions) – Latitude in `[-90, 90]`, longitude in `[-180, 180]`. Otherwise `ValidationError::CoordinateOutOfRange`.
+
+In Rust: `route.validate()?` or `route.validate().map_err(|e| anyhow::anyhow!(e))?`. The `ValidationError` type is re-exported from the `nav_ir` crate.
+
 ## 11. Execution state (separate from Nav-IR)
 
 Runtime progress (e.g. current position, visited waypoints, ETA) must be stored separately. Nav-IR describes the route contract; execution state is maintained by the core or device.
