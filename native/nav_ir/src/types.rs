@@ -263,6 +263,88 @@ pub struct Route {
     pub policies: RoutePolicies,
 }
 
+/// Validation error for Nav-IR Route invariants.
+#[derive(Debug, Clone, PartialEq)]
+pub enum ValidationError {
+    UnsupportedSchemaVersion(u16),
+    EmptySegments,
+    SegmentMissingStartOrStop { segment_index: usize },
+    InvalidBoundingBox { segment_index: usize },
+    CoordinateOutOfRange { lat: f64, lon: f64 },
+}
+
+impl std::fmt::Display for ValidationError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ValidationError::UnsupportedSchemaVersion(v) => {
+                write!(f, "unsupported schema_version: {} (supported: {})", v, Route::CURRENT_SCHEMA_VERSION)
+            }
+            ValidationError::EmptySegments => write!(f, "route must have at least one segment"),
+            ValidationError::SegmentMissingStartOrStop { segment_index } => write!(
+                f,
+                "segment {} must have at least two waypoints with first Start and last Stop",
+                segment_index
+            ),
+            ValidationError::InvalidBoundingBox { segment_index } => write!(
+                f,
+                "segment {} bounding_box must have min_lat <= max_lat and min_lon <= max_lon",
+                segment_index
+            ),
+            ValidationError::CoordinateOutOfRange { lat, lon } => write!(
+                f,
+                "coordinate out of range: lat={} (must be -90..=90), lon={} (must be -180..=180)",
+                lat, lon
+            ),
+        }
+    }
+}
+
+impl std::error::Error for ValidationError {}
+
+fn validate_coordinate(lat: f64, lon: f64) -> Result<(), ValidationError> {
+    if !(-90.0..=90.0).contains(&lat) || !(-180.0..=180.0).contains(&lon) {
+        return Err(ValidationError::CoordinateOutOfRange { lat, lon });
+    }
+    Ok(())
+}
+
 impl Route {
     pub const CURRENT_SCHEMA_VERSION: u16 = 1;
+
+    /// Validates the route against Nav-IR invariants. Returns `Ok(())` if valid.
+    pub fn validate(&self) -> Result<(), ValidationError> {
+        if self.schema_version != Self::CURRENT_SCHEMA_VERSION {
+            return Err(ValidationError::UnsupportedSchemaVersion(self.schema_version));
+        }
+        if self.segments.is_empty() {
+            return Err(ValidationError::EmptySegments);
+        }
+        for (idx, seg) in self.segments.iter().enumerate() {
+            if seg.waypoints.len() < 2 {
+                return Err(ValidationError::SegmentMissingStartOrStop {
+                    segment_index: idx,
+                });
+            }
+            let first = &seg.waypoints[0];
+            let last = seg.waypoints.last().unwrap();
+            if first.kind != WaypointKind::Start || last.kind != WaypointKind::Stop {
+                return Err(ValidationError::SegmentMissingStartOrStop {
+                    segment_index: idx,
+                });
+            }
+            let b = &seg.geometry.bounding_box;
+            if b.min_lat > b.max_lat || b.min_lon > b.max_lon {
+                return Err(ValidationError::InvalidBoundingBox {
+                    segment_index: idx,
+                });
+            }
+            for wp in &seg.waypoints {
+                validate_coordinate(wp.coordinate.latitude, wp.coordinate.longitude)?;
+            }
+            for inst in &seg.instructions {
+                validate_coordinate(inst.coordinate.latitude, inst.coordinate.longitude)?;
+            }
+        }
+        Ok(())
+    }
 }

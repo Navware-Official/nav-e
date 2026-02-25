@@ -6,10 +6,14 @@ use nav_ir::{Route, WaypointKind};
 use sha2::{Digest, Sha256};
 
 /// Build a RouteBlob from a Nav-IR Route. Uses first segment's geometry and flattens waypoints.
+/// Returns an error if the route fails validation.
 pub fn nav_ir_route_to_route_blob(
     route: &Route,
     header: proto::Header,
 ) -> Result<proto::RouteBlob> {
+    route
+        .validate()
+        .map_err(|e| anyhow::anyhow!("Nav-IR validation failed: {}", e))?;
     let route_id_bytes = route.id.0.as_bytes().to_vec();
 
     // Flatten waypoints from all segments (order preserved)
