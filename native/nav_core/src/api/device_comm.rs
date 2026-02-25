@@ -11,8 +11,8 @@ use chrono::Utc;
 use device_comm::proto;
 use nav_ir::{
     BoundingBox, EncodedPolyline, GeometryConfidence, GeometrySource, Route as NavIrRoute,
-    RouteGeometry, RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints,
-    SegmentId, SegmentIntent, Waypoint as NavIrWaypoint, WaypointId, WaypointKind,
+    RouteGeometry, RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints, SegmentId,
+    SegmentIntent, Waypoint as NavIrWaypoint, WaypointId, WaypointKind,
 };
 use prost::Message as ProstMessage;
 
@@ -251,15 +251,16 @@ pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
         protocol_version: 1,
         message_version: 1,
     };
-    let route_blob =
-        nav_ir_to_proto::nav_ir_route_to_route_blob(&nav_ir_route, header)?;
+    let route_blob = nav_ir_to_proto::nav_ir_route_to_route_blob(&nav_ir_route, header)?;
 
     let message = proto::Message {
         payload: Some(proto::message::Payload::RouteBlob(route_blob)),
     };
 
     let mut buf = Vec::new();
-    message.encode(&mut buf).context("Failed to encode protobuf message")?;
+    message
+        .encode(&mut buf)
+        .context("Failed to encode protobuf message")?;
     Ok(buf)
 }
 

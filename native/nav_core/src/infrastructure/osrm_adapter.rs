@@ -5,8 +5,8 @@ use async_trait::async_trait;
 use chrono::Utc;
 use nav_ir::{
     BoundingBox, EncodedPolyline, GeometryConfidence, GeometrySource, Route as NavIrRoute,
-    RouteGeometry, RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints,
-    SegmentId, SegmentIntent, Waypoint as NavIrWaypoint, WaypointId, WaypointKind,
+    RouteGeometry, RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints, SegmentId,
+    SegmentIntent, Waypoint as NavIrWaypoint, WaypointId, WaypointKind,
 };
 
 pub struct OsrmRouteService {
@@ -79,19 +79,17 @@ impl RouteService for OsrmRouteService {
 
         let decoded =
             polyline::decode_polyline(geometry, 5).context("Failed to decode polyline")?;
-        let (min_lat, max_lat, min_lon, max_lon) = decoded
-            .coords()
-            .fold(
-                (90.0_f64, -90.0_f64, 180.0_f64, -180.0_f64),
-                |(min_lat, max_lat, min_lon, max_lon), c| {
-                    (
-                        min_lat.min(c.y),
-                        max_lat.max(c.y),
-                        min_lon.min(c.x),
-                        max_lon.max(c.x),
-                    )
-                },
-            );
+        let (min_lat, max_lat, min_lon, max_lon) = decoded.coords().fold(
+            (90.0_f64, -90.0_f64, 180.0_f64, -180.0_f64),
+            |(min_lat, max_lat, min_lon, max_lon), c| {
+                (
+                    min_lat.min(c.y),
+                    max_lat.max(c.y),
+                    min_lon.min(c.x),
+                    max_lon.max(c.x),
+                )
+            },
+        );
 
         let nav_ir_waypoints: Vec<NavIrWaypoint> = waypoints
             .iter()

@@ -107,8 +107,8 @@ mod tests {
     use chrono::Utc;
     use nav_ir::{
         BoundingBox, EncodedPolyline, GeometryConfidence, GeometrySource, RouteGeometry,
-        RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints, SegmentIntent,
-        Waypoint, WaypointId, WaypointKind,
+        RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints, SegmentIntent, Waypoint,
+        WaypointId, WaypointKind,
     };
 
     #[test]
