@@ -200,8 +200,8 @@ DeviceCommError(message)
 ### Rust Side
 
 ```rust
-use nav_engine::application::{commands::*, handlers::*};
-use nav_engine::infrastructure::*;
+use nav_core::application::{commands::*, handlers::*};
+use nav_core::infrastructure::*;
 
 // Setup dependencies (Hexagonal Architecture)
 let route_service = Arc::new(OsrmRouteService::new("https://router.project-osrm.org".into()));

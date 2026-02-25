@@ -208,7 +208,7 @@ Custom frame chunking protocol for BLE:
 - **Implemented in:** feature/navigation-routing branch
 - **Affected components:**
   - `proto/navigation.proto` - Protobuf schema definition
-  - `native/nav_engine/src/infrastructure/protobuf_adapter.rs` - Rust serialization adapter
+  - `native/nav_core/src/infrastructure/protobuf_adapter.rs` - Rust serialization adapter
   - `lib/core/device_comm/device_communication_service.dart` - Flutter serialization service
   - `lib/bridge/generated/` - Generated protobuf code for Dart
   - Build scripts for protobuf code generation

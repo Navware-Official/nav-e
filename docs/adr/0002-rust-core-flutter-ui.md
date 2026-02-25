@@ -26,7 +26,7 @@ We adopt a **hybrid architecture** combining:
 
 ### Rust for Core Navigation Engine
 
-The Rust `nav_engine` crate handles all navigation business logic:
+The Rust `nav_core` crate handles all navigation business logic:
 
 - Route calculation and optimization
 - Turn-by-turn navigation state management
@@ -57,7 +57,7 @@ We use `flutter_rust_bridge` to connect the two layers with:
 
 ### Two-Crate Architecture
 
-- **`nav_engine`**: Internal Rust crate with core business logic
+- **`nav_core`**: Internal Rust crate with core business logic
 - **`nav_e_ffi`**: Thin FFI wrapper exposing public API to Flutter
 
 This separation keeps the business logic pure while providing a clean FFI boundary.
@@ -74,7 +74,7 @@ This separation keeps the business logic pure while providing a clean FFI bounda
 - **Concurrent Processing**: Rust's fearless concurrency enables safe parallel processing of navigation tasks
 - **Small Binary Size**: Rust compiles to native code without runtime overhead
 - **Developer Experience**: Flutter's hot reload enables rapid UI iteration, while Rust's compiler provides excellent error messages
-- **Future-Proof**: Can share `nav_engine` with other platforms (web via WASM, desktop, embedded devices)
+- **Future-Proof**: Can share `nav_core` with other platforms (web via WASM, desktop, embedded devices)
 
 ### Negative
 
@@ -178,7 +178,7 @@ This separation keeps the business logic pure while providing a clean FFI bounda
 
 - **Implemented in:** feature/navigation-routing branch and earlier
 - **Affected components:**
-  - `native/nav_engine/` - Core Rust navigation engine
+  - `native/nav_core/` - Core Rust navigation engine
   - `native/nav_e_ffi/` - FFI wrapper crate
   - `lib/bridge/` - Generated Flutter bindings
   - `flutter_rust_bridge.yaml` - Bridge configuration
@@ -196,4 +196,4 @@ This separation keeps the business logic pure while providing a clean FFI bounda
 
 ## Notes
 
-This hybrid architecture provides the best of both worlds: Rust's performance and safety for critical business logic, and Flutter's productivity and cross-platform UI capabilities. The two-crate architecture (nav_engine + nav_e_ffi) ensures clean separation between pure business logic and FFI concerns.
+This hybrid architecture provides the best of both worlds: Rust's performance and safety for critical business logic, and Flutter's productivity and cross-platform UI capabilities. The two-crate architecture (nav_core + nav_e_ffi) ensures clean separation between pure business logic and FFI concerns.

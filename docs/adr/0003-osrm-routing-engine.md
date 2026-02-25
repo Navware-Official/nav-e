@@ -188,8 +188,8 @@ OSRM is implemented as an **adapter** behind the `RouteService` port, allowing u
 
 - **Implemented in:** feature/navigation-routing branch
 - **Affected components:**
-  - `native/nav_engine/src/infrastructure/osrm_adapter.rs` - OSRM HTTP client and adapter
-  - `native/nav_engine/src/domain/ports.rs` - `RouteService` port interface
+  - `native/nav_core/src/infrastructure/osrm_adapter.rs` - OSRM HTTP client and adapter
+  - `native/nav_core/src/domain/ports.rs` - `RouteService` port interface
   - Configuration for OSRM endpoint URL (currently `https://router.project-osrm.org`)
 - **Migration path:** 
   1. Phase 1 (Current): Use public OSRM demo instance for development/testing

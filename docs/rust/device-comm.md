@@ -226,12 +226,12 @@ let frames = chunk_message(&message, &route_id, 3, 247)?;
 // Send frames...
 ```
 
-## Integration with nav_engine
+## Integration with nav_core
 
-The `nav_engine` API layer provides FFI-friendly wrappers:
+The `nav_core` API layer provides FFI-friendly wrappers:
 
 ```rust
-// nav_engine/src/api/device_comm.rs
+// nav_core/src/api/device_comm.rs
 
 pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
     // Parse JSON → Convert to protobuf → Serialize to bytes
