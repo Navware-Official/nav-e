@@ -1,9 +1,12 @@
 //! Navigation Intermediate Representation (Nav-IR).
 //!
 //! Canonical, engine-agnostic route format. No dependency on device_comm or nav_core.
+//! Use the `adapters` module to normalize OSRM, GPX, or custom API output into Nav-IR.
 
+mod adapters;
 mod types;
 
+pub use adapters::{normalize_custom, normalize_gpx, normalize_graphhopper, normalize_osrm, OsrmResponse};
 pub use types::*;
 
 #[cfg(test)]
