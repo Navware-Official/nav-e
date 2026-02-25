@@ -1,4 +1,4 @@
-//! Nav-IR type definitions. See docs/rust/nav-ir.md for the full specification.
+//! Nav-IR type definitions. See docs/nav-ir/README.md and docs/nav-ir/schema.md for the full specification.
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};

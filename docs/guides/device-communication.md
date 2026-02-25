@@ -312,7 +312,7 @@ Check logs for detailed diagnostics:
 
 ### Testing Nav-IR
 
-Route data is represented as **Nav-IR** (Navigation Intermediate Representation) in the core; device send uses a single pipeline: **Nav-IR → RouteBlob** (see [Rust Overview](../rust/overview.md)).
+Route data is represented as **Nav-IR** (Navigation Intermediate Representation) in the core; device send uses a single pipeline: **Nav-IR → RouteBlob** (see [Nav-IR docs](../nav-ir/README.md) and [Rust Overview](../rust/overview.md)).
 
 **1. Unit tests (Nav-IR crate)**  
 From repo root:
