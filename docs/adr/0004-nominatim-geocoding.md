@@ -187,9 +187,9 @@ Nominatim is implemented as an **adapter** behind the `GeocodingService` port, e
 
 - **Implemented in:** feature/navigation-routing branch
 - **Affected components:**
-  - `native/nav_engine/src/infrastructure/geocoding_adapter.rs` - Nominatim HTTP client
+  - `native/nav_core/src/infrastructure/geocoding_adapter.rs` - Nominatim HTTP client
   - Service aliased as `PhotonGeocodingService` (naming suggests future Photon migration)
-  - `native/nav_engine/src/domain/ports.rs` - `GeocodingService` port interface
+  - `native/nav_core/src/domain/ports.rs` - `GeocodingService` port interface
   - Configuration for Nominatim endpoint URL (currently `https://nominatim.openstreetmap.org`)
 - **Migration path:**
   1. Phase 1 (Current): Use public Nominatim for development/testing with rate limiting

@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-# rlib: so api_playground and integration tests can call the same FFI surface as Flutter
+# rlib: so integration tests can call the same FFI surface as Flutter
 crate-type = ["cdylib", "staticlib", "rlib"]
 
 [dependencies]
-nav_engine = { path = "../nav_engine" }
+nav_core = { path = "../nav_core" }
 flutter_rust_bridge = "=2.11.1"
 anyhow = "1"
 

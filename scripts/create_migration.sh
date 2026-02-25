@@ -32,7 +32,7 @@ STRUCT_NAME=$(echo "$description" | \
 STRUCT_NAME="$(tr '[:lower:]' '[:upper:]' <<< ${STRUCT_NAME:0:1})${STRUCT_NAME:1}"
 
 # File paths
-MIGRATIONS_DIR="native/nav_engine/src/migrations"
+MIGRATIONS_DIR="native/nav_core/src/migrations"
 MIGRATION_FILE="${MIGRATIONS_DIR}/m${VERSION}_${SNAKE_CASE}.rs"
 MOD_FILE="${MIGRATIONS_DIR}/mod.rs"
 

@@ -46,15 +46,15 @@ app.*.map.json
 
 # Rust / native build artifacts
 # Ignore compiled artifacts and Cargo target directories for the embedded Rust crate
-native/nav_engine/target/
-native/nav_engine/target/**
+native/nav_core/target/
+native/nav_core/target/**
 native/device_comm/target/
 native/device_comm/target/**
 
 # Ignore Rust-side Flutter Rust Bridge generated files
-native/nav_engine/src/frb_generated.rs
-native/nav_engine/src/frb_generated.io.rs
-native/nav_engine/src/frb_generated.web.rs
+native/nav_core/src/frb_generated.rs
+native/nav_core/src/frb_generated.io.rs
+native/nav_core/src/frb_generated.web.rs
 
 # Ignore platform native libraries produced by local builds
 **/native/**/*.so

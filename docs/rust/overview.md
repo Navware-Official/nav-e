@@ -8,7 +8,7 @@ The project uses a **two-crate architecture** to cleanly separate business logic
 
 ```
 native/
-├── nav_engine/            # Core navigation engine (internal)
+├── nav_core/            # Core navigation engine (internal)
 │   └── src/
 │       ├── api/           # Internal API layer
 │       ├── domain/        # Domain layer (entities, value objects, ports)
@@ -18,7 +18,7 @@ native/
 │
 └── nav_e_ffi/             # Thin FFI wrapper (public API)
     └── src/
-        └── lib.rs         # 20 public functions forwarding to nav_engine
+        └── lib.rs         # 20 public functions forwarding to nav_core
 
 flutter/lib/bridge/        # Generated Dart bindings
     ├── frb_generated.dart
@@ -26,10 +26,10 @@ flutter/lib/bridge/        # Generated Dart bindings
     └── lib.dart           # Public API (automatically generated)
 ```
 
-### Core Engine Structure (`nav_engine`)
+### Core Engine Structure (`nav_core`)
 
 ```
-native/nav_engine/src/
+native/nav_core/src/
 ├── api/                    # Internal API Layer (Feature-based modules)
 │   ├── mod.rs             # AppContext and module coordination
 │   ├── dto.rs             # Data Transfer Objects & conversions
@@ -82,7 +82,7 @@ The `nav_e_ffi` crate provides a minimal, stable API surface:
 // nav_e_ffi/src/lib.rs
 #[frb]
 pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
-    nav_engine::api::calculate_route(waypoints)
+    nav_core::api::calculate_route(waypoints)
 }
 ```
 
@@ -216,7 +216,7 @@ final sessionJson = await rust.startNavigationSession(
 Most APIs return JSON strings for flexibility:
 
 ```rust
-// In nav_engine::api
+// In nav_core::api
 pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
     query_json_async(|| async {
         // ... implementation
@@ -227,7 +227,7 @@ pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
 // In nav_e_ffi (wrapper)
 #[frb]
 pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
-    nav_engine::api::calculate_route(waypoints)
+    nav_core::api::calculate_route(waypoints)
 }
 ```
 
@@ -262,9 +262,9 @@ pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
 
 ### Example: Adding Parking Zones
 
-#### Step 1: Define in `nav_engine`
+#### Step 1: Define in `nav_core`
 
-1. **Define domain entity** (`nav_engine/src/domain/entities.rs`):
+1. **Define domain entity** (`nav_core/src/domain/entities.rs`):
 ```rust
 pub struct ParkingZone {
     pub id: Uuid,
@@ -274,14 +274,14 @@ pub struct ParkingZone {
 }
 ```
 
-2. **Create repository** (`nav_engine/src/infrastructure/database.rs`):
+2. **Create repository** (`nav_core/src/infrastructure/database.rs`):
 ```rust
 pub struct ParkingZoneRepository {
     base: BaseRepository<ParkingZoneEntity>,
 }
 ```
 
-3. **Create API module** (`nav_engine/src/api/parking_zones.rs`):
+3. **Create API module** (`nav_core/src/api/parking_zones.rs`):
 ```rust
 pub fn get_all_parking_zones() -> Result<String> {
     query_json(|| get_context().parking_zones_repo.get_all())
@@ -292,7 +292,7 @@ pub fn save_parking_zone(name: String, lat: f64, lon: f64, capacity: u32) -> Res
 }
 ```
 
-4. **Register in mod.rs** (`nav_engine/src/api/mod.rs`):
+4. **Register in mod.rs** (`nav_core/src/api/mod.rs`):
 ```rust
 pub(crate) mod parking_zones;
 pub use parking_zones::*;
@@ -302,7 +302,7 @@ pub use parking_zones::*;
 
 ```bash
 # Test core engine
-cd native/nav_engine
+cd native/nav_core
 cargo test
 
 # Test FFI wrapper
@@ -382,13 +382,13 @@ adb logcat | grep "System.err"
 
 ## Migration from Old Architecture
 
-The project recently migrated from directly exposing `nav_engine` to using the `nav_e_ffi` wrapper:
+The project recently migrated from directly exposing `nav_core` to using the `nav_e_ffi` wrapper:
 
 **Old (problematic):**
 ```yaml
 # flutter_rust_bridge.yaml
 rust_input: "crate::api"
-rust_root: "native/nav_engine/"  # ❌ FRB scanned internal types
+rust_root: "native/nav_core/"  # ❌ FRB scanned internal types
 ```
 
 **New (clean):**
@@ -409,7 +409,7 @@ import 'package:nav_e/bridge/lib.dart' as rust;
 rust.calculateRoute(...)
 ```rb(sync)]
 pub fn get_all_parking_zones() -> Result<String> {
-    nav_engine::api::get_all_parking_zones()
+    nav_core::api::get_all_parking_zones()
 }
 
 /// Save a parking zone and return the assigned ID
@@ -420,7 +420,7 @@ pub fn save_parking_zone(
     lon: f64,
     capacity: u32,
 ) -> Result<i64> {
-    nav_engine::api::save_parking_zone(name, lat, lon, capacity)
+    nav_core::api::save_parking_zone(name, lat, lon, capacity)
 }
 ```
 
@@ -451,8 +451,8 @@ That's it! The helper functions and traits handle the rest.
 
 ```bash
 # Run all tests
-cargo test --manifest-path native/nav_engine/Cargo.toml
+cargo test --manifest-path native/nav_core/Cargo.toml
 
 # Run specific test
-cargo test --manifest-path native/nav_engine/Cargo.toml test_route_to_dto
+cargo test --manifest-path native/nav_core/Cargo.toml test_route_to_dto
 ```

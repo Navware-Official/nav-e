@@ -84,7 +84,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             native/nav_e_ffi/target
-            native/nav_engine/target
+            native/nav_core/target
             native/device_comm/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
@@ -149,6 +149,6 @@ jobs:
           name: native-libs
           path: |
             native/nav_e_ffi/target/release
-            native/nav_engine/target/release
+            native/nav_core/target/release
             native/device_comm/target/release
           retention-days: 1
