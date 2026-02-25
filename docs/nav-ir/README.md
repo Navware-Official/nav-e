@@ -24,7 +24,14 @@ Nav-IR is not a routing engine and not a UI model. It is a runtime-ready navigat
 
 ### Producing Nav-IR
 
-Implement an adapter that outputs a `nav_ir::Route` (or equivalent JSON). Choose segment intent and geometry source from your source type:
+The **nav_ir** crate provides normalization adapters in `nav_ir::adapters` (see `native/nav_ir/src/adapters/`):
+
+- **OSRM:** `normalize_osrm(json: &str) -> Result<Route, String>` and `impl TryFrom<OsrmResponse> for Route`. Use the JSON from OSRM `route/v1/driving` with `overview=full&geometries=polyline`.
+- **GPX:** `normalize_gpx(bytes: &[u8]) -> Result<Route, String>`. Parses GPX track or route; first track (or first route) becomes one Nav-IR segment (FixedGeometry, ImportedExact).
+- **Custom:** `normalize_custom(waypoints, polyline_encoded, total_distance_m, estimated_duration_s) -> Result<Route, String>` for minimal input.
+- **GraphHopper:** `normalize_graphhopper(json)` is a stub for later.
+
+Conceptual mapping and guidelines:
 
 - **Routing engines (e.g. OSRM):** [normalization/osrm.md](normalization/osrm.md)
 - **File import (e.g. GPX):** [normalization/gpx.md](normalization/gpx.md)
@@ -40,7 +47,7 @@ In nav-e, Nav-IR is used by:
 ## Crate and stack
 
 - **Crate:** `native/nav_ir`
-- **Dependencies:** `serde`, `chrono`, `uuid`, `polyline` (encoding/decoding). No dependency on `device_comm` or `nav_core`.
+- **Dependencies:** `serde`, `serde_json`, `chrono`, `uuid`, `polyline`, `geo-types`, `gpx`. No dependency on `device_comm` or `nav_core`.
 
 ```
 nav_ir (canonical format)
