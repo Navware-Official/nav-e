@@ -71,16 +71,11 @@ pub(crate) fn route_to_dto(route: &NavIrRoute) -> RouteDto {
     let polyline_coords: Vec<[f64; 2]> = route
         .segments
         .first()
-        .and_then(|seg| {
-            polyline::decode_polyline(&seg.geometry.polyline.0, 5).ok()
-        })
+        .and_then(|seg| polyline::decode_polyline(&seg.geometry.polyline.0, 5).ok())
         .map(|line| line.coords().map(|c| [c.y, c.x]).collect())
         .unwrap_or_default();
 
-    let distance_meters = route
-        .metadata
-        .total_distance_m
-        .unwrap_or(0.0);
+    let distance_meters = route.metadata.total_distance_m.unwrap_or(0.0);
     let duration_seconds = route
         .metadata
         .estimated_duration_s
@@ -154,8 +149,14 @@ mod tests {
                     polyline: EncodedPolyline(
                         polyline::encode_coordinates(
                             vec![
-                                geo_types::Coord { x: -74.0060, y: 40.7128 },
-                                geo_types::Coord { x: -118.2437, y: 34.0522 },
+                                geo_types::Coord {
+                                    x: -74.0060,
+                                    y: 40.7128,
+                                },
+                                geo_types::Coord {
+                                    x: -118.2437,
+                                    y: 34.0522,
+                                },
                             ],
                             5,
                         )

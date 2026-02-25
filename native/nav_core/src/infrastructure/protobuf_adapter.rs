@@ -72,10 +72,7 @@ impl DeviceCommunicationPort for ProtobufDeviceCommunicator {
     }
 
     async fn send_route_blob(&self, device_id: String, route: &NavIrRoute) -> Result<()> {
-        let blob = nav_ir_to_proto::nav_ir_route_to_route_blob(
-            route,
-            Self::create_header(),
-        )?;
+        let blob = nav_ir_to_proto::nav_ir_route_to_route_blob(route, Self::create_header())?;
 
         let data = Self::serialize_protobuf(&blob)?;
 

@@ -100,4 +100,3 @@ impl BatteryInfo {
         self.percentage < 10 && !self.is_charging
     }
 }
-

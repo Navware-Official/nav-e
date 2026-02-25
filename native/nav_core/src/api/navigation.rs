@@ -111,7 +111,9 @@ pub fn get_active_session() -> Result<Option<String>> {
         let handler = GetActiveSessionHandler::new(ctx.navigation_repo.clone());
 
         let session = handler.handle(GetActiveSessionQuery {}).await?;
-        Ok(session.as_ref().map(|s| serde_json::to_string(&navigation_session_to_dto(s)).unwrap()))
+        Ok(session
+            .as_ref()
+            .map(|s| serde_json::to_string(&navigation_session_to_dto(s)).unwrap()))
     })
 }
 
