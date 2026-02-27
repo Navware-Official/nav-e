@@ -21,6 +21,7 @@ Step-by-step guides for common development tasks:
 ### 🦀 Rust Documentation (`rust/`)
 Native Rust codebase documentation:
 - **[Overview](rust/overview.md)** - Rust project structure, crates, and development workflow
+- **[Nav-IR](nav-ir/README.md)** - Navigation Intermediate Representation (canonical route format)
 - **[Device Comm](rust/device-comm.md)** - BLE communication protocol and frame handling
 - **[Protobuf](rust/protobuf.md)** - Protocol Buffer definitions and code generation
 
@@ -92,9 +93,11 @@ docs/
 │   ├── device-communication.md        # BLE device communication guide
 │   ├── flutter-rust-bridge.md         # FFI integration between Flutter/Rust
 │   └── testing.md                     # Testing strategy and guidelines
+├── nav-ir/                            # Nav-IR canonical route format (README, concepts, schema, examples)
 ├── reference/                         # (Reserved for API references)
 └── rust/
     ├── overview.md                    # Rust codebase structure
+    ├── nav-ir.md                      # Nav-IR redirect to nav-ir/
     ├── device-comm.md                 # BLE protocol and frame handling
     └── protobuf.md                    # Protocol buffer definitions
 ```

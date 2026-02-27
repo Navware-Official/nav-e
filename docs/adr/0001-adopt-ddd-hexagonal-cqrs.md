@@ -145,9 +145,9 @@ Separate read and write operations:
 
 - **Implemented in:** feature/navigation-routing branch
 - **Affected components:** 
-  - `native/nav_engine/src/domain/` - Entities, value objects, ports, events
-  - `native/nav_engine/src/application/` - Commands, queries, handlers
-  - `native/nav_engine/src/infrastructure/` - Adapters (OSRM, Nominatim, Protobuf, repositories)
+  - `native/nav_core/src/domain/` - Entities, value objects, ports, events
+  - `native/nav_core/src/application/` - Commands, queries, handlers
+  - `native/nav_core/src/infrastructure/` - Adapters (OSRM, Nominatim, Protobuf, repositories)
 - **Migration path:** Initial implementation; all new Rust navigation logic follows this architecture
 
 ## References

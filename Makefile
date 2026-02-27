@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: help codegen build-native build-android build-android-all clean-native clean-android fmt fmt-rust fmt-flutter lint-rust fix-rust cs-fix test test-rust ci migrate-new migrate-status full-rebuild android-dev rust-only playground api-playground analyze
+.PHONY: help codegen build-native build-android build-android-all clean-native clean-android fmt fmt-rust fmt-flutter lint-rust fix-rust cs-fix test test-rust ci migrate-new migrate-status full-rebuild android-dev rust-only analyze
 
 help:
 	@echo "Workflow commands:"
@@ -9,15 +9,13 @@ help:
 	@echo "  make rust-only         # Build Android libs only (after changing Rust implementation)"
 	@echo ""
 	@echo "Individual commands:"
-	@echo "  make playground        # Run API playground (nav_e_ffi) at http://127.0.0.1:3030"
-	@echo "  make api-playground   # Same as playground"
 	@echo "  make test-rust         # Run Rust API smoke tests (cargo test -p nav_e_ffi)"
 	@echo "  make codegen           # Run flutter_rust_bridge_codegen (v2.x) and generate Dart bindings into lib/bridge"
 	@echo "  make build-native      # Build native Rust crate (desktop)"
 	@echo "  make android-rust-targets # Install Rust Android targets (once, if build-android fails)"
 	@echo "  make build-android     # Build Android native libs for arm64 and copy to android/app/src/main/jniLibs"
 	@echo "  make build-android-all # Build Android native libs for common ABIs and copy to jniLibs"
-	@echo "  make clean-native      # cargo clean in native/nav_engine"
+	@echo "  make clean-native      # cargo clean in native/nav_core"
 	@echo "  make fmt               # Format both Rust and Flutter/Dart code"
 	@echo "  make fmt-rust          # Format Rust code only"
 	@echo "  make fmt-flutter       # Format Flutter/Dart code only"
@@ -62,7 +60,7 @@ build-android-all:
 
 clean-native:
 	@cd native/nav_e_ffi && cargo clean
-	@cd native/nav_engine && cargo clean
+	@cd native/nav_core && cargo clean
 
 clean-android: clean-native
 	@rm -rf android/app/src/main/jniLibs/arm64-v8a android/app/src/main/jniLibs/armeabi-v7a android/app/src/main/jniLibs/x86_64 2>/dev/null || true
@@ -73,7 +71,7 @@ fmt-rust:
 	@command -v rustfmt >/dev/null 2>&1 || { echo "rustfmt not found. Install with: rustup component add rustfmt"; exit 1; }
 	@echo "Formatting Rust code..."
 	@cd native/nav_e_ffi && cargo fmt
-	@cd native/nav_engine && cargo fmt
+	@cd native/nav_core && cargo fmt
 	@cd native/device_comm && cargo fmt
 	@echo "✓ Rust code formatted"
 
@@ -91,8 +89,8 @@ fmt: fmt-rust fmt-flutter
 ## Run linters on Rust code
 lint-rust:
 	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
-	@echo "Running clippy on nav_engine (fail on warnings)..."
-	@cd native/nav_engine && cargo clippy --all-targets --all-features -- -D warnings
+	@echo "Running clippy on nav_core (fail on warnings)..."
+	@cd native/nav_core && cargo clippy --all-targets --all-features -- -D warnings
 	@echo "Running clippy on nav_e_ffi (allow warnings; FRB cfg may be noisy)..."
 	@cd native/nav_e_ffi && cargo clippy --all-targets --all-features -- -A warnings || { echo "⚠ nav_e_ffi clippy failed; see output above"; exit 1; }
 	@echo "✓ Rust linting passed"
@@ -100,7 +98,7 @@ lint-rust:
 fix-rust:
 	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
 	@echo "Fixing Rust code with clippy suggestions..."
-	@cd native/nav_engine && cargo clippy --fix --allow-dirty --allow-staged
+	@cd native/nav_core && cargo clippy --fix --allow-dirty --allow-staged
 	@cd native/nav_e_ffi && cargo clippy --fix --allow-dirty --allow-staged
 	@cd native/device_comm && cargo clippy --fix --allow-dirty --allow-staged
 	@echo "✓ Rust code fixed where possible"
@@ -147,12 +145,6 @@ test-rust:
 	@cd native/nav_e_ffi && cargo test
 	@echo "✓ Rust API tests ran"
 
-## Run API playground (Storybook-style HTTP UI for nav_e_ffi endpoints)
-playground api-playground:
-	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
-	@echo "Starting API playground at http://127.0.0.1:3030"
-	@cd native && cargo run -p api_playground
-
 ci: codegen build-native
 
 ## Workflow: Full rebuild (codegen + Android libs) - use after changing Rust function signatures
@@ -179,7 +171,7 @@ migrate-status:
 	@echo "Migrations are applied automatically when the app starts via Database::new()"
 	@echo ""
 	@echo "Defined migrations:"
-	@ls -1 native/nav_engine/src/migrations/*.rs 2>/dev/null | grep -v "mod.rs" | sed 's/.*\///;s/\.rs//' | sed 's/^/  /' || echo "  No migrations found"
+	@ls -1 native/nav_core/src/migrations/*.rs 2>/dev/null | grep -v "mod.rs" | sed 's/.*\///;s/\.rs//' | sed 's/^/  /' || echo "  No migrations found"
 	@echo ""
 	@echo "To create a new migration: make migrate-new"
 
