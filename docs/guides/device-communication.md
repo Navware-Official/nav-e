@@ -57,7 +57,7 @@ Production and non-Android builds use **Bluetooth Low Energy (BLE)** to send dat
 ┌─────────────────────────────────────────────────┐
 │ Rust Native Layer                               │
 │ • device_comm crate - Frame chunking & CRC      │
-│ • nav_engine - Business logic & routing         │
+│ • nav_core - Business logic & routing         │
 │ • Protobuf serialization                        │
 └────────────────┬────────────────────────────────┘
                  ↓
@@ -309,6 +309,41 @@ Check logs for detailed diagnostics:
 - BLE logs: Connection issues, characteristic discovery
 
 ## Testing & Debugging
+
+### Testing Nav-IR
+
+Route data is represented as **Nav-IR** (Navigation Intermediate Representation) in the core; device send uses a single pipeline: **Nav-IR → RouteBlob** (see [Nav-IR docs](../nav-ir/README.md) and [Rust Overview](../rust/overview.md)).
+
+**1. Unit tests (Nav-IR crate)**  
+From repo root:
+```bash
+cd native && cargo test -p nav_ir
+```
+Runs the minimal Route construction + JSON roundtrip test.
+
+**2. Unit tests (nav_core – DTO and Nav-IR → RouteBlob)**  
+```bash
+cd native && cargo test -p nav_core
+```
+Covers: `route_to_dto` / `navigation_session_to_dto` (Nav-IR → DTO) and the Nav-IR → RouteBlob conversion in `nav_ir_to_proto`.
+
+**3. prepare_route_message (JSON → RouteBlob)**  
+The FFI `prepare_route_message(route_json)` parses JSON into a Nav-IR route and then converts it to a RouteBlob. To verify manually, call it from Dart (e.g. from DeviceCommDebugScreen or a test) with valid JSON:
+```json
+{
+  "waypoints": [[40.71, -74.01], [40.76, -73.99]],
+  "distance_m": 5000,
+  "duration_s": 600,
+  "polyline": "_p~iF~ps|U_ulLnnqC_mqNvxq`@"
+}
+```
+Success means Nav-IR construction and Nav-IR → RouteBlob both work.
+
+**4. Full Rust test suite**  
+```bash
+make test-rust
+```
+Runs `cargo test` in `nav_e_ffi`, which exercises the FFI surface (including route calculation and session APIs that use Nav-IR).
 
 ### Built-in Debug Screen
 

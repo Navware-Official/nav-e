@@ -2,7 +2,7 @@
 resolver = "2"
 members = [
   "device_comm",
-  "nav_engine",
+  "nav_ir",
+  "nav_core",
   "nav_e_ffi",
-  "api_playground",
 ]

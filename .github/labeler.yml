@@ -82,4 +82,4 @@
       - any-glob-to-any-file:
           - "assets/sql/**"
           - "lib/features/saved_places/**"
-          - "native/nav_engine/src/infrastructure/persistence/**"
+          - "native/nav_core/src/infrastructure/persistence/**"
