@@ -53,6 +53,11 @@ pub fn normalize_custom(
                 coordinate: Coordinate::new(*lat, *lon),
                 kind,
                 radius_m: None,
+                name: None,
+                description: None,
+                role: None,
+                category: None,
+                geometry_ref: None,
             }
         })
         .collect();
@@ -68,6 +73,7 @@ pub fn normalize_custom(
             total_distance_m,
             estimated_duration_s,
             tags: vec![],
+            source: None,
         },
         segments: vec![RouteSegment {
             id: SegmentId::new(),
@@ -84,6 +90,7 @@ pub fn normalize_custom(
                 },
             },
             waypoints: nav_waypoints,
+            legs: vec![],
             instructions: vec![],
             constraints: SegmentConstraints::default(),
         }],

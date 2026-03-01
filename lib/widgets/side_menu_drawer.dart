@@ -52,6 +52,14 @@ class SideMenuDrawerWidget extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.map),
+            title: const Text('Saved Routes'),
+            onTap: () {
+              Navigator.of(context).pop();
+              context.pushNamed('savedRoutes');
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.route),
             title: const Text('Trip history'),
             onTap: () {

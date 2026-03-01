@@ -6,13 +6,19 @@ GPX tracks and routes can be imported as fixed geometry. Map them to a Nav-IR **
 
 | GPX concept     | Nav-IR |
 |-----------------|--------|
-| `<trk>` / `<rte>` | One `Route`. One `RouteSegment` per track, or one per `<rtept>` segment, or one for the whole track (your choice). |
+| `<trk>` / `<rte>` | One `Route`. One `RouteSegment` for the whole track/route; all points → one polyline. |
 | Segment intent  | `FixedGeometry`. |
 | Geometry source | `ImportedExact`. |
 | Confidence      | `High` (file is source of truth). |
-| Trackpoints / route points | Build polyline from ordered points; encode as Nav-IR `polyline`. Optionally treat first/last as waypoints. |
+| Trackpoints / `<rtept>` | Polyline from ordered points; first → Start waypoint, last → Stop waypoint, others → Via. |
 | `<name>`, `<desc>` (trk/rte) | `metadata.name`, `metadata.description`. |
-| `<wpt>` (standalone) | Optional waypoints (e.g. Via or Poi) if you associate them with the route. |
+| `<cmt>` (trk/rte) | `metadata.source.extras.comment`. |
+| Root `creator` attribute | `metadata.source.creator`. |
+| `<type>` (trk/rte) | `metadata.source.extras.type`. |
+| Distance | Sum of haversine distances between consecutive points → `metadata.total_distance_m`. |
+| Duration | Estimated from distance (~15 km/h) → `metadata.estimated_duration_s`. |
+| `<rtept>` / track point `<name>`, `<desc>` | Segment waypoint `name`, `description`. |
+| `<wpt>` (standalone) | Not merged into route; route uses only track/route points. |
 
 ## Guidelines
 

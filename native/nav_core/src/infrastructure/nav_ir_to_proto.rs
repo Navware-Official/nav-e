@@ -23,12 +23,13 @@ pub fn nav_ir_route_to_route_blob(
         .iter()
         .flat_map(|seg| &seg.waypoints)
         .map(|wp| {
-            let name = match &wp.kind {
+            let default_name = match &wp.kind {
                 WaypointKind::Start => "Start".to_string(),
                 WaypointKind::Stop => "Stop".to_string(),
                 WaypointKind::Via => format!("Via {}", index),
                 _ => format!("Waypoint {}", index),
             };
+            let name = wp.name.as_deref().unwrap_or(&default_name).to_string();
             index += 1;
             proto::Waypoint {
                 lat: wp.coordinate.latitude,
@@ -128,6 +129,7 @@ mod tests {
                 total_distance_m: Some(1000.0),
                 estimated_duration_s: Some(120),
                 tags: vec![],
+                source: None,
             },
             segments: vec![RouteSegment {
                 id: nav_ir::SegmentId::new(),
@@ -149,14 +151,23 @@ mod tests {
                         coordinate: nav_ir::Coordinate::new(40.71, -74.01),
                         kind: WaypointKind::Start,
                         radius_m: None,
+                        name: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                     Waypoint {
                         id: WaypointId::new(),
                         coordinate: nav_ir::Coordinate::new(40.76, -73.99),
                         kind: WaypointKind::Stop,
                         radius_m: None,
+                        name: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                 ],
+                legs: vec![],
                 instructions: vec![],
                 constraints: SegmentConstraints::default(),
             }],

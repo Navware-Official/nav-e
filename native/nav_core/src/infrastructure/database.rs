@@ -337,6 +337,102 @@ impl Repository<TripEntity, i64> for TripsRepository {
     }
 }
 
+// Saved Route entity (database representation) for imported/saved routes
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
+pub struct SavedRouteEntity {
+    pub id: Option<i64>,
+    pub name: String,
+    pub route_json: String,
+    pub source: String,
+    pub created_at: i64,
+}
+
+impl DatabaseEntity for SavedRouteEntity {
+    type Id = i64;
+
+    fn table_name() -> &'static str {
+        "saved_routes"
+    }
+
+    fn from_row(row: &Row) -> rusqlite::Result<Self> {
+        Ok(SavedRouteEntity {
+            id: Some(row.get(0)?),
+            name: row.get(1)?,
+            route_json: row.get(2)?,
+            source: row.get(3)?,
+            created_at: row.get(4)?,
+        })
+    }
+
+    fn column_names() -> &'static str {
+        "id, name, route_json, source, created_at"
+    }
+
+    fn insert_columns() -> &'static str {
+        "name, route_json, source, created_at"
+    }
+
+    fn insert_placeholders() -> &'static str {
+        "?, ?, ?, ?"
+    }
+
+    fn bind_insert(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        start_idx: usize,
+    ) -> rusqlite::Result<()> {
+        stmt.raw_bind_parameter(start_idx, &self.name)?;
+        stmt.raw_bind_parameter(start_idx + 1, &self.route_json)?;
+        stmt.raw_bind_parameter(start_idx + 2, &self.source)?;
+        stmt.raw_bind_parameter(start_idx + 3, self.created_at)?;
+        Ok(())
+    }
+
+    fn bind_update(
+        &self,
+        stmt: &mut rusqlite::Statement,
+        start_idx: usize,
+    ) -> rusqlite::Result<()> {
+        self.bind_insert(stmt, start_idx)
+    }
+}
+
+// Saved Routes Repository
+#[derive(Clone)]
+pub struct SavedRoutesRepository {
+    base: BaseRepository<SavedRouteEntity, i64>,
+}
+
+impl SavedRoutesRepository {
+    pub fn new(db: Arc<Mutex<Connection>>) -> Self {
+        Self {
+            base: BaseRepository::new(db),
+        }
+    }
+}
+
+impl Repository<SavedRouteEntity, i64> for SavedRoutesRepository {
+    fn get_all(&self) -> Result<Vec<SavedRouteEntity>> {
+        self.base.get_all()
+    }
+
+    fn get_by_id(&self, id: i64) -> Result<Option<SavedRouteEntity>> {
+        self.base.get_by_id(id)
+    }
+
+    fn insert(&self, entity: SavedRouteEntity) -> Result<i64> {
+        self.base.insert(entity)
+    }
+
+    fn update(&self, id: i64, entity: SavedRouteEntity) -> Result<()> {
+        self.base.update(id, entity)
+    }
+
+    fn delete(&self, id: i64) -> Result<()> {
+        self.base.delete(id)
+    }
+}
+
 // Device Repository
 #[derive(Clone)]
 pub struct DeviceRepository {

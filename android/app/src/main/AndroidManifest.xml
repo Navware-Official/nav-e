@@ -32,6 +32,54 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Open with: content URI. Many file managers send application/octet-stream
+                 or generic XML types for .gpx. scheme+mimeType in same data element. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="content" android:mimeType="application/gpx+xml"/>
+                <data android:scheme="content" android:mimeType="text/xml"/>
+                <data android:scheme="content" android:mimeType="application/xml"/>
+                <data android:scheme="content" android:mimeType="application/octet-stream"/>
+            </intent-filter>
+            <!-- Open with: file scheme. Two filters: some file managers fail with pathPattern+mimeType. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="file" android:mimeType="*/*" android:host="*" android:pathPattern=".*\\.gpx"/>
+                <data android:scheme="file" android:mimeType="*/*" android:host="*" android:pathPattern=".*\\..*\\.gpx"/>
+                <data android:scheme="file" android:mimeType="*/*" android:host="*" android:pathPattern=".*\\..*\\..*\\.gpx"/>
+                <data android:scheme="file" android:mimeType="*/*" android:host="*" android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+                <data android:scheme="file" android:mimeType="*/*" android:host="*" android:pathPattern=".*\\..*\\..*\\..*\\..*\\.gpx"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\.gpx"/>
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\.gpx"/>
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\.gpx"/>
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\..*\\.gpx"/>
+                <data android:scheme="file" android:host="*" android:pathPattern=".*\\..*\\..*\\..*\\..*\\.gpx"/>
+            </intent-filter>
+            <!-- Share with: receive GPX when user shares to Nav-E -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="application/gpx+xml"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="text/xml"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="application/xml"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

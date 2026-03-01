@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:nav_e/app/app_router.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
+import 'package:nav_e/core/platform/route_import_channel.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/core/device_comm/ble_device_comm_transport.dart';
 import 'package:nav_e/core/device_comm/device_communication_service.dart';
@@ -10,9 +11,11 @@ import 'package:nav_e/core/device_comm/device_comm_transport.dart';
 import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
+import 'package:nav_e/core/domain/repositories/saved_routes_repository.dart';
 import 'package:nav_e/core/domain/repositories/device_repository.dart';
 import 'package:nav_e/core/domain/repositories/trip_repository.dart';
 import 'package:nav_e/features/device_management/data/device_repository_rust.dart';
+import 'package:nav_e/features/saved_routes/data/saved_routes_repository_rust.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
@@ -34,6 +37,7 @@ import 'package:nav_e/bridge/frb_generated.dart';
 import 'package:nav_e/bridge/lib.dart' as rust_api;
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:go_router/go_router.dart';
 
 class AppBlocObserver extends BlocObserver {
   @override
@@ -123,6 +127,7 @@ class _AppLoaderState extends State<_AppLoader> {
     final geocodingRepo = GeocodingRepositoryFrbTypedImpl();
     final mapSourceRepo = MapSourceRepositoryImpl();
     final savedPlacesRepo = SavedPlacesRepositoryRust();
+    final savedRoutesRepo = SavedRoutesRepositoryRust();
     final tripRepo = TripRepositoryRust();
     final deviceRepo = DeviceRepositoryRust();
     final offlineRegionsRepo = OfflineRegionsRepositoryRust();
@@ -137,6 +142,9 @@ class _AppLoaderState extends State<_AppLoader> {
         RepositoryProvider<IGeocodingRepository>.value(value: geocodingRepo),
         RepositoryProvider<ISavedPlacesRepository>.value(
           value: savedPlacesRepo,
+        ),
+        RepositoryProvider<ISavedRoutesRepository>.value(
+          value: savedRoutesRepo,
         ),
         RepositoryProvider<ITripRepository>.value(value: tripRepo),
         RepositoryProvider<IMapSourceRepository>.value(
@@ -181,18 +189,65 @@ class _AppLoaderState extends State<_AppLoader> {
               ),
             );
 
-            return MaterialApp.router(
-              debugShowCheckedModeBanner: false,
-              routerConfig: router,
-              theme: AppTheme.light(),
-              darkTheme: AppTheme.dark(),
-              themeMode: context.read<ThemeCubit>().toFlutterMode(mode),
+            return _PendingImportWrapper(
+              child: MaterialApp.router(
+                debugShowCheckedModeBanner: false,
+                routerConfig: router,
+                theme: AppTheme.light(),
+                darkTheme: AppTheme.dark(),
+                themeMode: context.read<ThemeCubit>().toFlutterMode(mode),
+              ),
             );
           },
         ),
       ),
     );
   }
+}
+
+/// Runs once after first frame: if app was opened with a shared GPX URI, imports it and navigates to saved routes.
+class _PendingImportWrapper extends StatefulWidget {
+  const _PendingImportWrapper({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_PendingImportWrapper> createState() => _PendingImportWrapperState();
+}
+
+class _PendingImportWrapperState extends State<_PendingImportWrapper> {
+  static bool _checked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_checked) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPendingImport());
+  }
+
+  Future<void> _checkPendingImport() async {
+    if (_checked) return;
+    _checked = true;
+    final uri = await getPendingImportUri();
+    if (uri == null || uri.isEmpty) return;
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null) return;
+    try {
+      final bytes = await readFileFromUri(uri);
+      final repo = ctx.read<ISavedRoutesRepository>();
+      final routeJson = await repo.parseRouteFromGpxBytes(bytes);
+      if (!ctx.mounted) return;
+      ctx.goNamed('importPreview', extra: routeJson);
+    } catch (e) {
+      if (!ctx.mounted) return;
+      ScaffoldMessenger.of(
+        ctx,
+      ).showSnackBar(SnackBar(content: Text('Import failed: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class _InitErrorScreen extends StatelessWidget {

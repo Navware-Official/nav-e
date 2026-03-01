@@ -6,7 +6,9 @@ import 'package:latlong2/latlong.dart';
 import 'package:nav_e/bridge/lib.dart' as rust;
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
+import 'package:nav_e/core/domain/entities/saved_route.dart';
 import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/features/map_layers/presentation/utils/polyline_utils.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
@@ -22,9 +24,17 @@ import 'package:nav_e/features/nav/bloc/nav_event.dart';
 import 'package:nav_e/widgets/user_location_marker.dart';
 
 class PlanRouteScreen extends StatefulWidget {
-  final GeocodingResult destination;
+  /// When non-null, the route is loaded from saved route JSON (no computation).
+  final SavedRoute? savedRoute;
 
-  const PlanRouteScreen({super.key, required this.destination});
+  /// Required when [savedRoute] is null (plan-from-destination flow).
+  final GeocodingResult? destination;
+
+  const PlanRouteScreen({super.key, this.savedRoute, this.destination})
+    : assert(
+        (savedRoute != null) != (destination != null),
+        'Provide either savedRoute or destination',
+      );
 
   @override
   State<PlanRouteScreen> createState() => _PlanRouteScreenState();
@@ -44,12 +54,87 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
   // When user picks a start on the map this holds the selected coordinate.
   LatLng? _pickedStart;
 
+  /// Set to true after saving the route in this session so the Save button shows "Already saved".
+  bool _routeSavedInSession = false;
+
+  /// Set when [savedRoute] is non-null; used as destination for top/bottom panel.
+  GeocodingResult? _syntheticDestination;
+
   Timer? _routeDebounceTimer;
 
   @override
   void initState() {
     super.initState();
-    _computeRouteDebounced();
+    final saved = widget.savedRoute;
+    if (saved != null) {
+      _loadFromSavedRoute(saved);
+    } else {
+      _computeRouteDebounced();
+    }
+  }
+
+  void _loadFromSavedRoute(SavedRoute saved) {
+    try {
+      final map = jsonDecode(saved.routeJson) as Map<String, dynamic>;
+      final metadata = map['metadata'] as Map<String, dynamic>? ?? {};
+      final segments = map['segments'] as List<dynamic>? ?? [];
+      final distanceM = (metadata['total_distance_m'] as num?)?.toDouble();
+      final durationS = (metadata['estimated_duration_s'] as num?)?.toDouble();
+      List<LatLng> pts = [];
+      if (segments.isNotEmpty) {
+        final geom =
+            (segments.first as Map<String, dynamic>)['geometry']
+                as Map<String, dynamic>?;
+        if (geom != null) {
+          final p = geom['polyline'];
+          String? encoded;
+          if (p is String) {
+            encoded = p;
+          } else if (p is List && p.isNotEmpty && p.first is String) {
+            encoded = p.first as String;
+          }
+          if (encoded != null && encoded.isNotEmpty) {
+            pts = PolylineUtils.decodePolyline(encoded);
+          }
+        }
+      }
+      if (pts.length >= 2) {
+        _routePoints = pts;
+        _distanceM = distanceM;
+        _durationS = durationS?.toDouble();
+        final last = pts.last;
+        _syntheticDestination = GeocodingResult.minimal(
+          lat: last.latitude,
+          lon: last.longitude,
+          label: saved.name,
+        );
+      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        final pts = _routePoints;
+        if (pts.length >= 2) {
+          try {
+            final turnFeed = buildTurnFeed(pts);
+            context.read<NavBloc>().add(SetTurnFeed(turnFeed));
+          } catch (_) {}
+          try {
+            final mapState = context.read<MapBloc>().state;
+            final model = PolylineModel(
+              id: 'saved-route',
+              points: pts,
+              colorArgb: mapState.defaultPolylineColorArgb ?? 0xFF375AF9,
+              strokeWidth: mapState.defaultPolylineWidth ?? 4.0,
+            );
+            context.read<MapBloc>().add(ReplacePolylines([model], fit: true));
+          } catch (_) {}
+        }
+        setState(() {});
+      });
+    } catch (_) {
+      setState(() {
+        _computeError = 'Failed to load saved route';
+      });
+    }
   }
 
   @override
@@ -70,12 +155,13 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
   }
 
   Future<void> _computeRoute() async {
+    final dest = widget.destination;
+    if (dest == null) return;
     setState(() {
       _computing = true;
       _computeError = null;
     });
     try {
-      final dest = widget.destination;
       // Determine start position based on user selection:
       // - If pick-on-map is active and the user selected a point, use that.
       // - Otherwise prefer GPS (LocationBloc), then map center, then dest.
@@ -216,7 +302,10 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final dest = widget.destination;
+    final dest = widget.destination ?? _syntheticDestination;
+    if (dest == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     // Build markers: destination marker and (when available) the user's
     // current GPS position marker. We watch `LocationBloc` so the marker
@@ -353,6 +442,8 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
             distanceM: _distanceM,
             durationS: _durationS,
             onCompute: _computeRouteDebounced,
+            isAlreadySaved: widget.savedRoute != null || _routeSavedInSession,
+            onRouteSaved: () => setState(() => _routeSavedInSession = true),
           ),
         ],
       ),
