@@ -20,22 +20,6 @@
     "attribution": "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
   },
   {
-    "id": "custom",
-    "name": "Custom Style",
-    "urlTemplate": "asset://assets/styles/custom_style.json",
-    "maxZoom": 6,
-    "attribution": "© OpenStreetMap contributors",
-    "description": "Nav-E custom vector style"
-  },
-  {
-    "id": "custom_dark",
-    "name": "Custom Style (Dark)",
-    "urlTemplate": "asset://assets/styles/custom_style_dark.json",
-    "maxZoom": 6,
-    "attribution": "© OpenStreetMap contributors",
-    "description": "Nav-E dark vector style"
-  },
-  {
     "id": "openfreemap_bright",
     "name": "OpenFreeMap Bright",
     "urlTemplate": "https://tiles.openfreemap.org/styles/bright",
