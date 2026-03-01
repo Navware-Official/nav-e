@@ -16,6 +16,7 @@ import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_states.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
+import 'package:nav_e/core/domain/repositories/saved_routes_repository.dart';
 import 'package:nav_e/features/nav/models/nav_models.dart';
 import 'package:nav_e/features/nav/ui/active_nav_screen.dart';
 import 'package:nav_e/features/nav/utils/turn_feed.dart';
@@ -135,6 +136,40 @@ Future<void> _onSendToDevice(
   context.read<DeviceCommBloc>().add(
     SendRouteToDevice(remoteId: devices.first.id, routeJson: routeJson),
   );
+}
+
+Future<void> _onSaveRoute(
+  BuildContext context, {
+  required GeocodingResult destination,
+  required List<LatLng> routePoints,
+  required double? distanceM,
+  required double? durationS,
+  void Function()? onSuccess,
+}) async {
+  final repo = context.read<ISavedRoutesRepository>();
+  final name = destination.displayName.isNotEmpty
+      ? destination.displayName
+      : destination.name;
+  final waypoints = routePoints.map((p) => (p.latitude, p.longitude)).toList();
+  try {
+    await repo.saveFromPlan(
+      name: name,
+      waypoints: waypoints,
+      polylineEncoded: null,
+      distanceM: distanceM,
+      durationS: durationS?.round(),
+    );
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Route saved')));
+    onSuccess?.call();
+  } catch (e) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Failed to save route: $e')));
+  }
 }
 
 /// Send-to-device block: when connected, sends route; when not, expands to show paired devices and Connect buttons.
@@ -413,6 +448,12 @@ class RouteBottomSheet extends StatelessWidget {
   final double? durationS;
   final ComputeRouteCallback onCompute;
 
+  /// When true, the route is from saved routes or was just saved in this session; Save button is disabled.
+  final bool isAlreadySaved;
+
+  /// Called after the route is successfully saved so the parent can update (e.g. show "Already saved").
+  final VoidCallback? onRouteSaved;
+
   const RouteBottomSheet({
     super.key,
     required this.destination,
@@ -422,6 +463,8 @@ class RouteBottomSheet extends StatelessWidget {
     required this.distanceM,
     required this.durationS,
     required this.onCompute,
+    this.isAlreadySaved = false,
+    this.onRouteSaved,
   });
 
   @override
@@ -560,6 +603,36 @@ class RouteBottomSheet extends StatelessWidget {
                             routePoints: routePoints,
                             distanceM: distanceM,
                             durationS: durationS,
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          OutlinedButton.icon(
+                            onPressed:
+                                routePoints.isEmpty ||
+                                    computing ||
+                                    isAlreadySaved
+                                ? null
+                                : () => _onSaveRoute(
+                                    context,
+                                    destination: destination,
+                                    routePoints: routePoints,
+                                    distanceM: distanceM,
+                                    durationS: durationS,
+                                    onSuccess: onRouteSaved,
+                                  ),
+                            icon: Icon(
+                              isAlreadySaved
+                                  ? Icons.check_circle
+                                  : Icons.save_alt,
+                              size: 20,
+                            ),
+                            label: Text(
+                              isAlreadySaved ? 'Already saved' : 'Save route',
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
                           ),
 
                           const SizedBox(height: 12),

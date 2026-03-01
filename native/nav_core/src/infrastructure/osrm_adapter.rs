@@ -107,6 +107,11 @@ impl RouteService for OsrmRouteService {
                     coordinate: nav_ir::Coordinate::new(pos.latitude, pos.longitude),
                     kind,
                     radius_m: None,
+                    name: None,
+                    description: None,
+                    role: None,
+                    category: None,
+                    geometry_ref: None,
                 }
             })
             .collect();
@@ -123,6 +128,7 @@ impl RouteService for OsrmRouteService {
                 total_distance_m: Some(distance_meters),
                 estimated_duration_s: Some(duration_seconds as u64),
                 tags: vec![],
+                source: None,
             },
             segments: vec![RouteSegment {
                 id: SegmentId::new(),
@@ -139,6 +145,7 @@ impl RouteService for OsrmRouteService {
                     },
                 },
                 waypoints: nav_ir_waypoints,
+                legs: vec![],
                 instructions: vec![],
                 constraints: SegmentConstraints::default(),
             }],

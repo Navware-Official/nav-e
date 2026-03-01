@@ -36,8 +36,25 @@ final List<int> _colorPresets = [
 /// Preset polyline widths.
 final List<double> _polylineWidthPresets = [2.0, 4.0, 6.0, 8.0];
 
-class MapControlBottomSheet extends StatelessWidget {
+class MapControlBottomSheet extends StatefulWidget {
   const MapControlBottomSheet({super.key});
+
+  @override
+  State<MapControlBottomSheet> createState() => _MapControlBottomSheetState();
+}
+
+class _MapControlBottomSheetState extends State<MapControlBottomSheet> {
+  bool _contentReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Defer building the grid (and image loading) until after the sheet is shown
+    // so the sheet opens immediately instead of freezing.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _contentReady = true);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,33 +64,54 @@ class MapControlBottomSheet extends StatelessWidget {
         minimum: const EdgeInsets.only(bottom: 12),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _Handle(),
-                SizedBox(height: 12),
-                _SectionCard(
-                  title: 'Map source',
-                  child: MapSourcePreviewGrid(
-                    closeOnSelect: true,
-                    previewZoom: 5,
-                    maxColumns: 3,
+          child: _contentReady
+              ? SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _Handle(),
+                      SizedBox(height: 12),
+                      _SectionCard(
+                        title: 'Map source',
+                        child: MapSourcePreviewGrid(
+                          closeOnSelect: true,
+                          previewZoom: 5,
+                          maxColumns: 3,
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      _SectionCard(
+                        title: 'Map style on device',
+                        child: _MapStyleOnDeviceDropdown(),
+                      ),
+                      SizedBox(height: 16),
+                      _SectionCard(
+                        title: 'Data layers',
+                        child: _DataLayersGrid(),
+                      ),
+                      SizedBox(height: 16),
+                      _SectionCard(title: 'Style', child: _StyleSection()),
+                    ],
                   ),
+                )
+              : Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _Handle(),
+                    const SizedBox(height: 24),
+                    const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 16),
-                _SectionCard(
-                  title: 'Map style on device',
-                  child: _MapStyleOnDeviceDropdown(),
-                ),
-                SizedBox(height: 16),
-                _SectionCard(title: 'Data layers', child: _DataLayersGrid()),
-                SizedBox(height: 16),
-                _SectionCard(title: 'Style', child: _StyleSection()),
-              ],
-            ),
-          ),
         ),
       ),
     );

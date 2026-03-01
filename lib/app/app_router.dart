@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
+import 'package:nav_e/core/domain/repositories/saved_routes_repository.dart';
 import 'package:nav_e/core/domain/repositories/trip_repository.dart';
 import 'package:nav_e/features/device_management/add_device_screen.dart';
 import 'package:nav_e/features/device_management/device_management_screen.dart';
@@ -12,9 +13,13 @@ import 'package:nav_e/features/device_comm/presentation/screens/device_comm_debu
 
 import 'package:nav_e/features/home/home_screen.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
+import 'package:nav_e/core/domain/entities/saved_route.dart';
 import 'package:nav_e/features/plan_route/plan_route_screen.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/saved_places_screen.dart';
+import 'package:nav_e/features/saved_routes/cubit/saved_routes_cubit.dart';
+import 'package:nav_e/features/saved_routes/import_preview_screen.dart';
+import 'package:nav_e/features/saved_routes/saved_routes_screen.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/features/search/search_screen.dart';
 import 'package:nav_e/features/settings/settings_screen.dart';
@@ -73,10 +78,33 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         name: 'savedPlaces',
         parentNavigatorKey: rootNavigatorKey,
         builder: (ctx, _) => BlocProvider(
-          create: (c) =>
-              SavedPlacesCubit(c.read<ISavedPlacesRepository>())..loadPlaces(),
+          create: (c) => SavedPlacesCubit(c.read<ISavedPlacesRepository>()),
           child: const SavedPlacesScreen(),
         ),
+      ),
+      GoRoute(
+        path: '/saved-routes',
+        name: 'savedRoutes',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (ctx, _) => BlocProvider(
+          create: (c) => SavedRoutesCubit(c.read<ISavedRoutesRepository>()),
+          child: const SavedRoutesScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/saved-routes/import-preview',
+        name: 'importPreview',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (ctx, state) {
+          final routeJson = state.extra as String?;
+          final source = state.uri.queryParameters['from'] ?? 'gpx';
+          return ImportPreviewScreen(
+            routeJson: routeJson != null && routeJson.isNotEmpty
+                ? routeJson
+                : null,
+            source: source,
+          );
+        },
       ),
       GoRoute(
         path: '/devices',
@@ -116,6 +144,16 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
           final g = GeocodingResult.fromPathParams(params);
           if (g == null) return const HomeScreen();
           return PlanRouteScreen(destination: g);
+        },
+      ),
+      GoRoute(
+        path: '/plan-route/saved',
+        name: 'savedRoutePreview',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (ctx, state) {
+          final savedRoute = state.extra as SavedRoute?;
+          if (savedRoute == null) return const HomeScreen();
+          return PlanRouteScreen(savedRoute: savedRoute);
         },
       ),
       GoRoute(

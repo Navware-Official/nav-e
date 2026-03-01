@@ -126,6 +126,47 @@ PlatformInt64 saveTrip({
 void deleteTrip({required PlatformInt64 id}) =>
     RustBridge.instance.api.crateDeleteTrip(id: id);
 
+/// Parse GPX bytes into Nav-IR route JSON without saving. Use for preview-before-save flow.
+String parseRouteFromGpx({required List<int> bytes}) =>
+    RustBridge.instance.api.crateParseRouteFromGpx(bytes: bytes);
+
+/// Save a pre-parsed route (Nav-IR JSON) to the database. Returns the saved entity as JSON.
+String saveRouteFromJson({required String routeJson, required String source}) =>
+    RustBridge.instance.api.crateSaveRouteFromJson(
+      routeJson: routeJson,
+      source: source,
+    );
+
+/// Import a route from GPX bytes, persist it, and return the saved route as JSON.
+String importRouteFromGpx({required List<int> bytes}) =>
+    RustBridge.instance.api.crateImportRouteFromGpx(bytes: bytes);
+
+/// Save the current plan-route (waypoints + polyline) as a saved route. Returns the new row id.
+PlatformInt64 saveRouteFromPlan({
+  required String name,
+  required List<(double, double)> waypoints,
+  String? polylineEncoded,
+  double? distanceM,
+  BigInt? durationS,
+}) => RustBridge.instance.api.crateSaveRouteFromPlan(
+  name: name,
+  waypoints: waypoints,
+  polylineEncoded: polylineEncoded,
+  distanceM: distanceM,
+  durationS: durationS,
+);
+
+/// Get all saved routes as JSON array (newest first).
+String getAllSavedRoutes() => RustBridge.instance.api.crateGetAllSavedRoutes();
+
+/// Get a saved route by ID as JSON object (or null if not found).
+String getSavedRouteById({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateGetSavedRouteById(id: id);
+
+/// Delete a saved route by ID.
+void deleteSavedRoute({required PlatformInt64 id}) =>
+    RustBridge.instance.api.crateDeleteSavedRoute(id: id);
+
 /// Send route data to a connected device via Bluetooth
 ///
 /// # Arguments
