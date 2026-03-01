@@ -28,6 +28,7 @@ mod tests {
                 total_distance_m: Some(5000.0),
                 estimated_duration_s: Some(600),
                 tags: vec![],
+                source: None,
             },
             segments: vec![RouteSegment {
                 id: SegmentId::new(),
@@ -49,14 +50,25 @@ mod tests {
                         coordinate: Coordinate::new(40.7128, -74.0060),
                         kind: WaypointKind::Start,
                         radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                     Waypoint {
                         id: WaypointId::new(),
                         coordinate: Coordinate::new(40.7580, -73.9855),
                         kind: WaypointKind::Stop,
                         radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                 ],
+                legs: vec![],
                 instructions: vec![],
                 constraints: SegmentConstraints::default(),
             }],
@@ -129,6 +141,7 @@ mod tests {
                 total_distance_m: None,
                 estimated_duration_s: None,
                 tags: vec![],
+                source: None,
             },
             segments: vec![],
             policies: RoutePolicies::default(),
@@ -152,6 +165,7 @@ mod tests {
                 total_distance_m: None,
                 estimated_duration_s: None,
                 tags: vec![],
+                source: None,
             },
             segments: vec![RouteSegment {
                 id: SegmentId::new(),
@@ -172,7 +186,13 @@ mod tests {
                     coordinate: Coordinate::new(0.5, 0.5),
                     kind: WaypointKind::Via,
                     radius_m: None,
+                    name: None,
+                    description: None,
+                    role: None,
+                    category: None,
+                    geometry_ref: None,
                 }],
+                legs: vec![],
                 instructions: vec![],
                 constraints: SegmentConstraints::default(),
             }],
@@ -197,6 +217,7 @@ mod tests {
                 total_distance_m: None,
                 estimated_duration_s: None,
                 tags: vec![],
+                source: None,
             },
             segments: vec![RouteSegment {
                 id: SegmentId::new(),
@@ -218,14 +239,25 @@ mod tests {
                         coordinate: Coordinate::new(0.5, 0.5),
                         kind: WaypointKind::Start,
                         radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                     Waypoint {
                         id: WaypointId::new(),
                         coordinate: Coordinate::new(1.5, 1.5),
                         kind: WaypointKind::Stop,
                         radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                 ],
+                legs: vec![],
                 instructions: vec![],
                 constraints: SegmentConstraints::default(),
             }],
@@ -250,6 +282,7 @@ mod tests {
                 total_distance_m: None,
                 estimated_duration_s: None,
                 tags: vec![],
+                source: None,
             },
             segments: vec![RouteSegment {
                 id: SegmentId::new(),
@@ -271,14 +304,25 @@ mod tests {
                         coordinate: Coordinate::new(0.0, 0.0),
                         kind: WaypointKind::Start,
                         radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                     Waypoint {
                         id: WaypointId::new(),
                         coordinate: Coordinate::new(1.0, 1.0),
                         kind: WaypointKind::Stop,
                         radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                 ],
+                legs: vec![],
                 instructions: vec![],
                 constraints: SegmentConstraints::default(),
             }],
@@ -288,6 +332,157 @@ mod tests {
         assert!(matches!(
             route.validate(),
             Err(ValidationError::UnsupportedSchemaVersion(99))
+        ));
+    }
+
+    #[test]
+    fn validate_accepts_instruction_with_geometry_ref_only() {
+        let now = Utc::now();
+        let route = Route {
+            schema_version: Route::CURRENT_SCHEMA_VERSION,
+            id: RouteId::new(),
+            metadata: RouteMetadata {
+                name: String::new(),
+                description: None,
+                created_at: now,
+                updated_at: now,
+                total_distance_m: None,
+                estimated_duration_s: None,
+                tags: vec![],
+                source: None,
+            },
+            segments: vec![RouteSegment {
+                id: SegmentId::new(),
+                intent: SegmentIntent::Recalculatable,
+                geometry: RouteGeometry {
+                    polyline: EncodedPolyline("_p~iF~ps|U".into()),
+                    source: GeometrySource::SnappedToGraph,
+                    confidence: GeometryConfidence::High,
+                    bounding_box: BoundingBox {
+                        min_lat: 40.0,
+                        min_lon: -74.0,
+                        max_lat: 41.0,
+                        max_lon: -73.0,
+                    },
+                },
+                waypoints: vec![
+                    Waypoint {
+                        id: WaypointId::new(),
+                        coordinate: Coordinate::new(40.71, -74.01),
+                        kind: WaypointKind::Start,
+                        radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
+                    },
+                    Waypoint {
+                        id: WaypointId::new(),
+                        coordinate: Coordinate::new(40.76, -73.99),
+                        kind: WaypointKind::Stop,
+                        radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
+                    },
+                ],
+                legs: vec![],
+                instructions: vec![Instruction {
+                    id: InstructionId::new(),
+                    coordinate: None,
+                    geometry_ref: Some(GeometryRef {
+                        kind: GeometryRefKind::VertexIndex,
+                        vertex_index: Some(0),
+                        seg_start_index: None,
+                        fraction: None,
+                    }),
+                    kind: InstructionKind::Depart,
+                    distance_to_next_m: None,
+                    street_name: None,
+                }],
+                constraints: SegmentConstraints::default(),
+            }],
+            policies: RoutePolicies::default(),
+        };
+        assert!(route.validate().is_ok());
+    }
+
+    #[test]
+    fn validate_rejects_instruction_without_coordinate_and_geometry_ref() {
+        let now = Utc::now();
+        let route = Route {
+            schema_version: Route::CURRENT_SCHEMA_VERSION,
+            id: RouteId::new(),
+            metadata: RouteMetadata {
+                name: String::new(),
+                description: None,
+                created_at: now,
+                updated_at: now,
+                total_distance_m: None,
+                estimated_duration_s: None,
+                tags: vec![],
+                source: None,
+            },
+            segments: vec![RouteSegment {
+                id: SegmentId::new(),
+                intent: SegmentIntent::Recalculatable,
+                geometry: RouteGeometry {
+                    polyline: EncodedPolyline("_p~iF~ps|U".into()),
+                    source: GeometrySource::SnappedToGraph,
+                    confidence: GeometryConfidence::High,
+                    bounding_box: BoundingBox {
+                        min_lat: 40.0,
+                        min_lon: -74.0,
+                        max_lat: 41.0,
+                        max_lon: -73.0,
+                    },
+                },
+                waypoints: vec![
+                    Waypoint {
+                        id: WaypointId::new(),
+                        coordinate: Coordinate::new(40.71, -74.01),
+                        kind: WaypointKind::Start,
+                        radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
+                    },
+                    Waypoint {
+                        id: WaypointId::new(),
+                        coordinate: Coordinate::new(40.76, -73.99),
+                        kind: WaypointKind::Stop,
+                        radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
+                    },
+                ],
+                legs: vec![],
+                instructions: vec![Instruction {
+                    id: InstructionId::new(),
+                    coordinate: None,
+                    geometry_ref: None,
+                    kind: InstructionKind::Arrive,
+                    distance_to_next_m: None,
+                    street_name: None,
+                }],
+                constraints: SegmentConstraints::default(),
+            }],
+            policies: RoutePolicies::default(),
+        };
+        assert!(matches!(
+            route.validate(),
+            Err(ValidationError::InstructionMissingCoordinateAndGeometryRef {
+                segment_index: 0,
+                instruction_index: 0
+            })
         ));
     }
 }

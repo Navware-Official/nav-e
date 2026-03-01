@@ -160,6 +160,11 @@ pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
                 coordinate: nav_ir::Coordinate::new(lat, lon),
                 kind,
                 radius_m: None,
+                name: None,
+                description: None,
+                role: None,
+                category: None,
+                geometry_ref: None,
             })
         })
         .collect();
@@ -225,6 +230,7 @@ pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
             total_distance_m: Some(distance_m),
             estimated_duration_s: Some(duration_s),
             tags: vec![],
+            source: None,
         },
         segments: vec![RouteSegment {
             id: SegmentId::new(),
@@ -241,6 +247,7 @@ pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
                 },
             },
             waypoints: nav_ir_waypoints,
+            legs: vec![],
             instructions: vec![],
             constraints: SegmentConstraints::default(),
         }],

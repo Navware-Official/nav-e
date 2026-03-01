@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/data/map_adapter.dart';
 import 'package:nav_e/core/domain/entities/map_source.dart';
@@ -118,8 +119,12 @@ class MapLibreMapAdapter implements MapAdapter {
         _currentCenter = center;
         _currentZoom = zoom;
         if (_controller != null) {
-          _currentTilt = _controller!.tilt;
-          _currentBearing = _controller!.bearing;
+          try {
+            _currentTilt = _controller!.tilt;
+            _currentBearing = _controller!.bearing;
+          } catch (_) {
+            _controller = null;
+          }
         }
         onPositionChanged(center, zoom);
       },
@@ -136,6 +141,14 @@ class MapLibreMapAdapter implements MapAdapter {
     );
   }
 
+  /// Swallow platform errors when the map has been disposed (e.g. after navigation).
+  void _clearControllerIfGone(Object e) {
+    if (e is PlatformException ||
+        e.toString().contains('MissingPluginException')) {
+      _controller = null;
+    }
+  }
+
   @override
   void moveCamera(LatLng center, double zoom, {double? tilt, double? bearing}) {
     debugPrint('[MapLibreAdapter] moveCamera to $center $zoom');
@@ -148,7 +161,11 @@ class MapLibreMapAdapter implements MapAdapter {
       _currentBearing = bearing;
     }
     if (_controller != null) {
-      _controller!.moveCamera(center, zoom, tilt: tilt, bearing: bearing);
+      try {
+        _controller!.moveCamera(center, zoom, tilt: tilt, bearing: bearing);
+      } catch (e) {
+        _clearControllerIfGone(e);
+      }
     }
   }
 
@@ -156,7 +173,11 @@ class MapLibreMapAdapter implements MapAdapter {
   void resetBearing() {
     debugPrint('[MapLibreAdapter] resetBearing');
     if (_controller != null) {
-      _controller!.resetBearing();
+      try {
+        _controller!.resetBearing();
+      } catch (e) {
+        _clearControllerIfGone(e);
+      }
     }
   }
 
@@ -167,7 +188,11 @@ class MapLibreMapAdapter implements MapAdapter {
     double? maxZoom,
   }) {
     if (coordinates.isEmpty || _controller == null) return;
-    _controller!.fitBounds(coordinates, padding: padding);
+    try {
+      _controller!.fitBounds(coordinates, padding: padding);
+    } catch (e) {
+      _clearControllerIfGone(e);
+    }
   }
 
   @override

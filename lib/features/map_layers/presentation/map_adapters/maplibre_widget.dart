@@ -525,8 +525,10 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
 
   @override
   void dispose() {
-    _controller?.dispose();
-    _nativeController?.dispose();
+    // Do not dispose _nativeController: the child ml.MapLibreMap owns it and disposes it.
+    // Null out refs so we do not use them after dispose.
+    _controller = null;
+    _nativeController = null;
     super.dispose();
   }
 }
@@ -777,9 +779,9 @@ class MapLibreMapController {
     }
   }
 
-  void dispose() {
-    _native.dispose();
-  }
+  /// No-op: the native controller is owned by ml.MapLibreMap and disposed by it.
+  /// Call this to clear intent; do not call _native.dispose() to avoid double-dispose.
+  void dispose() {}
 }
 
 /// Represents a polyline on the MapLibre map

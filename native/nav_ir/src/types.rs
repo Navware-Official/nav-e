@@ -1,5 +1,7 @@
 //! Nav-IR type definitions. See docs/nav-ir/README.md and docs/nav-ir/schema.md for the full specification.
 
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -66,6 +68,21 @@ impl Default for InstructionId {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct LegId(pub Uuid);
+
+impl LegId {
+    pub fn new() -> Self {
+        LegId(Uuid::new_v4())
+    }
+}
+
+impl Default for LegId {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 // --- Coordinate ---
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
@@ -85,6 +102,20 @@ impl Coordinate {
 
 // --- RouteMetadata ---
 
+/// Provenance for imported routes (v2).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ImportSource {
+    /// e.g. "gpx", "osrm", "valhalla"
+    pub format: String,
+    #[serde(default)]
+    pub creator: Option<String>,
+    pub imported_at: DateTime<Utc>,
+    #[serde(default)]
+    pub original_name: Option<String>,
+    #[serde(default)]
+    pub extras: HashMap<String, serde_json::Value>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RouteMetadata {
     pub name: String,
@@ -94,6 +125,8 @@ pub struct RouteMetadata {
     pub total_distance_m: Option<f64>,
     pub estimated_duration_s: Option<u64>,
     pub tags: Vec<String>,
+    #[serde(default)]
+    pub source: Option<ImportSource>,
 }
 
 // --- SegmentIntent ---
@@ -141,6 +174,25 @@ pub struct RouteGeometry {
     pub bounding_box: BoundingBox,
 }
 
+// --- GeometryRef (v2) ---
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum GeometryRefKind {
+    VertexIndex,
+    SegmentFraction,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeometryRef {
+    pub kind: GeometryRefKind,
+    #[serde(default)]
+    pub vertex_index: Option<u32>,
+    #[serde(default)]
+    pub seg_start_index: Option<u32>,
+    #[serde(default)]
+    pub fraction: Option<f32>,
+}
+
 // --- Waypoint ---
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -154,12 +206,49 @@ pub enum WaypointKind {
     Break,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum WaypointRole {
+    Announce,
+    Shape,
+    Poi,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum WaypointCategory {
+    Start,
+    End,
+    Via,
+    Fuel,
+    Break,
+    Info,
+    Custom,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Waypoint {
     pub id: WaypointId,
     pub coordinate: Coordinate,
     pub kind: WaypointKind,
     pub radius_m: Option<f64>,
+    #[serde(default)]
+    pub name: Option<String>,
+    /// Optional description (e.g. from GPX &lt;desc&gt; on rtept).
+    #[serde(default)]
+    pub description: Option<String>,
+    #[serde(default)]
+    pub role: Option<WaypointRole>,
+    #[serde(default)]
+    pub category: Option<WaypointCategory>,
+    #[serde(default)]
+    pub geometry_ref: Option<GeometryRef>,
+}
+
+impl Waypoint {
+    /// Builder-style setter for optional name.
+    pub fn with_name(mut self, name: impl Into<String>) -> Self {
+        self.name = Some(name.into());
+        self
+    }
 }
 
 // --- Instruction ---
@@ -178,7 +267,10 @@ pub enum InstructionKind {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Instruction {
     pub id: InstructionId,
-    pub coordinate: Coordinate,
+    #[serde(default)]
+    pub coordinate: Option<Coordinate>,
+    #[serde(default)]
+    pub geometry_ref: Option<GeometryRef>,
     pub kind: InstructionKind,
     pub distance_to_next_m: Option<f64>,
     pub street_name: Option<String>,
@@ -240,6 +332,24 @@ impl Default for RoutePolicies {
     }
 }
 
+// --- Leg (v2) ---
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub struct VertexRange {
+    pub start: u32,
+    pub end: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Leg {
+    pub id: LegId,
+    pub from: WaypointId,
+    pub to: WaypointId,
+    pub vertex_range: VertexRange,
+    pub distance_m: Option<f64>,
+    pub duration_s: Option<u64>,
+}
+
 // --- RouteSegment ---
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -248,6 +358,8 @@ pub struct RouteSegment {
     pub intent: SegmentIntent,
     pub geometry: RouteGeometry,
     pub waypoints: Vec<Waypoint>,
+    #[serde(default)]
+    pub legs: Vec<Leg>,
     pub instructions: Vec<Instruction>,
     pub constraints: SegmentConstraints,
 }
@@ -271,6 +383,23 @@ pub enum ValidationError {
     SegmentMissingStartOrStop { segment_index: usize },
     InvalidBoundingBox { segment_index: usize },
     CoordinateOutOfRange { lat: f64, lon: f64 },
+    InstructionMissingCoordinateAndGeometryRef {
+        segment_index: usize,
+        instruction_index: usize,
+    },
+    GeometryRefInvalid {
+        segment_index: usize,
+        message: String,
+    },
+    LegVertexRangeInvalid {
+        segment_index: usize,
+        leg_index: usize,
+    },
+    LegWaypointNotInSegment {
+        segment_index: usize,
+        leg_index: usize,
+    },
+    LegsNotMonotonic { segment_index: usize },
 }
 
 impl std::fmt::Display for ValidationError {
@@ -295,6 +424,39 @@ impl std::fmt::Display for ValidationError {
                 "coordinate out of range: lat={} (must be -90..=90), lon={} (must be -180..=180)",
                 lat, lon
             ),
+            ValidationError::InstructionMissingCoordinateAndGeometryRef {
+                segment_index,
+                instruction_index,
+            } => write!(
+                f,
+                "segment {} instruction {} must have coordinate or geometry_ref",
+                segment_index, instruction_index
+            ),
+            ValidationError::GeometryRefInvalid {
+                segment_index,
+                message,
+            } => write!(f, "segment {} geometry_ref invalid: {}", segment_index, message),
+            ValidationError::LegVertexRangeInvalid {
+                segment_index,
+                leg_index,
+            } => write!(
+                f,
+                "segment {} leg {} vertex_range must have start <= end",
+                segment_index, leg_index
+            ),
+            ValidationError::LegWaypointNotInSegment {
+                segment_index,
+                leg_index,
+            } => write!(
+                f,
+                "segment {} leg {} from/to waypoint IDs must exist in segment waypoints",
+                segment_index, leg_index
+            ),
+            ValidationError::LegsNotMonotonic { segment_index } => write!(
+                f,
+                "segment {} legs must be monotonic (ordered vertex ranges)",
+                segment_index
+            ),
         }
     }
 }
@@ -308,8 +470,40 @@ fn validate_coordinate(lat: f64, lon: f64) -> Result<(), ValidationError> {
     Ok(())
 }
 
+fn validate_geometry_ref(
+    segment_index: usize,
+    r: &GeometryRef,
+) -> Result<(), ValidationError> {
+    match r.kind {
+        GeometryRefKind::VertexIndex => {
+            if r.vertex_index.is_none() {
+                return Err(ValidationError::GeometryRefInvalid {
+                    segment_index,
+                    message: "VertexIndex requires vertex_index".to_string(),
+                });
+            }
+        }
+        GeometryRefKind::SegmentFraction => {
+            if r.seg_start_index.is_none() || r.fraction.is_none() {
+                return Err(ValidationError::GeometryRefInvalid {
+                    segment_index,
+                    message: "SegmentFraction requires seg_start_index and fraction".to_string(),
+                });
+            }
+            let f = r.fraction.unwrap();
+            if !(0.0..=1.0).contains(&f) {
+                return Err(ValidationError::GeometryRefInvalid {
+                    segment_index,
+                    message: format!("fraction must be in [0,1], got {}", f),
+                });
+            }
+        }
+    }
+    Ok(())
+}
+
 impl Route {
-    pub const CURRENT_SCHEMA_VERSION: u16 = 1;
+    pub const CURRENT_SCHEMA_VERSION: u16 = 2;
 
     /// Validates the route against Nav-IR invariants. Returns `Ok(())` if valid.
     pub fn validate(&self) -> Result<(), ValidationError> {
@@ -340,9 +534,50 @@ impl Route {
             }
             for wp in &seg.waypoints {
                 validate_coordinate(wp.coordinate.latitude, wp.coordinate.longitude)?;
+                if let Some(ref gr) = wp.geometry_ref {
+                    validate_geometry_ref(idx, gr)?;
+                }
             }
-            for inst in &seg.instructions {
-                validate_coordinate(inst.coordinate.latitude, inst.coordinate.longitude)?;
+            for (inst_idx, inst) in seg.instructions.iter().enumerate() {
+                if inst.coordinate.is_none() && inst.geometry_ref.is_none() {
+                    return Err(ValidationError::InstructionMissingCoordinateAndGeometryRef {
+                        segment_index: idx,
+                        instruction_index: inst_idx,
+                    });
+                }
+                if let Some(ref coord) = inst.coordinate {
+                    validate_coordinate(coord.latitude, coord.longitude)?;
+                }
+                if let Some(ref gr) = inst.geometry_ref {
+                    validate_geometry_ref(idx, gr)?;
+                }
+            }
+            let wp_ids: std::collections::HashSet<_> =
+                seg.waypoints.iter().map(|w| w.id).collect();
+            for (leg_idx, leg) in seg.legs.iter().enumerate() {
+                if leg.vertex_range.start > leg.vertex_range.end {
+                    return Err(ValidationError::LegVertexRangeInvalid {
+                        segment_index: idx,
+                        leg_index: leg_idx,
+                    });
+                }
+                if !wp_ids.contains(&leg.from) || !wp_ids.contains(&leg.to) {
+                    return Err(ValidationError::LegWaypointNotInSegment {
+                        segment_index: idx,
+                        leg_index: leg_idx,
+                    });
+                }
+            }
+            let mut prev_end: Option<u32> = None;
+            for leg in &seg.legs {
+                if let Some(pe) = prev_end {
+                    if leg.vertex_range.start < pe {
+                        return Err(ValidationError::LegsNotMonotonic {
+                            segment_index: idx,
+                        });
+                    }
+                }
+                prev_end = Some(leg.vertex_range.end);
             }
         }
         Ok(())

@@ -70,12 +70,22 @@ impl TryFrom<OsrmResponse> for Route {
                     coordinate: Coordinate::new(first.y, first.x),
                     kind: WaypointKind::Start,
                     radius_m: None,
+                    name: None,
+                    description: None,
+                    role: None,
+                    category: None,
+                    geometry_ref: None,
                 },
                 Waypoint {
                     id: WaypointId::new(),
                     coordinate: Coordinate::new(last.y, last.x),
                     kind: WaypointKind::Stop,
                     radius_m: None,
+                    name: None,
+                    description: None,
+                    role: None,
+                    category: None,
+                    geometry_ref: None,
                 },
             ]
         } else {
@@ -96,6 +106,11 @@ impl TryFrom<OsrmResponse> for Route {
                         coordinate: Coordinate::new(lat, lon),
                         kind,
                         radius_m: None,
+                        name: w.name.clone(),
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     }
                 })
                 .collect()
@@ -115,6 +130,7 @@ impl TryFrom<OsrmResponse> for Route {
                 total_distance_m: Some(route_data.distance),
                 estimated_duration_s: Some(route_data.duration as u64),
                 tags: vec![],
+                source: None,
             },
             segments: vec![RouteSegment {
                 id: SegmentId::new(),
@@ -131,6 +147,7 @@ impl TryFrom<OsrmResponse> for Route {
                     },
                 },
                 waypoints,
+                legs: vec![],
                 instructions: vec![],
                 constraints: SegmentConstraints::default(),
             }],

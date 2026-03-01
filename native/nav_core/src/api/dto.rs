@@ -1,4 +1,4 @@
-use crate::domain::{entities::*, value_objects::Position};
+use crate::domain::entities::*;
 /// Data Transfer Objects (DTOs) for Flutter <-> Rust boundary
 ///
 /// These DTOs define the serialization format for complex types
@@ -141,6 +141,7 @@ mod tests {
                 total_distance_m: Some(4489000.0),
                 estimated_duration_s: Some(144000),
                 tags: vec![],
+                source: None,
             },
             segments: vec![RouteSegment {
                 id: nav_ir::SegmentId::new(),
@@ -177,14 +178,25 @@ mod tests {
                         coordinate: nav_ir::Coordinate::new(40.7128, -74.0060),
                         kind: WaypointKind::Start,
                         radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                     NavIrWaypoint {
                         id: WaypointId::new(),
                         coordinate: nav_ir::Coordinate::new(34.0522, -118.2437),
                         kind: WaypointKind::Stop,
                         radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
                     },
                 ],
+                legs: vec![],
                 instructions: vec![],
                 constraints: nav_ir::SegmentConstraints::default(),
             }],
@@ -211,6 +223,7 @@ mod tests {
                 total_distance_m: Some(1000.0),
                 estimated_duration_s: Some(60),
                 tags: vec![],
+                source: None,
             },
             segments: vec![],
             policies: nav_ir::RoutePolicies::default(),

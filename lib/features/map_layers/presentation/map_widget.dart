@@ -74,7 +74,11 @@ class _MapWidgetState extends State<MapWidget> {
             if (pos == null) return;
             final mapState = mapBloc.state;
             if (!mapState.followUser) return;
-            mapBloc.add(MapMoved(pos, mapState.zoom, force: true));
+            const minMoveMeters = 2.5;
+            final distance = const Distance().distance(mapState.center, pos);
+            if (distance > minMoveMeters) {
+              mapBloc.add(MapMoved(pos, mapState.zoom, force: true));
+            }
           },
         ),
       ],
@@ -231,7 +235,14 @@ class _MapWidgetState extends State<MapWidget> {
           }
         },
         onPositionChanged: (center, zoom) {
-          if (center != state.center || zoom != state.zoom) {
+          const posEpsilon = 1e-5;
+          const zoomEpsilon = 0.001;
+          final c = state.center;
+          final posChanged =
+              (center.latitude - c.latitude).abs() > posEpsilon ||
+              (center.longitude - c.longitude).abs() > posEpsilon;
+          final zoomChanged = (zoom - state.zoom).abs() > zoomEpsilon;
+          if (posChanged || zoomChanged) {
             mapBloc.add(MapMoved(center, zoom));
           }
         },
