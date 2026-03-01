@@ -66,7 +66,8 @@ class MapStylingSection extends StatelessWidget {
             padding: SettingsPanelStyle.panelContentPadding,
             child: BlocBuilder<MapBloc, MapState>(
               buildWhen: (prev, curr) =>
-                  prev.defaultPolylineColorArgb != curr.defaultPolylineColorArgb ||
+                  prev.defaultPolylineColorArgb !=
+                      curr.defaultPolylineColorArgb ||
                   prev.defaultPolylineWidth != curr.defaultPolylineWidth ||
                   prev.markerFillColorArgb != curr.markerFillColorArgb ||
                   prev.markerStrokeColorArgb != curr.markerStrokeColorArgb,
@@ -98,10 +99,8 @@ class MapStylingSection extends StatelessWidget {
                             selectedColor: Color(argb),
                             backgroundColor: Color(argb).withValues(alpha: 0.3),
                             onSelected: (_) => context.read<MapBloc>().add(
-                                  SetMapStyleConfig(
-                                    defaultPolylineColorArgb: argb,
-                                  ),
-                                ),
+                              SetMapStyleConfig(defaultPolylineColorArgb: argb),
+                            ),
                           );
                         }).toList(),
                       ),
@@ -118,8 +117,8 @@ class MapStylingSection extends StatelessWidget {
                             selected: selected,
                             label: Text('${w.toInt()}'),
                             onSelected: (_) => context.read<MapBloc>().add(
-                                  SetMapStyleConfig(defaultPolylineWidth: w),
-                                ),
+                              SetMapStyleConfig(defaultPolylineWidth: w),
+                            ),
                           );
                         }).toList(),
                       ),
@@ -139,11 +138,11 @@ class MapStylingSection extends StatelessWidget {
                             selectedColor: Color(argb),
                             backgroundColor: Color(argb).withValues(alpha: 0.3),
                             onSelected: (_) => context.read<MapBloc>().add(
-                                  SetMapStyleConfig(
-                                    markerFillColorArgb: argb,
-                                    markerStrokeColorArgb: stroke,
-                                  ),
-                                ),
+                              SetMapStyleConfig(
+                                markerFillColorArgb: argb,
+                                markerStrokeColorArgb: stroke,
+                              ),
+                            ),
                           );
                         }).toList(),
                       ),
