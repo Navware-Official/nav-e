@@ -170,6 +170,58 @@ pub fn delete_trip(id: i64) -> Result<()> {
 }
 
 // ============================================================================
+// Saved Routes API
+// ============================================================================
+
+/// Parse GPX bytes into Nav-IR route JSON without saving. Use for preview-before-save flow.
+#[frb(sync)]
+pub fn parse_route_from_gpx(bytes: Vec<u8>) -> Result<String> {
+    nav_core::api::parse_route_from_gpx(&bytes)
+}
+
+/// Save a pre-parsed route (Nav-IR JSON) to the database. Returns the saved entity as JSON.
+#[frb(sync)]
+pub fn save_route_from_json(route_json: String, source: String) -> Result<String> {
+    nav_core::api::save_route_from_json(&route_json, source)
+}
+
+/// Import a route from GPX bytes, persist it, and return the saved route as JSON.
+#[frb(sync)]
+pub fn import_route_from_gpx(bytes: Vec<u8>) -> Result<String> {
+    nav_core::api::import_route_from_gpx(&bytes)
+}
+
+/// Save the current plan-route (waypoints + polyline) as a saved route. Returns the new row id.
+#[frb(sync)]
+pub fn save_route_from_plan(
+    name: String,
+    waypoints: Vec<(f64, f64)>,
+    polyline_encoded: Option<String>,
+    distance_m: Option<f64>,
+    duration_s: Option<u64>,
+) -> Result<i64> {
+    nav_core::api::save_route_from_plan(name, waypoints, polyline_encoded, distance_m, duration_s)
+}
+
+/// Get all saved routes as JSON array (newest first).
+#[frb(sync)]
+pub fn get_all_saved_routes() -> Result<String> {
+    nav_core::api::get_all_saved_routes()
+}
+
+/// Get a saved route by ID as JSON object (or null if not found).
+#[frb(sync)]
+pub fn get_saved_route_by_id(id: i64) -> Result<String> {
+    nav_core::api::get_saved_route_by_id(id)
+}
+
+/// Delete a saved route by ID.
+#[frb(sync)]
+pub fn delete_saved_route(id: i64) -> Result<()> {
+    nav_core::api::delete_saved_route(id)
+}
+
+// ============================================================================
 // Device Communication API
 // ============================================================================
 

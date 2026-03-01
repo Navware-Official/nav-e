@@ -19,10 +19,12 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_loaded) {
+    if (_loaded) return;
+    _loaded = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       context.read<SavedPlacesCubit>().loadPlaces();
-      _loaded = true;
-    }
+    });
   }
 
   @override
@@ -75,8 +77,11 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                 separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final place = places[index];
+                  final stableKey = place.id != null
+                      ? 'place_${place.id}'
+                      : 'place_${place.lat}_${place.lon}_${place.name}';
                   return Dismissible(
-                    key: ValueKey('place_${place.id}_$index'),
+                    key: ValueKey(stableKey),
                     direction: DismissDirection.endToStart,
                     background: Container(
                       color: Theme.of(context).colorScheme.error,
