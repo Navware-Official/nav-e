@@ -189,9 +189,8 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                             widget.route.name,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontFamily: AppTypography.subFamily,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(fontFamily: AppTypography.subFamily),
                           ),
                         ),
                       ),

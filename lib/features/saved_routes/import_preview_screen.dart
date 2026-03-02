@@ -205,15 +205,12 @@ class _ImportPreviewScreenState extends State<ImportPreviewScreen> {
       final lon = coord?['longitude'] as num?;
       if (lat != null && lon != null) {
         final kind = w['kind'] as String? ?? 'Via';
+        final colorScheme = Theme.of(context).colorScheme;
         final icon = kind == 'Start'
-            ? const Icon(Icons.flag, color: AppColors.blueRibbon, size: 36)
+            ? Icon(Icons.flag, color: colorScheme.primary, size: 36)
             : kind == 'Stop'
-            ? const Icon(Icons.place, color: Colors.red, size: 36)
-            : Icon(
-                Icons.trip_origin,
-                color: Theme.of(context).colorScheme.primary,
-                size: 28,
-              );
+            ? Icon(Icons.place, color: colorScheme.error, size: 36)
+            : Icon(Icons.trip_origin, color: colorScheme.primary, size: 28);
         stopMarkers.add(
           MarkerModel(
             id: 'stop_$i',

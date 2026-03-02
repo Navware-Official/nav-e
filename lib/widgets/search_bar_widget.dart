@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/core/theme/colors.dart';
 
 class SearchBarWidget extends StatelessWidget {
   final ValueChanged<String>? onChanged;
@@ -19,16 +18,15 @@ class SearchBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final fillColor = colorScheme.surfaceContainerHighest; // light grey bar
-    const borderRadius = 24.0;
-
-    final borderRadiusValue = BorderRadius.circular(borderRadius);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
+    final fillColor = colorScheme.surfaceContainerHighest;
     return Material(
       type: MaterialType.transparency,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: borderRadiusValue,
+          borderRadius: BorderRadius.zero,
           boxShadow: [
             BoxShadow(
               color: colorScheme.shadow.withValues(alpha: 0.12),
@@ -42,16 +40,16 @@ class SearchBarWidget extends StatelessWidget {
           readOnly: onTap != null,
           onTap: onTap,
           onChanged: onChanged,
-          style: TextStyle(color: colorScheme.onSurface),
+          style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
           decoration: InputDecoration(
             hintText: hintText ?? 'Hinted search text',
-            hintStyle: TextStyle(
-              color: AppColors.capeCodLight02,
+            hintStyle: textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w400,
             ),
             prefixIcon: Icon(
               Icons.search,
-              color: AppColors.capeCodDark02,
+              color: colorScheme.onSurfaceVariant,
               size: 22,
             ),
             suffixIcon: onMenuTap != null
@@ -59,23 +57,23 @@ class SearchBarWidget extends StatelessWidget {
                     icon: const Icon(Icons.menu, size: 24),
                     onPressed: onMenuTap,
                     style: IconButton.styleFrom(
-                      foregroundColor: AppColors.capeCodDark02,
+                      foregroundColor: colorScheme.onSurface,
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                   )
                 : null,
             filled: true,
             fillColor: fillColor,
-            border: OutlineInputBorder(
-              borderRadius: borderRadiusValue,
+            border: const OutlineInputBorder(
+              borderRadius: BorderRadius.zero,
               borderSide: BorderSide.none,
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: borderRadiusValue,
+            enabledBorder: const OutlineInputBorder(
+              borderRadius: BorderRadius.zero,
               borderSide: BorderSide.none,
             ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: borderRadiusValue,
+            focusedBorder: const OutlineInputBorder(
+              borderRadius: BorderRadius.zero,
               borderSide: BorderSide.none,
             ),
             contentPadding: const EdgeInsets.symmetric(

@@ -224,13 +224,14 @@ class _StatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Row(
       children: [
         Icon(icon, size: 20, color: colorScheme.primary),
         const SizedBox(width: 12),
         Text(
           '$label: ',
-          style: TextStyle(
+          style: textTheme.bodyMedium?.copyWith(
             color: colorScheme.onSurfaceVariant,
             fontWeight: FontWeight.w500,
           ),
@@ -238,7 +239,7 @@ class _StatRow extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
             overflow: TextOverflow.ellipsis,
           ),
         ),

@@ -200,7 +200,6 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
         child: BlocBuilder<LocationBloc, LocationState>(
           builder: (context, locState) {
             final markers = <MarkerModel>[
-              // User location marker with direction arrow
               if (locState.position != null)
                 MarkerModel(
                   id: 'user_location',
@@ -486,7 +485,9 @@ class _TurnFeedSheet extends StatelessWidget {
                     Expanded(
                       child: Text(
                         cue.instruction,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 8),

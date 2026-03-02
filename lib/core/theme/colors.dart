@@ -5,6 +5,9 @@ class AppColors {
   static const Color blueRibbon = Color(0xFF375AF9);
   static const Color blueRibbonDark04 = Color(0xFF01216C);
 
+  /// Card and panel background (same as blueRibbonDark04 for consistency with AppBar).
+  static const Color blueRibbonDark = blueRibbonDark04;
+
   static const Color lightGray = Color(0xFFD0D2D3);
   static const Color capeCodLight02 = Color(0xFF6F7070);
   static const Color white = Color(0xFFFBFFFF);

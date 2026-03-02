@@ -213,9 +213,11 @@ class _DownloadRegionSheetState extends State<DownloadRegionSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text(
+                Text(
                   'Download map region',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
@@ -273,9 +275,8 @@ class _DownloadRegionSheetState extends State<DownloadRegionSheet> {
                   const SizedBox(height: 8),
                   Text(
                     state.errorMessage!,
-                    style: TextStyle(
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(context).colorScheme.error,
-                      fontSize: 12,
                     ),
                   ),
                 ],

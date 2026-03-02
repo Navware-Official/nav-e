@@ -120,7 +120,7 @@ class _OfflineMapsView extends StatelessWidget {
                       Text(
                         state.errorMessage!,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.error,
                         ),
                       ),
