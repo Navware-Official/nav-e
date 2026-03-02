@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nav_e/app/app_nav.dart';
-import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/features/search/bloc/search_event.dart';
 import 'package:nav_e/features/search/bloc/search_state.dart';
@@ -28,9 +27,9 @@ class SearchScreen extends StatelessWidget {
                     decoration: InputDecoration(
                       hintText: 'Enter an address or place',
                       prefixIcon: IconButton(
-                        icon: const Icon(
+                        icon: Icon(
                           Icons.arrow_back,
-                          color: AppColors.capeCodDark02,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                         onPressed: () {
                           Navigator.pop(context);

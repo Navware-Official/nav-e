@@ -129,7 +129,7 @@ class _SourceCard extends StatelessWidget {
                       label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
                         fontWeight: selected
                             ? FontWeight.w600
                             : FontWeight.w500,

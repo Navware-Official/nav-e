@@ -28,6 +28,7 @@ class AppTheme {
       colorScheme: colorScheme,
     );
 
+    final sharpShape = RoundedRectangleBorder(borderRadius: BorderRadius.zero);
     return base.copyWith(
       appBarTheme: AppBarThemes.light,
       cardTheme: AppCardThemes.light,
@@ -37,6 +38,8 @@ class AppTheme {
       textTheme: AppTypography.light,
       iconTheme: const IconThemeData(color: AppColors.blueRibbonDark04),
       dividerColor: AppColors.lightGray,
+      dialogTheme: DialogThemeData(shape: sharpShape),
+      bottomSheetTheme: BottomSheetThemeData(shape: sharpShape),
     );
   }
 
@@ -61,6 +64,7 @@ class AppTheme {
       colorScheme: colorScheme,
     );
 
+    final sharpShape = RoundedRectangleBorder(borderRadius: BorderRadius.zero);
     return base.copyWith(
       appBarTheme: AppBarThemes.dark,
       cardTheme: AppCardThemes.dark,
@@ -70,6 +74,8 @@ class AppTheme {
       textTheme: AppTypography.dark,
       iconTheme: const IconThemeData(color: AppColors.white),
       dividerColor: AppColors.lightGray,
+      dialogTheme: DialogThemeData(shape: sharpShape),
+      bottomSheetTheme: BottomSheetThemeData(shape: sharpShape),
     );
   }
 }
