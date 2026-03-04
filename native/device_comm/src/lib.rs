@@ -3,6 +3,14 @@ use crc32fast::Hasher;
 use prost::Message as ProstMessage;
 use uuid::Uuid;
 
+pub mod messages;
+
+pub use messages::{
+    chunk_message_for_ble, create_control_message, nav_ir_route_to_route_blob,
+    prepare_map_region_metadata_message, prepare_map_style_message, prepare_route_message,
+    prepare_tile_chunk_message, reassemble_frames,
+};
+
 // Include generated protobuf code
 pub mod proto {
     #![allow(clippy::all)]
@@ -45,7 +53,7 @@ pub enum DeviceError {
 }
 
 /// Creates a header with current protocol version
-pub(crate) fn create_header(message_version: u32) -> Header {
+pub fn create_header(message_version: u32) -> Header {
     Header {
         protocol_version: PROTOCOL_VERSION,
         message_version,

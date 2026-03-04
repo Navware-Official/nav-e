@@ -98,6 +98,16 @@ impl Coordinate {
             longitude,
         }
     }
+
+    /// Create a coordinate with validation. Returns an error if lat is not in [-90, 90]
+    /// or lon is not in [-180, 180].
+    pub fn try_new(latitude: f64, longitude: f64) -> Result<Self, ValidationError> {
+        validate_coordinate(latitude, longitude)?;
+        Ok(Self {
+            latitude,
+            longitude,
+        })
+    }
 }
 
 // --- RouteMetadata ---
