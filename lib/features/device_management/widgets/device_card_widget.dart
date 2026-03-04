@@ -87,7 +87,7 @@ class DeviceCard extends StatelessWidget {
                                   ),
                                   decoration: BoxDecoration(
                                     color: color.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.zero,
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -175,7 +175,9 @@ class DeviceCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Text(
                               'Delete',
-                              style: TextStyle(color: colorScheme.error),
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: colorScheme.error,
+                              ),
                             ),
                           ],
                         ),
@@ -248,7 +250,7 @@ class DeviceCard extends StatelessWidget {
                         elevation: 0,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.zero,
                           side: BorderSide(
                             color: isConnected
                                 ? colorScheme.error

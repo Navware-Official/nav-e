@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:nav_e/core/theme/components/decorations.dart';
 import 'package:nav_e/core/device_comm/device_comm_transport.dart';
 import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
@@ -262,7 +263,7 @@ class _Handle extends StatelessWidget {
         height: 4,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.outlineVariant,
-          borderRadius: BorderRadius.circular(2),
+          borderRadius: BorderRadius.zero,
         ),
       ),
     );
@@ -281,13 +282,9 @@ class _SectionCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-          width: 1,
-        ),
+      decoration: AppDecorations.panelDecoration(
+        theme,
+        borderColor: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

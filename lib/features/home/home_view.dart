@@ -6,7 +6,7 @@ import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/extensions/geocoding_to_saved.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 import 'package:nav_e/features/home/utils/route_params_handler.dart';
-import 'package:nav_e/features/home/widgets/bottom_search_bar_widget.dart';
+import 'package:nav_e/features/home/widgets/explore_top_bar.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
 import 'package:nav_e/features/location_preview/location_preview_widget.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
@@ -88,7 +88,6 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void dispose() {
-    _routeHandler.removeListener(context);
     _routeHandler.dispose();
     super.dispose();
   }
@@ -141,7 +140,7 @@ class _HomeViewState extends State<HomeView> {
                 const RotateNorthFAB(),
                 const MapControlsFAB(),
 
-                BottomSearchBarWidget(
+                ExploreTopBar(
                   onResultSelected: (r) {
                     FocusScope.of(context).unfocus();
                     AppNav.homeWithCoords(
@@ -158,6 +157,8 @@ class _HomeViewState extends State<HomeView> {
                   LocationPreviewWidget(
                     route: state.result,
                     onClose: () {
+                      _routeHandler.markPreviewDismissed(context);
+                      RouteParamsHandler.clearPreviewParams(context);
                       context.read<PreviewCubit>().hide();
                       final mapBloc = context.read<MapBloc>();
                       mapBloc.add(ReplacePolylines(const [], fit: false));
@@ -171,7 +172,7 @@ class _HomeViewState extends State<HomeView> {
                           MapMoved(userPos, mapState.zoom, force: true),
                         );
                       }
-                      mapBloc.add(ToggleFollowUser(true));
+                      // Do not re-enable follow-user when closing preview; leave it off.
                     },
                     onSave: () async {
                       final r = state.result;

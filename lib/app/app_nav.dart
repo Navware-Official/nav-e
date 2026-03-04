@@ -21,6 +21,6 @@ class AppNav {
       'zoom': zoom?.toString(),
     }..removeWhere((_, v) => v == null);
 
-    _router.goNamed('home', queryParameters: qp.cast<String, String>());
+    _router.goNamed('explore', queryParameters: qp.cast<String, String>());
   }
 }

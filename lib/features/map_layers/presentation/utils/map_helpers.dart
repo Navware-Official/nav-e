@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,13 +20,14 @@ List<MarkerModel> markersForPreview(PreviewState state) {
     MarkerModel(
       id: 'preview',
       position: r.position,
-      icon: const Icon(Icons.place, color: Color(0xFF3646F4), size: 52),
+      icon: const Icon(Icons.place, color: AppColors.blueRibbon, size: 52),
     ),
   ];
 }
 
-/// Focus the map on the location preview by enabling followUser mode temporarily
-/// and updating the map center/zoom. The camera movement will be handled by MapWidget.
+/// Focus the map on the location preview and disable follow-user so the map
+/// stays on the preview location. Re-enable follow-user when the preview is closed (see home_view onClose).
+/// MapWidget only applies camera moves when followUser is true, so we briefly enable it to run the move, then disable.
 Future<void> focusMapOnPreview(
   BuildContext context,
   LocationPreviewShowing state,
@@ -41,11 +43,9 @@ Future<void> focusMapOnPreview(
   final bloc = context.read<MapBloc>();
   bloc.add(MapMoved(pos, targetZoom, force: true));
   bloc.add(ToggleFollowUser(true));
-
-  // Wait for camera to move then release follow so user can pan
-  await Future.delayed(const Duration(milliseconds: 400));
-
-  if (context.mounted) {
-    context.read<MapBloc>().add(ToggleFollowUser(false));
-  }
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (context.mounted) {
+      context.read<MapBloc>().add(ToggleFollowUser(false));
+    }
+  });
 }

@@ -1,12 +1,9 @@
 import 'dart:async';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
-import 'package:nav_e/core/domain/repositories/saved_places_repository.dart';
-import 'package:nav_e/core/domain/repositories/saved_routes_repository.dart';
-import 'package:nav_e/core/domain/repositories/trip_repository.dart';
 import 'package:nav_e/features/device_management/add_device_screen.dart';
 import 'package:nav_e/features/device_management/device_management_screen.dart';
 import 'package:nav_e/features/device_comm/presentation/screens/device_comm_debug_screen.dart';
@@ -15,9 +12,7 @@ import 'package:nav_e/features/home/home_screen.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/core/domain/entities/saved_route.dart';
 import 'package:nav_e/features/plan_route/plan_route_screen.dart';
-import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/saved_places_screen.dart';
-import 'package:nav_e/features/saved_routes/cubit/saved_routes_cubit.dart';
 import 'package:nav_e/features/saved_routes/import_preview_screen.dart';
 import 'package:nav_e/features/saved_routes/saved_routes_screen.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
@@ -29,7 +24,10 @@ import 'package:nav_e/features/nav/ui/route_finish_screen.dart';
 import 'package:nav_e/core/domain/entities/trip.dart';
 import 'package:nav_e/features/trip_history/trip_history_screen.dart';
 import 'package:nav_e/features/trip_history/trip_detail_screen.dart';
-import 'package:nav_e/features/trip_history/cubit/trip_history_cubit.dart';
+import 'package:nav_e/features/home/dashboard/home_dashboard_screen.dart';
+import 'package:nav_e/features/plan/plan_screen.dart';
+import 'package:nav_e/features/profile/profile_screen.dart';
+import 'package:nav_e/app/app_shell.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
   GoRouterRefreshStream(Stream<dynamic> stream) {
@@ -50,19 +48,69 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
     navigatorKey: rootNavigatorKey,
     initialLocation: '/',
     refreshListenable: refreshListenable,
+    redirect: (BuildContext context, GoRouterState state) {
+      if (state.uri.path == '/plan-route') {
+        final g = GeocodingResult.fromPathParams(state.uri.queryParameters);
+        if (g == null) return '/';
+      }
+      if (state.uri.path == '/plan-route/saved' && state.extra == null)
+        return '/';
+      if (state.uri.path == '/trip-detail' && state.extra == null) return '/';
+      if (state.uri.path == '/route-finish' && state.extra == null) return '/';
+      if (state.uri.path == '/device-comm-debug' && state.extra == null)
+        return '/';
+      if (state.error != null) return '/';
+      return null;
+    },
     routes: [
-      GoRoute(
-        path: '/',
-        name: 'home',
-        builder: (ctx, state) => HomeScreen(
-          placeId: state.uri.queryParameters['placeId'],
-          latParam: state.uri.queryParameters['lat'],
-          lonParam: state.uri.queryParameters['lon'],
-          labelParam: state.uri.queryParameters['label'],
-          zoomParam: state.uri.queryParameters['zoom'],
-        ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) =>
+            AppShell(navigationShell: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                name: 'home',
+                builder: (_, __) => const HomeDashboardScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/',
+                name: 'explore',
+                builder: (ctx, state) => HomeScreen(
+                  placeId: state.uri.queryParameters['placeId'],
+                  latParam: state.uri.queryParameters['lat'],
+                  lonParam: state.uri.queryParameters['lon'],
+                  labelParam: state.uri.queryParameters['label'],
+                  zoomParam: state.uri.queryParameters['zoom'],
+                ),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/plan',
+                name: 'plan',
+                builder: (_, __) => const PlanScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/profile',
+                name: 'profile',
+                builder: (_, __) => const ProfileScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
-
       GoRoute(
         path: '/search',
         name: 'search',
@@ -77,19 +125,13 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         path: '/saved-places',
         name: 'savedPlaces',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (ctx, _) => BlocProvider(
-          create: (c) => SavedPlacesCubit(c.read<ISavedPlacesRepository>()),
-          child: const SavedPlacesScreen(),
-        ),
+        builder: (_, __) => const SavedPlacesScreen(),
       ),
       GoRoute(
         path: '/saved-routes',
         name: 'savedRoutes',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (ctx, _) => BlocProvider(
-          create: (c) => SavedRoutesCubit(c.read<ISavedRoutesRepository>()),
-          child: const SavedRoutesScreen(),
-        ),
+        builder: (_, __) => const SavedRoutesScreen(),
       ),
       GoRoute(
         path: '/saved-routes/import-preview',
@@ -140,9 +182,8 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         path: '/plan-route',
         name: 'planRoute',
         builder: (ctx, state) {
-          final params = state.uri.queryParameters;
-          final g = GeocodingResult.fromPathParams(params);
-          if (g == null) return const HomeScreen();
+          final g = GeocodingResult.fromPathParams(state.uri.queryParameters);
+          if (g == null) return _RedirectToShell();
           return PlanRouteScreen(destination: g);
         },
       ),
@@ -151,8 +192,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         name: 'savedRoutePreview',
         parentNavigatorKey: rootNavigatorKey,
         builder: (ctx, state) {
-          final savedRoute = state.extra as SavedRoute?;
-          if (savedRoute == null) return const HomeScreen();
+          final savedRoute = state.extra as SavedRoute;
           return PlanRouteScreen(savedRoute: savedRoute);
         },
       ),
@@ -160,19 +200,14 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         path: '/trips',
         name: 'trips',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (ctx, _) => BlocProvider(
-          create: (c) =>
-              TripHistoryCubit(c.read<ITripRepository>())..loadTrips(),
-          child: const TripHistoryScreen(),
-        ),
+        builder: (_, __) => const TripHistoryScreen(),
       ),
       GoRoute(
         path: '/trip-detail',
         name: 'tripDetail',
         parentNavigatorKey: rootNavigatorKey,
         builder: (ctx, state) {
-          final trip = state.extra as Trip?;
-          if (trip == null) return const HomeScreen();
+          final trip = state.extra as Trip;
           return TripDetailScreen(trip: trip);
         },
       ),
@@ -181,8 +216,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         name: 'routeFinish',
         parentNavigatorKey: rootNavigatorKey,
         builder: (ctx, state) {
-          final payload = state.extra as RouteFinishPayload?;
-          if (payload == null) return const HomeScreen();
+          final payload = state.extra as RouteFinishPayload;
           return RouteFinishScreen(payload: payload);
         },
       ),
@@ -191,9 +225,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         name: 'deviceCommDebug',
         parentNavigatorKey: rootNavigatorKey,
         builder: (ctx, state) {
-          // Route data passed via extra
-          final extra = state.extra as Map<String, dynamic>?;
-          if (extra == null) return const HomeScreen();
+          final extra = state.extra as Map<String, dynamic>;
           final routePoints = (extra['routePoints'] as List).cast<LatLng>();
           return DeviceCommDebugScreen(
             routePoints: routePoints,
@@ -204,6 +236,27 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         },
       ),
     ],
-    errorBuilder: (_, _) => const HomeScreen(),
+    errorBuilder: (_, __) => HomeScreen(),
   );
+}
+
+/// One-time redirect to shell (Explore). Used when a route has invalid/missing data.
+class _RedirectToShell extends StatefulWidget {
+  @override
+  State<_RedirectToShell> createState() => _RedirectToShellState();
+}
+
+class _RedirectToShellState extends State<_RedirectToShell> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) context.go('/');
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  }
 }
