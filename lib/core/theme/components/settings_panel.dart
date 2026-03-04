@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// Theming for settings screen sections: bordered panels with rounded corners,
-/// no shadow. Use [panelDecoration] and [sectionTitleStyle] for consistency.
+/// Theming for settings screen sections: bordered panels, sharp corners, no shadow.
+/// Use [panelDecoration] and [sectionTitleStyle] for consistency.
 class SettingsPanelStyle {
   SettingsPanelStyle._();
-
-  /// Border radius for section panels.
-  static const double sectionRadius = 12.0;
 
   /// Horizontal margin around section panels.
   static const double sectionHorizontalMargin = 16.0;
@@ -27,13 +24,15 @@ class SettingsPanelStyle {
     8,
   );
 
-  /// Box decoration for a settings section panel: border, rounded corners, no shadow.
+  /// Box decoration for a settings section panel: theme surface background,
+  /// border, sharp corners, no shadow. Uses surface container for readability.
   static BoxDecoration panelDecoration(ThemeData theme) {
     return BoxDecoration(
+      color: theme.colorScheme.surfaceContainerLow,
       border: Border.all(
         color: theme.colorScheme.outline.withValues(alpha: 0.3),
       ),
-      borderRadius: BorderRadius.circular(sectionRadius),
+      borderRadius: BorderRadius.zero,
     );
   }
 

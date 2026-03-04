@@ -7,7 +7,6 @@ import 'package:nav_e/bridge/lib.dart' as rust;
 import 'package:nav_e/core/bloc/location_bloc.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/core/domain/entities/saved_route.dart';
-import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/features/map_layers/presentation/utils/polyline_utils.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 import 'package:nav_e/features/map_layers/models/marker_model.dart';
@@ -331,12 +330,13 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         startLabel = 'Current location';
       }
     }
+    final colorScheme = Theme.of(context).colorScheme;
     final markers = <MarkerModel>[
       // Destination marker
       MarkerModel(
         id: 'destination',
         position: dest.position,
-        icon: const Icon(Icons.place, color: AppColors.blueRibbon, size: 52),
+        icon: Icon(Icons.place, color: colorScheme.primary, size: 52),
       ),
       // Current location marker with direction arrow
       if (userPos != null)

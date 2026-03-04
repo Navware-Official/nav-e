@@ -8,14 +8,18 @@ import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
 /// Handles URL parameter changes and coordinates preview/map state updates.
 class RouteParamsHandler {
   VoidCallback? _routerListener;
+  GoRouter? _router;
   String? _lastUriString;
   String? _lastHandledRouteKey;
   bool _handlingRoute = false;
   bool _mapReady = false;
   bool _listenerAdded = false;
+  final Set<String> _dismissedRouteKeys = {};
 
   /// Initializes route parameter handling for the given context.
   void initialize(BuildContext context) {
+    _router = GoRouter.maybeOf(context);
+
     // Handle initial route parameters (once per route)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
@@ -25,8 +29,7 @@ class RouteParamsHandler {
     });
 
     // Listen for route changes - only add listener once to avoid duplicate callbacks
-    if (_listenerAdded) return;
-    final router = GoRouter.of(context);
+    if (_listenerAdded || _router == null) return;
     _routerListener ??= () {
       if (!context.mounted) return;
       final uri = GoRouterState.of(context).uri;
@@ -41,7 +44,7 @@ class RouteParamsHandler {
       _handleRouteParams(context, uri);
       _handlePolylineCleanup(context, uri, previousUriString);
     };
-    router.routerDelegate.addListener(_routerListener!);
+    _router!.routerDelegate.addListener(_routerListener!);
     _listenerAdded = true;
   }
 
@@ -50,18 +53,19 @@ class RouteParamsHandler {
     _mapReady = ready;
   }
 
-  /// Cleans up the route listener.
-  void dispose() {
-    _routerListener = null;
-    _listenerAdded = false;
-  }
-
-  /// Removes the listener from the router.
-  void removeListener(BuildContext context) {
-    if (_routerListener != null && _listenerAdded) {
-      GoRouter.of(context).routerDelegate.removeListener(_routerListener!);
+  /// Cleans up the route listener. Call without context (uses stored router reference).
+  void removeListener() {
+    if (_routerListener != null && _listenerAdded && _router != null) {
+      _router!.routerDelegate.removeListener(_routerListener!);
       _listenerAdded = false;
     }
+    _routerListener = null;
+    _router = null;
+  }
+
+  /// Cleans up the route listener and handler state.
+  void dispose() {
+    removeListener();
   }
 
   /// Handles route parameters and triggers location preview if valid coords are present.
@@ -75,6 +79,7 @@ class RouteParamsHandler {
 
     // Skip if required parameters are missing
     if (lat == null || lon == null || label == null) {
+      _dismissedRouteKeys.clear();
       debugPrint('[RouteParamsHandler] Missing lat/lon/label. Skip.');
       return;
     }
@@ -82,12 +87,16 @@ class RouteParamsHandler {
     // Generate unique key to avoid duplicate processing
     final key = _generateRouteKey(lat, lon, label, qp['placeId']);
     if (_lastHandledRouteKey == key) return;
+    if (_dismissedRouteKeys.contains(key)) return;
 
     _handlingRoute = true;
     try {
       // Wait for map to be ready before showing preview
       await _waitForMapReady(context);
       if (!context.mounted) return;
+
+      // User may have closed the preview while we were waiting; do not re-open
+      if (_dismissedRouteKeys.contains(key)) return;
 
       _lastHandledRouteKey = key;
 
@@ -149,12 +158,28 @@ class RouteParamsHandler {
     return '${lat.toStringAsFixed(6)},${lon.toStringAsFixed(6)}|$label|${placeId ?? ''}';
   }
 
-  /// Clears preview URL parameters by navigating to plain home route.
+  /// Clears preview URL parameters by navigating to Explore (map) with no query params.
+  /// Keeps the user on the map tab; use this when preview is shown from URL params.
   static void clearPreviewParams(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (context.mounted) {
-        context.goNamed('home', queryParameters: const {});
+        context.go('/');
       }
     });
+  }
+
+  /// Call when the user dismisses the location preview so a delayed _handleRouteParams
+  /// does not re-open it (e.g. after _waitForMapReady completes).
+  void markPreviewDismissed(BuildContext context) {
+    final uri = GoRouterState.of(context).uri;
+    final qp = uri.queryParameters;
+    final lat = double.tryParse(qp['lat'] ?? '');
+    final lon = double.tryParse(qp['lon'] ?? '');
+    final label = qp['label'];
+    if (lat != null && lon != null && label != null) {
+      _dismissedRouteKeys.add(
+        _generateRouteKey(lat, lon, label, qp['placeId']),
+      );
+    }
   }
 }

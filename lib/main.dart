@@ -19,8 +19,12 @@ import 'package:nav_e/features/saved_routes/data/saved_routes_repository_rust.da
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_events.dart';
+import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/data/saved_places_repository_rust.dart';
+import 'package:nav_e/features/saved_routes/cubit/saved_routes_cubit.dart';
+import 'package:nav_e/features/trip_history/cubit/trip_history_cubit.dart';
 import 'package:nav_e/features/trip_history/data/trip_repository_rust.dart';
+import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
 import 'package:nav_e/features/search/data/geocoding_repository_frb_typed_impl.dart';
 import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 
@@ -180,6 +184,19 @@ class _AppLoaderState extends State<_AppLoader> {
               return DeviceCommBloc(deviceCommService: service);
             },
           ),
+          BlocProvider(
+            create: (ctx) =>
+                SavedPlacesCubit(ctx.read<ISavedPlacesRepository>())
+                  ..loadPlaces(),
+          ),
+          BlocProvider(create: (_) => PreviewCubit()),
+          BlocProvider(
+            create: (ctx) => TripHistoryCubit(ctx.read<ITripRepository>()),
+          ),
+          BlocProvider(
+            create: (ctx) =>
+                SavedRoutesCubit(ctx.read<ISavedRoutesRepository>()),
+          ),
         ],
         child: BlocBuilder<ThemeCubit, AppThemeMode>(
           builder: (context, mode) {
@@ -257,6 +274,9 @@ class _InitErrorScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final colorScheme = theme.colorScheme;
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
@@ -267,14 +287,21 @@ class _InitErrorScreen extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                Icon(Icons.error_outline, size: 64, color: colorScheme.error),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Failed to start',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  style: textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Text('$error', style: const TextStyle(fontFamily: 'monospace')),
+                Text(
+                  '$error',
+                  style: textTheme.bodyMedium?.copyWith(
+                    fontFamily: 'monospace',
+                  ),
+                ),
               ],
             ),
           ),

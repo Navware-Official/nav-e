@@ -11,6 +11,7 @@ import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/core/device_comm/device_comm_transport.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/components/decorations.dart';
 import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_states.dart';
@@ -314,10 +315,9 @@ class _ConnectDeviceExpandedState extends State<_ConnectDeviceExpanded> {
       },
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: colorScheme.outlineVariant),
+        decoration: AppDecorations.panelDecoration(
+          theme,
+          borderColor: colorScheme.outlineVariant,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -482,7 +482,7 @@ class RouteBottomSheet extends StatelessWidget {
         snapSizes: const [0.32, 0.65, 0.9],
         builder: (context, controller) {
           return ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            borderRadius: BorderRadius.zero,
             child: Material(
               color: colorScheme.surface,
               elevation: 8,
@@ -501,7 +501,7 @@ class RouteBottomSheet extends StatelessWidget {
                             color: colorScheme.onSurfaceVariant.withValues(
                               alpha: 0.4,
                             ),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.zero,
                           ),
                         ),
                       ),
@@ -652,7 +652,7 @@ class RouteBottomSheet extends StatelessWidget {
                                   : routePoints.isNotEmpty
                                   ? AppColors.successContainer
                                   : colorScheme.surfaceContainerHighest,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.zero,
                               border: Border.all(
                                 color: computing
                                     ? colorScheme.primaryContainer
@@ -724,11 +724,10 @@ class RouteBottomSheet extends StatelessWidget {
                                         ),
                                         Text(
                                           'Check your connection and try again',
-                                          style: theme.textTheme.bodySmall
+                                          style: theme.textTheme.labelSmall
                                               ?.copyWith(
                                                 color: colorScheme
                                                     .onSurfaceVariant,
-                                                fontSize: 11,
                                               ),
                                         ),
                                       ] else if (routePoints.isNotEmpty) ...[
@@ -744,11 +743,10 @@ class RouteBottomSheet extends StatelessWidget {
                                             durationS != null)
                                           Text(
                                             '${(distanceM! / 1000).toStringAsFixed(1)} km • ${Duration(seconds: durationS!.toInt()).inMinutes} min',
-                                            style: theme.textTheme.bodySmall
+                                            style: theme.textTheme.labelSmall
                                                 ?.copyWith(
                                                   color: colorScheme
                                                       .onSurfaceVariant,
-                                                  fontSize: 11,
                                                 ),
                                           ),
                                       ] else ...[
@@ -891,7 +889,7 @@ class _RouteTimeline extends StatelessWidget {
                       margin: const EdgeInsets.symmetric(vertical: 4),
                       decoration: BoxDecoration(
                         color: colorScheme.outlineVariant,
-                        borderRadius: BorderRadius.circular(1),
+                        borderRadius: BorderRadius.zero,
                       ),
                     ),
                 ],
@@ -961,12 +959,10 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
-      ),
+      decoration: AppDecorations.cardLikeDecoration(theme),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -98,7 +98,10 @@ class MapBloc extends Bloc<MapEvent, MapState> {
   }
 
   void _onReplacePolylines(ReplacePolylines event, Emitter<MapState> emit) {
-    emit(state.copyWith(polylines: event.polylines, autoFit: event.fit));
+    final next = state.copyWith(polylines: event.polylines, autoFit: event.fit);
+    // Disable follow-user when showing a route so the map stays on the route.
+    final followUser = event.polylines.isEmpty ? state.followUser : false;
+    emit(next.copyWith(followUser: followUser));
   }
 
   void _onAutoFitDone(MapAutoFitDone event, Emitter<MapState> emit) {

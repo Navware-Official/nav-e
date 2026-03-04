@@ -21,7 +21,10 @@ class SideMenuDrawerWidget extends StatelessWidget {
             height: 120,
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.all(16),
-            child: const Text('Options', style: TextStyle(fontSize: 20)),
+            child: Text(
+              'Options',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
           ),
           ListTile(
             leading: const Icon(Icons.language),
