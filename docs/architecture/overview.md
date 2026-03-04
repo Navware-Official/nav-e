@@ -77,11 +77,18 @@ Execute commands and queries:
 
 ### 3. Infrastructure Layer (`src/infrastructure/`)
 
-Adapters implementing domain ports (Hexagonal Architecture).
+Adapters implementing domain ports (Hexagonal Architecture), grouped by adapter type:
+
+- **`persistence/`** – database, base_repository, in_memory_repo (SQLite, CRUD, in-memory session store)
+- **`routing/`** – osrm_adapter (OSRM routing)
+- **`geocoding/`** – geocoding_adapter (Nominatim/Photon)
+- **`device/`** – nav_ir_to_proto (Nav-IR → RouteBlob), protobuf_adapter (device communication)
+
+Types and functions are re-exported from `infrastructure` so existing paths (e.g. `crate::infrastructure::Database`, `crate::infrastructure::nav_ir_to_proto`) remain valid.
 
 #### **Adapters**
 
-**`osrm_adapter.rs`** - OSRM routing implementation
+**`routing/osrm_adapter.rs`** - OSRM routing implementation
 ```rust
 impl RouteService for OsrmRouteService {
     async fn calculate_route(&self, waypoints: Vec<Position>) -> Result<Route>
@@ -89,7 +96,7 @@ impl RouteService for OsrmRouteService {
 }
 ```
 
-**`geocoding_adapter.rs`** - Photon geocoding
+**`geocoding/geocoding_adapter.rs`** - Photon/Nominatim geocoding
 ```rust
 impl GeocodingService for PhotonGeocodingService {
     async fn geocode(&self, address: &str) -> Result<Vec<Position>>
@@ -97,7 +104,7 @@ impl GeocodingService for PhotonGeocodingService {
 }
 ```
 
-**`protobuf_adapter.rs`** - Device communication via Protocol Buffers
+**`device/protobuf_adapter.rs`** - Device communication via Protocol Buffers
 ```rust
 impl DeviceCommunicationPort for ProtobufDeviceCommunicator {
     async fn send_route_summary(&self, device_id: &str, session: &NavigationSession) -> Result<()>
@@ -107,13 +114,26 @@ impl DeviceCommunicationPort for ProtobufDeviceCommunicator {
 }
 ```
 
-**`in_memory_repo.rs`** - In-memory navigation state (for testing/development)
+**`persistence/in_memory_repo.rs`** - In-memory navigation state (for testing/development)
 ```rust
 impl NavigationRepository for InMemoryNavigationRepository {
     async fn save_session(&self, session: &NavigationSession) -> Result<()>
     async fn load_active_session(&self) -> Result<Option<NavigationSession>>
 }
 ```
+
+### 3.5 API Layer (`src/api/`)
+
+Feature-based API surface used by nav_e_ffi and Flutter. Organized by domain:
+
+- **`context.rs`** – AppContext, `get_context()`, `initialize_database()` (bootstrap)
+- **`dto.rs`**, **`helpers.rs`** – shared DTOs and query/command helpers
+- **`device/`** – device_comm (prepare_route_message, BLE/protobuf), devices (CRUD)
+- **`places/`** – saved_places, saved_routes, trips
+- **`navigation/`** – navigation (session start/update/pause/stop), routes (calculate_route)
+- **`geocoding.rs`**, **`offline_regions.rs`** – geocoding and offline map regions
+
+All public API functions are re-exported from `api` so `nav_core::api::*` (and thus nav_e_ffi) stays unchanged.
 
 ### 4. Protocol Buffers (`proto/`)
 

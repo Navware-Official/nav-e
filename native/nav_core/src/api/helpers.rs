@@ -9,10 +9,12 @@ use serde::Serialize;
 ///
 /// # Example
 /// ```rust
-///
-/// pub fn get_all_places() -> Result<String> {
-///     query_json(|| get_context().places_repo.get_all())
-/// }
+/// use nav_core::api::query_json;
+/// use anyhow::Result;
+/// # fn run() -> Result<()> {
+/// let _json = query_json(|| Ok::<_, anyhow::Error>(vec!["place1".to_string()]))?;
+/// # Ok(())
+/// # }
 /// ```
 pub fn query_json<T, F>(operation: F) -> Result<String>
 where
@@ -27,13 +29,12 @@ where
 ///
 /// # Example
 /// ```rust
-///
-/// pub fn save_place(name: String, lat: f64, lon: f64) -> Result<i64> {
-///     command_with_id(|| {
-///         let place = SavedPlace { name, lat, lon, /* ... */ };
-///         get_context().places_repo.insert(place)
-///     })
-/// }
+/// use nav_core::api::command_with_id;
+/// use anyhow::Result;
+/// # fn run() -> Result<()> {
+/// let _id = command_with_id(|| Ok(1i64))?;
+/// # Ok(())
+/// # }
 /// ```
 pub fn command_with_id<F>(operation: F) -> Result<i64>
 where
@@ -46,10 +47,12 @@ where
 ///
 /// # Example
 /// ```rust
-///
-/// pub fn delete_place(id: i64) -> Result<()> {
-///     command(|| get_context().places_repo.delete(id))
-/// }
+/// use nav_core::api::command;
+/// use anyhow::Result;
+/// # fn run() -> Result<()> {
+/// command(|| Ok(()))?;
+/// # Ok(())
+/// # }
 /// ```
 pub fn command<F>(operation: F) -> Result<()>
 where
@@ -64,14 +67,12 @@ where
 ///
 /// # Example
 /// ```rust
-///
-/// pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
-///     query_json_async(|| async {
-///         let positions = waypoints_to_positions(waypoints)?;
-///         let route = get_context().route_service.calculate_route(positions).await?;
-///         Ok(route)
-///     })
-/// }
+/// use nav_core::api::query_json_async;
+/// use anyhow::Result;
+/// # fn run() -> Result<()> {
+/// let _json = query_json_async(|| async { Ok::<_, anyhow::Error>(vec!["route".to_string()]) })?;
+/// # Ok(())
+/// # }
 /// ```
 pub fn query_json_async<T, F, Fut>(operation: F) -> Result<String>
 where
@@ -91,12 +92,12 @@ where
 ///
 /// # Example
 /// ```rust
-///
-/// pub fn start_background_sync() -> Result<()> {
-///     command_async(|| async {
-///         get_context().sync_service.start().await
-///     })
-/// }
+/// use nav_core::api::command_async;
+/// use anyhow::Result;
+/// # fn run() -> Result<()> {
+/// command_async(|| async { Ok(()) })?;
+/// # Ok(())
+/// # }
 /// ```
 pub fn command_async<F, Fut>(operation: F) -> Result<()>
 where

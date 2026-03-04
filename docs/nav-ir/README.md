@@ -1,6 +1,6 @@
 # Nav-IR (Navigation Intermediate Representation)
 
-**Version:** 0.1
+**Version:** 0.2
 
 Nav-IR is a canonical, engine-agnostic route format used in nav-e. It normalizes routes from different sources (OSRM, GPX, custom APIs) into a single contract that the core and device communication layer use.
 
