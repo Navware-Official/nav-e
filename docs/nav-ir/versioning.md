@@ -4,7 +4,7 @@
 
 The top-level **Route** object has a `schema_version` field (unsigned integer). It identifies the Nav-IR schema used by that route.
 
-- **Current version:** 1 (constant `Route::CURRENT_SCHEMA_VERSION` in `native/nav_ir/src/types.rs`).
+- **Current version:** 2 (constant `Route::CURRENT_SCHEMA_VERSION` in `native/nav_ir/src/types.rs`).
 
 ## When to bump
 

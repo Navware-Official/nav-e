@@ -340,9 +340,16 @@ dependencies = [
 name = "device_comm"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "chrono",
  "crc32fast",
+ "geo-types",
+ "nav_ir",
+ "polyline",
  "prost",
  "prost-build",
+ "serde_json",
+ "sha2",
  "thiserror 1.0.69",
  "uuid",
 ]

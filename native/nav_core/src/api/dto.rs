@@ -121,6 +121,7 @@ pub(crate) fn navigation_session_to_dto(session: &NavigationSession) -> Navigati
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::domain::value_objects::Position;
     use chrono::Utc;
     use nav_ir::{
         EncodedPolyline, RouteGeometry, RouteMetadata, RouteSegment, SegmentIntent,
