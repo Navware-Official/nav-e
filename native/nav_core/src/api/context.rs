@@ -2,13 +2,14 @@
 //!
 //! Holds the global AppContext (repos, services) and initialize_database / get_context.
 
-use crate::domain::ports::{GeocodingService, NavigationRepository, RouteService};
+use crate::domain::ports::{DeviceCommunicationPort, GeocodingService, NavigationRepository, RouteService};
 use crate::infrastructure::{
     database::{
         Database, DeviceRepository, OfflineRegionsRepository, SavedPlacesRepository,
         SavedRoutesRepository, TripsRepository,
     },
     InMemoryNavigationRepository,
+    NoOpDeviceComm,
     OsrmRouteService,
     PhotonGeocodingService,
 };
@@ -18,6 +19,7 @@ pub(crate) struct AppContext {
     pub(crate) route_service: Arc<dyn RouteService>,
     pub(crate) geocoding_service: Arc<dyn GeocodingService>,
     pub(crate) navigation_repo: Arc<dyn NavigationRepository>,
+    pub(crate) device_comm: Arc<dyn DeviceCommunicationPort>,
     pub(crate) saved_places_repo: SavedPlacesRepository,
     pub(crate) saved_routes_repo: SavedRoutesRepository,
     pub(crate) trips_repo: TripsRepository,
@@ -46,6 +48,7 @@ impl AppContext {
                 "https://nominatim.openstreetmap.org".to_string(),
             )),
             navigation_repo: Arc::new(InMemoryNavigationRepository::new()),
+            device_comm: Arc::new(NoOpDeviceComm),
             saved_places_repo: SavedPlacesRepository::new(Arc::clone(&db_conn)),
             saved_routes_repo: SavedRoutesRepository::new(Arc::clone(&db_conn)),
             trips_repo: TripsRepository::new(Arc::clone(&db_conn)),

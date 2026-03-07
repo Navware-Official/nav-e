@@ -124,7 +124,7 @@ impl DeviceConnectedEvent {
     pub fn new(device_id: String, device_type: DeviceType) -> Self {
         Self {
             event_id: Uuid::new_v4(),
-            device_id: device_id.clone(),
+            device_id,
             device_type,
             occurred_at: Utc::now(),
         }
