@@ -2,18 +2,19 @@
 //!
 //! Holds the global AppContext (repos, services) and initialize_database / get_context.
 
-use crate::domain::ports::{DeviceCommunicationPort, GeocodingService, NavigationRepository, RouteService};
+use crate::domain::{
+    events::NavigationEvent,
+    ports::{DeviceCommunicationPort, GeocodingService, NavigationRepository, RouteService},
+};
 use crate::infrastructure::{
     database::{
         Database, DeviceRepository, OfflineRegionsRepository, SavedPlacesRepository,
         SavedRoutesRepository, TripsRepository,
     },
-    InMemoryNavigationRepository,
-    NoOpDeviceComm,
-    OsrmRouteService,
-    PhotonGeocodingService,
+    NoOpDeviceComm, SqliteNavigationRepository,
 };
 use std::sync::{Arc, OnceLock};
+use tokio::sync::broadcast;
 
 pub(crate) struct AppContext {
     pub(crate) route_service: Arc<dyn RouteService>,
@@ -25,14 +26,19 @@ pub(crate) struct AppContext {
     pub(crate) trips_repo: TripsRepository,
     pub(crate) device_repo: DeviceRepository,
     pub(crate) offline_regions_repo: OfflineRegionsRepository,
+    pub(crate) event_bus: broadcast::Sender<NavigationEvent>,
 }
 
 impl AppContext {
-    fn new_with_db_path(db_path: String) -> Self {
+    fn new(
+        db_path: String,
+        route_service: Arc<dyn RouteService>,
+        geocoding_service: Arc<dyn GeocodingService>,
+    ) -> Self {
         let path = std::path::PathBuf::from(&db_path);
         let db = Database::new(path.clone()).expect("Failed to initialize database");
-
         let db_conn = db.get_connection();
+
         let storage_base = path
             .parent()
             .unwrap_or_else(|| std::path::Path::new("."))
@@ -40,20 +46,19 @@ impl AppContext {
         let offline_regions_repo =
             OfflineRegionsRepository::new(Arc::clone(&db_conn), storage_base);
 
+        let (event_bus, _) = broadcast::channel(256);
+
         Self {
-            route_service: Arc::new(OsrmRouteService::new(
-                "https://router.project-osrm.org".to_string(),
-            )),
-            geocoding_service: Arc::new(PhotonGeocodingService::new(
-                "https://nominatim.openstreetmap.org".to_string(),
-            )),
-            navigation_repo: Arc::new(InMemoryNavigationRepository::new()),
+            route_service,
+            geocoding_service,
+            navigation_repo: Arc::new(SqliteNavigationRepository::new(Arc::clone(&db_conn))),
             device_comm: Arc::new(NoOpDeviceComm),
             saved_places_repo: SavedPlacesRepository::new(Arc::clone(&db_conn)),
             saved_routes_repo: SavedRoutesRepository::new(Arc::clone(&db_conn)),
             trips_repo: TripsRepository::new(Arc::clone(&db_conn)),
             device_repo: DeviceRepository::new(db_conn),
             offline_regions_repo,
+            event_bus,
         }
     }
 }
@@ -66,9 +71,23 @@ pub(crate) fn get_context() -> &'static AppContext {
         .expect("Database not initialized. Call initialize_database() first.")
 }
 
-/// Initialize the database with a platform-specific path
-/// Must be called before any other API functions that access the database
-pub fn initialize_database(db_path: String) -> anyhow::Result<()> {
-    APP_CONTEXT.get_or_init(|| AppContext::new_with_db_path(db_path));
+/// Initialize the application with a platform-specific database path and injected services.
+///
+/// `route_service` and `geocoding_service` are provided by the caller (nav_e_ffi uses nav_route).
+/// Must be called before any other API functions.
+pub fn initialize_database(
+    db_path: String,
+    route_service: Arc<dyn RouteService>,
+    geocoding_service: Arc<dyn GeocodingService>,
+) -> anyhow::Result<()> {
+    APP_CONTEXT.get_or_init(|| AppContext::new(db_path, route_service, geocoding_service));
     Ok(())
+}
+
+/// Subscribe to navigation events emitted by the application handlers.
+///
+/// Returns a `broadcast::Receiver<NavigationEvent>`. The receiver will receive all events
+/// published after the subscribe call. Wrap in an FRB stream in nav_e_ffi for Flutter access.
+pub fn subscribe_navigation_events() -> broadcast::Receiver<NavigationEvent> {
+    get_context().event_bus.subscribe()
 }

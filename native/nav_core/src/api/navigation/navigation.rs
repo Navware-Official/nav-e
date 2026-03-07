@@ -2,12 +2,7 @@
 use anyhow::Result;
 
 use crate::api::{dto::*, get_context, helpers::*};
-use crate::application::{
-    commands::*,
-    handlers::*,
-    queries::*,
-    traits::{CommandHandler, QueryHandler},
-};
+use crate::application::{commands::*, handlers::*, queries::*};
 use crate::domain::value_objects::*;
 
 /// Start a new navigation session
@@ -30,6 +25,7 @@ pub fn start_navigation_session(
             ctx.route_service.clone(),
             ctx.navigation_repo.clone(),
             ctx.device_comm.clone(),
+            ctx.event_bus.clone(),
         );
 
         let command = StartNavigationCommand {
@@ -48,7 +44,7 @@ pub fn update_navigation_position(session_id: String, latitude: f64, longitude: 
     command_async(|| async {
         let ctx = get_context();
         let handler =
-            UpdatePositionHandler::new(ctx.navigation_repo.clone(), ctx.device_comm.clone());
+            UpdatePositionHandler::new(ctx.navigation_repo.clone(), ctx.event_bus.clone());
 
         let position = Position::new(latitude, longitude).map_err(|e| anyhow::anyhow!(e))?;
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
@@ -108,7 +104,8 @@ pub fn resume_navigation(session_id: String) -> Result<()> {
 pub fn stop_navigation(session_id: String) -> Result<()> {
     command_async(|| async {
         let ctx = get_context();
-        let handler = StopNavigationHandler::new(ctx.navigation_repo.clone());
+        let handler =
+            StopNavigationHandler::new(ctx.navigation_repo.clone(), ctx.event_bus.clone());
 
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
         let command = StopNavigationCommand {

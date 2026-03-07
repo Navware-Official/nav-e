@@ -4,5 +4,6 @@ members = [
   "device_comm",
   "nav_ir",
   "nav_core",
+  "nav_route",
   "nav_e_ffi",
 ]

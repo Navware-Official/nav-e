@@ -1100,7 +1100,6 @@ dependencies = [
  "sha2",
  "thiserror 1.0.69",
  "tokio",
- "urlencoding",
  "uuid",
 ]
 
@@ -1111,6 +1110,7 @@ dependencies = [
  "anyhow",
  "flutter_rust_bridge",
  "nav_core",
+ "nav_route",
  "tempfile",
 ]
 
@@ -1125,6 +1125,19 @@ dependencies = [
  "serde",
  "serde_json",
  "uuid",
+]
+
+[[package]]
+name = "nav_route"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "nav_core",
+ "nav_ir",
+ "reqwest",
+ "serde_json",
+ "urlencoding",
 ]
 
 [[package]]

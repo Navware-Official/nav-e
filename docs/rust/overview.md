@@ -1,24 +1,27 @@
 # Nav Engine - Rust Core
 
-A production-ready Rust navigation engine using **DDD/Hexagonal/CQRS** architecture, exposed to Flutter via `flutter_rust_bridge` through a dedicated thin FFI wrapper crate.
+A production-ready Rust navigation engine using **DDD/Hexagonal** architecture, exposed to Flutter via `flutter_rust_bridge` through a dedicated thin FFI wrapper crate.
 
-## Architecture Overview
-
-The project uses a **two-crate architecture** to cleanly separate business logic from FFI concerns:
+## Crate Structure
 
 ```
 native/
 ├── nav_core/            # Core navigation engine (internal)
 │   └── src/
-│       ├── api/           # Internal API layer
-│       ├── domain/        # Domain layer (entities, value objects, ports)
-│       ├── application/   # Application layer (CQRS handlers)
-│       ├── infrastructure/# Infrastructure adapters
+│       ├── api/           # Internal API layer (feature modules)
+│       ├── domain/        # Domain layer (entities, value objects, ports, events)
+│       ├── application/   # Application layer (handlers, commands, queries)
+│       ├── infrastructure/# Infrastructure adapters (SQLite, device comm)
 │       └── migrations/    # Database migrations
 │
-└── nav_e_ffi/             # Thin FFI wrapper (public API)
+├── nav_route/           # Routing & geocoding adapters
+│   └── src/
+│       ├── osrm/          # OsrmRouteService (feature: osrm)
+│       └── geocoding/     # NominatimGeocodingService (feature: nominatim)
+│
+└── nav_e_ffi/           # Thin FFI wrapper (public API)
     └── src/
-        └── lib.rs         # 20 public functions forwarding to nav_core
+        └── lib.rs         # Public functions forwarding to nav_core
 
 flutter/lib/bridge/        # Generated Dart bindings
     ├── frb_generated.dart
@@ -26,58 +29,52 @@ flutter/lib/bridge/        # Generated Dart bindings
     └── lib.dart           # Public API (automatically generated)
 ```
 
-### Core Engine Structure (`nav_core`)
+## Core Engine Structure (`nav_core`)
 
 ```
 native/nav_core/src/
-├── api/                    # Internal API Layer (Feature-based modules)
-│   ├── mod.rs             # AppContext and module coordination
+├── api/                    # Internal API Layer (feature-based modules)
+│   ├── mod.rs             # AppContext singleton and module coordination
+│   ├── context.rs         # initialize_database(), get_context(), subscribe_navigation_events()
 │   ├── dto.rs             # Data Transfer Objects & conversions
-│   ├── helpers.rs         # JSON serialization helpers
-│   ├── routes.rs          # Route calculation APIs
-│   ├── navigation.rs      # Navigation session APIs
-│   ├── geocoding.rs       # Geocoding APIs (Nominatim)
-│   ├── saved_places.rs    # Saved places CRUD APIs
-│   └── devices.rs         # Device management APIs
+│   ├── helpers.rs         # JSON serialization helpers (query_json, command_async, block_on)
+│   ├── geocoding.rs       # Geocoding APIs
+│   ├── device/            # Device comm & device CRUD
+│   ├── places/            # Saved places, saved routes, trips
+│   ├── navigation/        # Navigation session, route calculation
+│   └── offline_regions.rs # Offline map region management
 │
-├── domain/                # Domain Layer (Core business logic)
-│   ├── entities.rs        # Domain entities (NavigationSession, Route, Device)
-│   ├── value_objects.rs   # Value objects (Position, Waypoint, etc.)
-│   ├── events.rs          # Domain events
-│   └── ports.rs           # Port interfaces (traits)
+├── domain/                # Domain Layer (pure business logic)
+│   ├── entities.rs        # NavigationSession, Device, TrafficEvent
+│   ├── value_objects.rs   # Position, GeocodingSearchResult, DeviceCapabilities, BatteryInfo
+│   ├── events.rs          # NavigationEvent enum
+│   └── ports.rs           # Port interfaces (RouteService, GeocodingService, NavigationRepository, …)
 │
-├── application/           # Application Layer (CQRS)
-│   ├── commands.rs        # Write operations (Commands)
-│   ├── queries.rs         # Read operations (Queries)
-│   ├── handlers.rs        # Command & Query handlers
-│   ├── traits.rs          # Generic handler traits
-│   └── service_helpers.rs # Service utilities
+├── application/           # Application Layer
+│   ├── commands.rs        # Navigation command structs (StartNavigation, UpdatePosition, …)
+│   ├── queries.rs         # Query structs (GetActiveSession, GeocodeQuery, …)
+│   └── handlers.rs        # Async handler structs with pub async fn handle()
 │
 ├── infrastructure/        # Infrastructure Layer (Adapters)
-│   ├── database.rs        # SQLite repositories
-│   ├── base_repository.rs # Generic repository implementation
-│   ├── osrm_adapter.rs    # OSRM route service
-│   ├── geocoding_adapter.rs # Nominatim geocoding service
-│   └── protobuf_adapter.rs# Device communication
+│   ├── persistence/
+│   │   ├── database.rs        # SQLite repositories (places, routes, trips, devices, regions)
+│   │   ├── base_repository.rs # Generic CRUD base repository
+│   │   ├── sqlite_navigation_repo.rs # SqliteNavigationRepository (production)
+│   │   └── in_memory_repo.rs  # InMemoryNavigationRepository (test-only, #[cfg(test)])
+│   └── device/
+│       ├── no_op_device_comm.rs   # NoOpDeviceComm (default, swappable)
+│       └── protobuf_adapter.rs    # ProtobufDeviceCommunicator (future BLE impl)
 │
 └── migrations/            # Database migrations
-    └── m*.rs              # Migration files
+    └── m{timestamp}_{description}.rs
 ```
 
 ## Key Design Patterns
 
 ### 1. Thin FFI Wrapper Pattern
 
-The `nav_e_ffi` crate provides a minimal, stable API surface:
+`nav_e_ffi` provides a minimal, stable API surface. All functions are simple pass-throughs:
 
-**Benefits:**
-- ✅ FRB only scans the wrapper crate (no internal type leakage)
-- ✅ Clean separation between FFI and business logic
-- ✅ No cleanup scripts needed
-- ✅ Predictable code generation
-- ✅ Easy to expose engine to other platforms (Wear OS, embedded devices)
-
-**Implementation:**
 ```rust
 // nav_e_ffi/src/lib.rs
 #[frb]
@@ -86,23 +83,63 @@ pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
 }
 ```
 
-All functions are simple pass-throughs to the core engine.
+Initialization constructs services in `nav_e_ffi` and injects them into `nav_core`:
 
-### 2. Feature-Based API Organization
+```rust
+pub fn initialize_database(db_path: String) -> Result<()> {
+    let route_service = Arc::new(nav_route::OsrmRouteService::new(
+        "https://router.project-osrm.org".to_string(),
+    ));
+    let geocoding_service = Arc::new(nav_route::NominatimGeocodingService::new(
+        "https://nominatim.openstreetmap.org".to_string(),
+    ));
+    nav_core::api::initialize_database(db_path, route_service, geocoding_service)
+}
+```
 
-APIs are organized by feature domain rather than a monolithic file:
+**Benefits:**
+- FRB only scans `nav_e_ffi` — no internal type leakage
+- Services are swappable without changing `nav_core`
+- Clean separation between FFI boundary and business logic
 
-- **`api/routes.rs`** - Route calculation (OSRM integration)
-- **`api/navigation.rs`** - Navigation session management  
-- **`api/geocoding.rs`** - Forward/reverse geocoding (Nominatim)
-- **`api/saved_places.rs`** - Saved places CRUD (SQLite)
-- **`api/devices.rs`** - Device management (SQLite)
+### 2. Application Layer — Handlers
 
-Each module is self-contained and focused on a single feature.
+Handlers are plain async structs. Commands and queries are typed parameter bundles:
 
-### 2. Generic Repository Pattern
+```rust
+// No generic trait dispatch — plain async methods
+impl StartNavigationHandler {
+    pub async fn handle(&self, command: StartNavigationCommand) -> Result<NavigationSession> {
+        let route = self.route_service.calculate_route(command.waypoints).await?;
+        let session = NavigationSession::new(route.clone(), command.current_position);
+        self.navigation_repo.save_session(&session).await?;
+        let _ = self.event_bus.send(NavigationEvent::Started { session_id: session.id, route_id: route.id.0 });
+        Ok(session)
+    }
+}
+```
 
-Base repository with common CRUD operations:
+The application layer contains only navigation-related commands and queries. Saved places, routes, trips, and devices use repositories directly from the API layer (consistent direct-repo pattern throughout).
+
+### 3. Domain Event Bus
+
+`AppContext` holds a `broadcast::Sender<NavigationEvent>`. Handlers publish events; callers can subscribe:
+
+```rust
+// In nav_core
+pub fn subscribe_navigation_events() -> broadcast::Receiver<NavigationEvent> {
+    get_context().event_bus.subscribe()
+}
+
+// NavigationEvent variants
+NavigationEvent::Started { session_id, route_id }
+NavigationEvent::PositionUpdated { session_id, position }
+NavigationEvent::WaypointReached { session_id, index }
+NavigationEvent::Completed { session_id, distance_m }
+NavigationEvent::Cancelled { session_id }
+```
+
+### 4. Generic Repository Pattern
 
 ```rust
 pub trait Repository<T, ID>: Send + Sync {
@@ -114,35 +151,7 @@ pub trait Repository<T, ID>: Send + Sync {
 }
 ```
 
-Specialized repositories extend this pattern.
-
-### 3. CQRS with Generic Handlers
-
-Commands (writes) and queries (reads) separated with generic traits:
-
-```rust
-#[async_trait]
-pub trait CommandHandler<TCommand, TResult> {
-    async fn handle(&self, command: TCommand) -> Result<TResult>;
-}
-
-#[async_trait]
-pub trait QueryHandler<TQuery, TResult> {
-    async fn handle(&self, query: TQuery) -> Result<TResult>;
-}
-```
-
-All handlers implement these traits for consistency.
-
-### 4. DTO Conversion Functions
-
-Clean separation between domain entities and FFI-safe DTOs:
-
-```rust
-// Internal conversion functions (not exposed to FFI)
-pub(crate) fn route_to_dto(route: Route) -> RouteDto { ... }
-pub(crate) fn navigation_session_to_dto(session: NavigationSession) -> NavigationSessionDto { ... }
-```
+`BaseRepository<T>` implements this with SQLite, eliminating CRUD boilerplate.
 
 ### 5. JSON Serialization Helpers
 
@@ -153,7 +162,7 @@ Consistent error handling and serialization across all APIs:
 pub fn query_json<F, T>(operation: F) -> Result<String>
 pub fn command<F>(operation: F) -> Result<i64>
 
-// Async operations
+// Async operations (uses shared thread_local! tokio runtime)
 pub fn query_json_async<T, F, Fut>(operation: F) -> Result<String>
 pub fn command_async<F, Fut>(operation: F) -> Result<()>
 ```
@@ -166,14 +175,13 @@ pub fn command_async<F, Fut>(operation: F) -> Result<()>
 make codegen
 ```
 
-This runs `flutter_rust_bridge_codegen` pointing to the `nav_e_ffi` crate and generates bindings in `lib/bridge/`.
+Runs `flutter_rust_bridge_codegen` pointing to `nav_e_ffi` and generates bindings in `lib/bridge/`.
 
 ### 2. Build Rust Library
 
 **For desktop/testing:**
 ```bash
-cd native/nav_e_ffi
-cargo build --release
+cargo build -p nav_e_ffi --release
 ```
 
 **For Android:**
@@ -182,23 +190,13 @@ make build-android      # arm64 only
 make build-android-all  # arm64, armv7, x86_64
 ```
 
-### 3. Generated Dart Structure
-
-```
-lib/bridge/
-├── frb_generated.dart     # Core FRB infrastructure
-├── frb_generated.io.dart  # Platform-specific (iOS/Android)
-└── lib.dart               # Public API - all 20 functions
-```
-
-**Clean output - no internal directories!** 
-
-The old structure had unwanted `application/`, `domain/`, `infrastructure/` directories. The new FFI wrapper architecture eliminates this.
-
-### 4. Usage in Dart
+### 3. Usage in Dart
 
 ```dart
 import 'package:nav_e/bridge/lib.dart' as rust;
+
+// Initialize (once, on app start)
+await rust.initializeDatabase(dbPath: '/path/to/nav.db');
 
 // Calculate route
 final routeJson = await rust.calculateRoute(
@@ -209,250 +207,96 @@ final routeJson = await rust.calculateRoute(
 final sessionJson = await rust.startNavigationSession(
   waypoints: [(37.7749, -122.4194), (37.8044, -122.2711)],
   currentPosition: (37.7749, -122.4194),
+);
+```
+
 ## API Conventions
 
 ### JSON vs Typed Returns
 
-Most APIs return JSON strings for flexibility:
-
-```rust
-// In nav_core::api
-pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
-    query_json_async(|| async {
-        // ... implementation
-        Ok(route_to_dto(route))
-    })
-}
-
-// In nav_e_ffi (wrapper)
-#[frb]
-pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
-    nav_core::api::calculate_route(waypoints)
-}
-```
-
-This allows:
-- Easy serialization/deserialization on Dart side
-- Flexibility in response handling
-- Consistent error handling
-- Clean FFI boundary without complex types
+Most APIs return JSON strings for flexibility at the FFI boundary:
+- `get_all_*` → JSON array
+- `get_*_by_id` → JSON object (or null string)
+- `save_*` → `i64` row ID
+- `calculate_route`, `geocode_search` → JSON object/array
 
 ### Synchronous vs Asynchronous
 
-- **Sync** (`#[frb(sync)]`): Database CRUD operations (saved_places, devices)
-- **Async**: Network operations (routes, geocoding, navigation)
+- **Sync** (`#[frb(sync)]`): Database CRUD (saved places, routes, trips, devices)
+- **Async**: Network operations (route calculation, geocoding, navigation session management)
 
-### External Services
+All async FFI calls use a `thread_local!` tokio runtime via `block_on` — no per-call runtime creation.
 
-- **Routing**: OSRM (`https://router.project-osrm.org`)
-- **Geocoding**: Nominatim (`https://nominatim.openstreetmap.org`)
-  - Forward search: `/search?q={query}&format=json&limit={limit}&addressdetails=1`
-  - Reverse geocoding: `/reverse?lat={lat}&lon={lon}&format=json`
-  - User-Agent: "NavE Navigation App/1.0" (required by Nominatim)
-### JSON vs Typed Returns
+### External Services (via `nav_route`)
 
-Most APIs return JSON strings for flexibility:
+- **Routing**: OSRM (`https://router.project-osrm.org`) — `OsrmRouteService`
+- **Geocoding**: Nominatim (`https://nominatim.openstreetmap.org`) — `NominatimGeocodingService`
 
-```rust
-#[frb]
-pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
-    query_json_async(|| async {
-        // ... implementation
+Both are feature-flagged (`osrm`, `nominatim`) in `nav_route/Cargo.toml`.
+
 ## Adding New Features
 
 ### Example: Adding Parking Zones
 
-#### Step 1: Define in `nav_core`
+#### Step 1: Define domain entity (`nav_core/src/domain/entities.rs`)
 
-1. **Define domain entity** (`nav_core/src/domain/entities.rs`):
 ```rust
 pub struct ParkingZone {
-    pub id: Uuid,
+    pub id: i64,
     pub location: Position,
     pub capacity: u32,
-    // ...
 }
 ```
 
-2. **Create repository** (`nav_core/src/infrastructure/database.rs`):
-```rust
-pub struct ParkingZoneRepository {
-    base: BaseRepository<ParkingZoneEntity>,
-}
-```
+#### Step 2: Create repository (`nav_core/src/infrastructure/persistence/database.rs`)
 
-3. **Create API module** (`nav_core/src/api/parking_zones.rs`):
+Add a `ParkingZonesRepository` using `BaseRepository<ParkingZoneEntity>`.
+
+#### Step 3: Add to AppContext (`nav_core/src/api/context.rs`)
+
+Wire the repository into `AppContext` and populate in `initialize_database`.
+
+#### Step 4: Create API module (`nav_core/src/api/parking_zones.rs`)
+
 ```rust
 pub fn get_all_parking_zones() -> Result<String> {
     query_json(|| get_context().parking_zones_repo.get_all())
 }
-
-pub fn save_parking_zone(name: String, lat: f64, lon: f64, capacity: u32) -> Result<i64> {
-    // implementation
-}
 ```
 
-4. **Register in mod.rs** (`nav_core/src/api/mod.rs`):
+#### Step 5: Expose in nav_e_ffi (`nav_e_ffi/src/lib.rs`)
+
 ```rust
-pub(crate) mod parking_zones;
-pub use parking_zones::*;
-## Testing
-
-### Rust Tests
-
-```bash
-# Test core engine
-cd native/nav_core
-cargo test
-
-# Test FFI wrapper
-cd native/nav_e_ffi
-cargo check  # FFI layer is thin, mainly checking compilation
-
-# Run specific test
-cargo test test_route_to_dto
-```
-
-### Flutter Tests
-
-```bash
-# Run Dart tests
-flutter test
-
-# Run integration tests
-flutter test integration_test/
-```
-
-## Configuration Files
-
-### `flutter_rust_bridge.yaml`
-
-```yaml
-rust_input: "crate"
-rust_root: "native/nav_e_ffi/"  # Points to wrapper, not engine!
-dart_output: "lib/bridge"
-dart_entrypoint_class_name: "RustBridge"
-web: false
-```
-
-**Important:** `rust_root` points to `nav_e_ffi`, ensuring FRB only sees the public API.
-
-### `Makefile` Targets
-
-```bash
-make codegen          # Generate FRB bindings
-make build-native     # Build nav_e_ffi for desktop
-make build-android    # Build for Android (arm64)
-make build-android-all# Build for Android (all ABIs)
-make clean-native     # Clean both crates
-make fmt              # Format both crates
-make test             # Run Flutter tests
-```
-
-## Debugging
-
-### Adding Debug Logs
-
-**Rust (use `eprintln!` for stderr):**
-```rust
-pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
-    eprintln!("[GEOCODING] Query: {}", query);
-    // ... implementation
-    eprintln!("[GEOCODING] Returning {} results", results.len());
-}
-```
-
-**Dart:**
-```dart
-print('[MY FEATURE] Debug info: $data');
-```
-
-### View Logs
-
-```bash
-# Flutter logs
-flutter run -v
-
-# Android logcat (filtered)
-adb logcat | grep -E "GEOCODING|flutter|RUST"
-
-# See all stderr from Rust
-adb logcat | grep "System.err"
-```
-
-## Migration from Old Architecture
-
-The project recently migrated from directly exposing `nav_core` to using the `nav_e_ffi` wrapper:
-
-**Old (problematic):**
-```yaml
-# flutter_rust_bridge.yaml
-rust_input: "crate::api"
-rust_root: "native/nav_core/"  # ❌ FRB scanned internal types
-```
-
-**New (clean):**
-```yaml
-rust_input: "crate"
-rust_root: "native/nav_e_ffi/"  # ✅ FRB only sees wrapper
-```
-
-**Dart import changes:**
-```dart
-// Old (multiple files)
-import 'package:nav_e/bridge/api/routes.dart' as routes_api;
-import 'package:nav_e/bridge/api/navigation.dart' as nav_api;
-routes_api.calculateRoute(...)
-
-// New (single namespace)
-import 'package:nav_e/bridge/lib.dart' as rust;
-rust.calculateRoute(...)
-```rb(sync)]
+#[frb(sync)]
 pub fn get_all_parking_zones() -> Result<String> {
     nav_core::api::get_all_parking_zones()
 }
-
-/// Save a parking zone and return the assigned ID
-#[frb(sync)]
-pub fn save_parking_zone(
-    name: String,
-    lat: f64,
-    lon: f64,
-    capacity: u32,
-) -> Result<i64> {
-    nav_core::api::save_parking_zone(name, lat, lon, capacity)
-}
 ```
 
-#### Step 3: Regenerate bindings
+#### Step 6: Regenerate bindings
 
 ```bash
 make codegen
 ```
 
-That's it! The new functions appear in `lib/bridge/lib.dart` automatically.
-3. **Create API module** (`api/parking_zones.rs`):
-```rust
-#[frb(sync)]
-pub fn get_all_parking_zones() -> Result<String> {
-    query_json(|| get_context().parking_zones_repo.get_all())
-}
-```
-
-4. **Register in mod.rs**:
-```rust
-mod parking_zones;
-pub use parking_zones::*;
-```
-
-That's it! The helper functions and traits handle the rest.
-
 ## Testing
 
 ```bash
-# Run all tests
-cargo test --manifest-path native/nav_core/Cargo.toml
+# Run all nav_core tests (77 tests covering domain, infra, migration, handler layers)
+cargo test -p nav_core
 
-# Run specific test
-cargo test --manifest-path native/nav_core/Cargo.toml test_route_to_dto
+# Check FFI wrapper compiles
+cargo check -p nav_e_ffi
+
+# Run a specific test
+cargo test -p nav_core start_navigation_creates_active_session
 ```
+
+### Test Structure
+
+Tests live alongside source code in `#[cfg(test)] mod tests` blocks:
+- `domain/entities.rs` — entity lifecycle, state transitions
+- `domain/value_objects.rs` — validation, distance calculation
+- `application/handlers.rs` — handler logic via `InMemoryNavigationRepository`
+- `infrastructure/persistence/` — SQLite round-trips via in-memory SQLite
+- `migrations/` — migration idempotency, rollback

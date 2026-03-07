@@ -11,3 +11,8 @@ pub mod api;
 
 // Re-export all public APIs from feature modules
 pub use api::*;
+
+// Port traits and value types — exposed so nav_route can implement them
+pub use domain::events::NavigationEvent;
+pub use domain::ports::{GeocodingService, RouteService};
+pub use domain::value_objects::{GeocodingSearchResult, Position};

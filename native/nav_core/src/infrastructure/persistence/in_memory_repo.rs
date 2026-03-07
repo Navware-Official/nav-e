@@ -81,11 +81,36 @@ mod tests {
                     polyline: EncodedPolyline("_p~iF~ps|U".into()),
                     source: GeometrySource::SnappedToGraph,
                     confidence: GeometryConfidence::High,
-                    bounding_box: BoundingBox { min_lat: 40.0, min_lon: -74.0, max_lat: 41.0, max_lon: -73.0 },
+                    bounding_box: BoundingBox {
+                        min_lat: 40.0,
+                        min_lon: -74.0,
+                        max_lat: 41.0,
+                        max_lon: -73.0,
+                    },
                 },
                 waypoints: vec![
-                    Waypoint { id: WaypointId::new(), coordinate: Coordinate::new(40.71, -74.01), kind: WaypointKind::Start, radius_m: None, name: None, description: None, role: None, category: None, geometry_ref: None },
-                    Waypoint { id: WaypointId::new(), coordinate: Coordinate::new(40.76, -73.99), kind: WaypointKind::Stop, radius_m: None, name: None, description: None, role: None, category: None, geometry_ref: None },
+                    Waypoint {
+                        id: WaypointId::new(),
+                        coordinate: Coordinate::new(40.71, -74.01),
+                        kind: WaypointKind::Start,
+                        radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
+                    },
+                    Waypoint {
+                        id: WaypointId::new(),
+                        coordinate: Coordinate::new(40.76, -73.99),
+                        kind: WaypointKind::Stop,
+                        radius_m: None,
+                        name: None,
+                        description: None,
+                        role: None,
+                        category: None,
+                        geometry_ref: None,
+                    },
                 ],
                 legs: vec![],
                 instructions: vec![],
@@ -141,7 +166,9 @@ mod tests {
     #[tokio::test]
     async fn load_active_session_returns_none_when_all_paused() {
         let repo = InMemoryNavigationRepository::new();
-        repo.save_session(&make_session(NavigationStatus::Paused)).await.unwrap();
+        repo.save_session(&make_session(NavigationStatus::Paused))
+            .await
+            .unwrap();
         assert!(repo.load_active_session().await.unwrap().is_none());
     }
 
