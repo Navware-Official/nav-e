@@ -21,7 +21,6 @@ impl OsrmRouteService {
 #[async_trait]
 impl RouteService for OsrmRouteService {
     async fn calculate_route(&self, waypoints: Vec<Position>) -> Result<NavIrRoute> {
-        eprintln!("[RUST OSRM] Starting route calculation");
         let coords: Vec<String> = waypoints
             .iter()
             .map(|p| format!("{},{}", p.longitude, p.latitude))
@@ -32,7 +31,6 @@ impl RouteService for OsrmRouteService {
             "{}/route/v1/driving/{}?overview=full&geometries=polyline",
             self.base_url, coords_str
         );
-        eprintln!("[RUST OSRM] Request URL: {}", url);
 
         let response = self
             .client
@@ -42,17 +40,11 @@ impl RouteService for OsrmRouteService {
             .await
             .context("Failed to send OSRM request")?;
 
-        eprintln!(
-            "[RUST OSRM] Received response with status: {}",
-            response.status()
-        );
-
         if !response.status().is_success() {
             let error_text = response
                 .text()
                 .await
                 .unwrap_or_else(|_| "Unknown error".to_string());
-            eprintln!("[RUST OSRM] Error response: {}", error_text);
             anyhow::bail!("OSRM returned error status: {}", error_text);
         }
 

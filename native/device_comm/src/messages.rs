@@ -166,7 +166,9 @@ pub fn prepare_route_message(route_json: String) -> Result<Vec<u8>> {
     };
 
     let mut buf = Vec::new();
-    message.encode(&mut buf).context("Failed to encode protobuf message")?;
+    message
+        .encode(&mut buf)
+        .context("Failed to encode protobuf message")?;
     Ok(buf)
 }
 
@@ -223,7 +225,9 @@ pub fn prepare_map_region_metadata_message(
     };
 
     let mut buf = Vec::new();
-    message.encode(&mut buf).context("Encode MapRegionMetadata message")?;
+    message
+        .encode(&mut buf)
+        .context("Encode MapRegionMetadata message")?;
     Ok(buf)
 }
 
@@ -234,7 +238,9 @@ pub fn prepare_map_style_message(map_source_id: String) -> Result<Vec<u8>> {
         payload: Some(proto::message::Payload::MapStyle(map_style)),
     };
     let mut buf = Vec::new();
-    message.encode(&mut buf).context("Encode MapStyle message")?;
+    message
+        .encode(&mut buf)
+        .context("Encode MapStyle message")?;
     Ok(buf)
 }
 
@@ -257,7 +263,9 @@ pub fn prepare_tile_chunk_message(
         payload: Some(proto::message::Payload::TileChunk(chunk)),
     };
     let mut buf = Vec::new();
-    message.encode(&mut buf).context("Encode TileChunk message")?;
+    message
+        .encode(&mut buf)
+        .context("Encode TileChunk message")?;
     Ok(buf)
 }
 
@@ -266,7 +274,9 @@ pub fn reassemble_frames(frame_bytes: Vec<Vec<u8>>) -> Result<Vec<u8>> {
     let mut reassembler = FrameAssembler::new();
     for bytes in frame_bytes {
         let frame = proto::Frame::decode(&bytes[..]).context("Failed to decode frame")?;
-        reassembler.add_frame(frame).map_err(|e| anyhow::anyhow!("{}", e))?;
+        reassembler
+            .add_frame(frame)
+            .map_err(|e| anyhow::anyhow!("{}", e))?;
     }
     if !reassembler.is_complete() {
         bail!(
@@ -274,11 +284,15 @@ pub fn reassemble_frames(frame_bytes: Vec<Vec<u8>>) -> Result<Vec<u8>> {
             reassembler.missing_sequences()
         );
     }
-    let message_bytes = reassembler.assemble().map_err(|e| anyhow::anyhow!("{}", e))?;
+    let message_bytes = reassembler
+        .assemble()
+        .map_err(|e| anyhow::anyhow!("{}", e))?;
     let message = proto::Message::decode(&message_bytes[..])
         .context("Failed to decode reassembled message")?;
     let mut buf = Vec::new();
-    message.encode(&mut buf).context("Failed to encode reassembled message")?;
+    message
+        .encode(&mut buf)
+        .context("Failed to encode reassembled message")?;
     Ok(buf)
 }
 
@@ -316,7 +330,8 @@ pub fn create_control_message(
         payload: Some(proto::message::Payload::Control(control)),
     };
     let mut buf = Vec::new();
-    msg.encode(&mut buf).context("Failed to encode control message")?;
+    msg.encode(&mut buf)
+        .context("Failed to encode control message")?;
     Ok(buf)
 }
 

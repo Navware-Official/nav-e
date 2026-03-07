@@ -53,8 +53,10 @@ Isolate core business logic from external concerns:
 Separate read and write operations:
 
 - **Commands**: Write operations that change state (StartNavigationCommand, UpdatePositionCommand)
-- **Queries**: Read operations that don't modify state (GetActiveSessionQuery, GetTrafficAlertsQuery)
+- **Queries**: Read operations that don't modify state (GetActiveSessionQuery, GeocodeQuery)
 - **Handlers**: Execute commands and queries with clear single responsibilities
+
+> **Amendment (2026-03):** The generic `CommandHandler<TCommand, TResult>` and `QueryHandler<TQuery, TResult>` trait abstractions were removed (see notes below). CRUD features (saved places, routes, trips, devices) use direct repository calls from the API layer — no handler indirection. Navigation handlers retain the handler struct pattern for testability but are plain async structs, not trait implementors.
 
 ## Consequences
 
@@ -164,3 +166,30 @@ Separate read and write operations:
 ## Notes
 
 This foundational architectural decision shapes all subsequent technical decisions in the nav-e project. As the project evolves, we should periodically review whether these patterns continue to serve our needs and adjust if necessary.
+
+---
+
+## Amendment — 2026-03: Simplify CQRS, extract nav_route, add event bus
+
+### Changes made during `refactor/native-simplify-high`
+
+**CQRS simplification:**
+- Removed `application/traits.rs` (`CommandHandler<T,R>` / `QueryHandler<T,R>` generic traits) — the abstraction added boilerplate without benefit since handlers are never dispatched polymorphically
+- Removed `application/service_helpers.rs` (`ServiceRegistry`, unused macros) — entirely dead code
+- Navigation handlers (`StartNavigationHandler`, etc.) are now plain async structs with `pub async fn handle` methods
+- Simple CRUD features (saved places, routes, trips, devices) call repositories directly from the API layer — no command/query wrappers
+- Removed unused command/query structs (device registration, traffic reporting, `CalculateRouteQuery`)
+
+**Routing & geocoding extraction:**
+- `OsrmRouteService` and `NominatimGeocodingService` moved to a new `nav_route` crate with feature flags (`osrm`, `nominatim`)
+- `nav_core` defines the `RouteService`/`GeocodingService` port traits and re-exports them; `nav_route` implements them
+- `nav_e_ffi::initialize_database` constructs both services and injects them into `nav_core` — dependency inversion at the crate boundary
+
+**Domain event bus:**
+- Replaced six individual event structs with a single `NavigationEvent` enum in `domain/events.rs`
+- `AppContext` holds a `tokio::sync::broadcast::Sender<NavigationEvent>`
+- Navigation handlers publish live events; `subscribe_navigation_events()` is the public subscription point
+
+**Navigation persistence:**
+- `SqliteNavigationRepository` replaces `InMemoryNavigationRepository` in production
+- `InMemoryNavigationRepository` retained as `#[cfg(test)]`-only for handler tests

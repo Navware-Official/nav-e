@@ -1,50 +1,9 @@
 /// Navigation session APIs
 use anyhow::Result;
-use std::sync::Arc;
 
 use crate::api::{dto::*, get_context, helpers::*};
-use crate::application::{
-    commands::*,
-    handlers::*,
-    queries::*,
-    traits::{CommandHandler, QueryHandler},
-};
-use crate::domain::{
-    entities::*,
-    ports::{ControlCommand, DeviceCommunicationPort},
-    value_objects::*,
-};
-use async_trait::async_trait;
-use nav_ir::Route as NavIrRoute;
-
-// Mock device communication for now
-pub struct MockDeviceComm;
-#[async_trait]
-impl DeviceCommunicationPort for MockDeviceComm {
-    async fn send_route_summary(
-        &self,
-        _device_id: String,
-        _session: &NavigationSession,
-    ) -> Result<()> {
-        Ok(())
-    }
-    async fn send_route_blob(&self, _device_id: String, _route: &NavIrRoute) -> Result<()> {
-        Ok(())
-    }
-    async fn send_position_update(&self, _device_id: String, _position: Position) -> Result<()> {
-        Ok(())
-    }
-    async fn send_traffic_alert(&self, _device_id: String, _event: &TrafficEvent) -> Result<()> {
-        Ok(())
-    }
-    async fn send_control_command(
-        &self,
-        _device_id: String,
-        _command: ControlCommand,
-    ) -> Result<()> {
-        Ok(())
-    }
-}
+use crate::application::{commands::*, handlers::*, queries::*};
+use crate::domain::value_objects::*;
 
 /// Start a new navigation session
 pub fn start_navigation_session(
@@ -62,12 +21,11 @@ pub fn start_navigation_session(
         let current_pos = Position::new(current_position.0, current_position.1)
             .map_err(|e| anyhow::anyhow!(e))?;
 
-        let device_comm = Arc::new(MockDeviceComm);
-
         let handler = StartNavigationHandler::new(
             ctx.route_service.clone(),
             ctx.navigation_repo.clone(),
-            device_comm,
+            ctx.device_comm.clone(),
+            ctx.event_bus.clone(),
         );
 
         let command = StartNavigationCommand {
@@ -86,7 +44,7 @@ pub fn update_navigation_position(session_id: String, latitude: f64, longitude: 
     command_async(|| async {
         let ctx = get_context();
         let handler =
-            UpdatePositionHandler::new(ctx.navigation_repo.clone(), Arc::new(MockDeviceComm));
+            UpdatePositionHandler::new(ctx.navigation_repo.clone(), ctx.event_bus.clone());
 
         let position = Position::new(latitude, longitude).map_err(|e| anyhow::anyhow!(e))?;
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
@@ -102,14 +60,9 @@ pub fn update_navigation_position(session_id: String, latitude: f64, longitude: 
 
 /// Get the currently active navigation session
 pub fn get_active_session() -> Result<Option<String>> {
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?;
-
-    rt.block_on(async {
+    block_on(async {
         let ctx = get_context();
         let handler = GetActiveSessionHandler::new(ctx.navigation_repo.clone());
-
         let session = handler.handle(GetActiveSessionQuery {}).await?;
         Ok(session
             .as_ref()
@@ -151,7 +104,8 @@ pub fn resume_navigation(session_id: String) -> Result<()> {
 pub fn stop_navigation(session_id: String) -> Result<()> {
     command_async(|| async {
         let ctx = get_context();
-        let handler = StopNavigationHandler::new(ctx.navigation_repo.clone());
+        let handler =
+            StopNavigationHandler::new(ctx.navigation_repo.clone(), ctx.event_bus.clone());
 
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
         let command = StopNavigationCommand {

@@ -81,7 +81,7 @@ where
 impl<T, ID> Repository<T, ID> for BaseRepository<T, ID>
 where
     T: DatabaseEntity<Id = ID>,
-    ID: Copy + Send + Sync + rusqlite::types::FromSql + rusqlite::ToSql,
+    ID: Copy + Send + Sync + rusqlite::types::FromSql + rusqlite::ToSql + From<i64>,
 {
     fn get_all(&self) -> Result<Vec<T>> {
         let conn = self.db.lock().unwrap();
@@ -142,9 +142,7 @@ where
 
         let id = conn.last_insert_rowid();
 
-        // Convert i64 to ID type - this assumes ID implements From<i64>
-        // For i64, this is a no-op. For other types, implement From trait.
-        Ok(unsafe { std::mem::transmute_copy(&id) })
+        Ok(ID::from(id))
     }
 
     fn update(&self, id: ID, entity: T) -> Result<()> {

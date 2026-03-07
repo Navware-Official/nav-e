@@ -6,16 +6,24 @@ mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be
 
 use anyhow::Result;
 use flutter_rust_bridge::frb;
+use std::sync::Arc;
 
 // ============================================================================
 // Initialization API
 // ============================================================================
 
-/// Initialize the database with the platform-specific path
-/// Must be called before any database operations
+/// Initialize the database with the platform-specific path.
+/// Constructs OSRM routing and Nominatim geocoding services and injects them into nav_core.
+/// Must be called before any database operations.
 #[frb]
 pub fn initialize_database(db_path: String) -> Result<()> {
-    nav_core::api::initialize_database(db_path)
+    let route_service = Arc::new(nav_route::OsrmRouteService::new(
+        "https://router.project-osrm.org".to_string(),
+    ));
+    let geocoding_service = Arc::new(nav_route::NominatimGeocodingService::new(
+        "https://nominatim.openstreetmap.org".to_string(),
+    ));
+    nav_core::api::initialize_database(db_path, route_service, geocoding_service)
 }
 
 // ============================================================================

@@ -8,12 +8,12 @@ pub use context::*;
 pub mod dto;
 pub mod helpers;
 
-// Feature modules - public for FRB-generated code but not re-exported from crate
-pub(crate) mod device;
-pub(crate) mod geocoding;
-pub(crate) mod navigation;
-pub(crate) mod offline_regions;
-pub(crate) mod places;
+// Feature modules - pub so items can be re-exported and reached by FRB-generated code
+pub mod device;
+pub mod geocoding;
+pub mod navigation;
+pub mod offline_regions;
+pub mod places;
 
 // Re-export all public APIs
 pub use device::*;

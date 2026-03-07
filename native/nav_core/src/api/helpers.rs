@@ -5,6 +5,18 @@
 use anyhow::Result;
 use serde::Serialize;
 
+thread_local! {
+    /// Per-thread tokio runtime — avoids creating a new runtime on every FFI call.
+    static RT: tokio::runtime::Runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .expect("Failed to build tokio runtime");
+}
+
+pub(crate) fn block_on<F: std::future::Future>(fut: F) -> F::Output {
+    RT.with(|rt| rt.block_on(fut))
+}
+
 /// Helper for synchronous repository queries that return JSON
 ///
 /// # Example
@@ -80,11 +92,7 @@ where
     F: FnOnce() -> Fut,
     Fut: std::future::Future<Output = Result<T>>,
 {
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?;
-
-    let result = rt.block_on(operation())?;
+    let result = block_on(operation())?;
     Ok(serde_json::to_string(&result)?)
 }
 
@@ -104,11 +112,7 @@ where
     F: FnOnce() -> Fut,
     Fut: std::future::Future<Output = Result<()>>,
 {
-    let rt = tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()?;
-
-    rt.block_on(operation())
+    block_on(operation())
 }
 
 #[cfg(test)]
