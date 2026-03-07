@@ -26,11 +26,7 @@ pub fn save_place(
     type_id: Option<i64>,
     remote_id: Option<String>,
 ) -> Result<i64> {
-    eprintln!("[RUST SAVE] Attempting to save place: {}", name);
     command_with_id(|| {
-        let ctx = get_context();
-        let now = chrono::Utc::now().timestamp_millis();
-
         let place = SavedPlaceEntity {
             id: None,
             type_id,
@@ -40,16 +36,9 @@ pub fn save_place(
             address,
             lat,
             lon,
-            created_at: now,
+            created_at: chrono::Utc::now().timestamp_millis(),
         };
-
-        eprintln!("[RUST SAVE] Inserting into database...");
-        let result = ctx.saved_places_repo.insert(place);
-        match &result {
-            Ok(id) => eprintln!("[RUST SAVE] Successfully saved with ID: {}", id),
-            Err(e) => eprintln!("[RUST SAVE ERROR] Failed to save: {}", e),
-        }
-        result
+        get_context().saved_places_repo.insert(place)
     })
 }
 

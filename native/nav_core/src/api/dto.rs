@@ -55,6 +55,21 @@ pub struct GeocodingResultDto {
     pub osm_id: Option<i64>,
 }
 
+impl From<crate::domain::value_objects::GeocodingSearchResult> for GeocodingResultDto {
+    fn from(r: crate::domain::value_objects::GeocodingSearchResult) -> Self {
+        Self {
+            latitude: r.position.latitude,
+            longitude: r.position.longitude,
+            display_name: r.display_name,
+            name: r.name,
+            city: r.city,
+            country: r.country,
+            osm_type: r.osm_type,
+            osm_id: r.osm_id,
+        }
+    }
+}
+
 // ============================================================================
 // Conversion Functions (Internal - not exposed to FFI)
 // ============================================================================

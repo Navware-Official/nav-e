@@ -1,0 +1,19 @@
+[package]
+name = "nav_route"
+version = "0.1.0"
+edition = "2021"
+description = "HTTP routing and geocoding service implementations for nav_core ports"
+
+[features]
+default = ["osrm", "nominatim"]
+osrm = ["dep:reqwest"]
+nominatim = ["dep:reqwest", "dep:urlencoding"]
+
+[dependencies]
+nav_core = { path = "../nav_core" }
+nav_ir = { path = "../nav_ir" }
+anyhow = "1"
+async-trait = "0.1"
+serde_json = "1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "gzip", "rustls-tls"], optional = true }
+urlencoding = { version = "2", optional = true }

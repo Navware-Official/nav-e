@@ -19,8 +19,7 @@ pub fn send_route_to_device(device_id: i64, route_json: String) -> Result<()> {
         route_json.len()
     );
 
-    let device_str =
-        get_device_by_id(device_id).context("Failed to load device from database")?;
+    let device_str = get_device_by_id(device_id).context("Failed to load device from database")?;
     let device: serde_json::Value =
         serde_json::from_str(&device_str).context("Failed to parse device JSON")?;
 
@@ -47,11 +46,7 @@ pub fn send_route_to_device(device_id: i64, route_json: String) -> Result<()> {
 
 // Re-export device_comm message APIs so FFI (nav_e_ffi) continues to use nav_core::api::*
 pub use device_comm::{
-    chunk_message_for_ble,
-    create_control_message,
-    prepare_map_region_metadata_message,
-    prepare_map_style_message,
-    prepare_route_message,
-    prepare_tile_chunk_message,
+    chunk_message_for_ble, create_control_message, prepare_map_region_metadata_message,
+    prepare_map_style_message, prepare_route_message, prepare_tile_chunk_message,
     reassemble_frames,
 };

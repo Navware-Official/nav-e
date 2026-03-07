@@ -1,6 +1,4 @@
-// Application Layer - Use cases and orchestration (CQRS)
+// Application Layer - Use cases and orchestration
 pub mod commands;
 pub mod handlers;
 pub mod queries;
-pub mod service_helpers;
-pub mod traits;

@@ -190,41 +190,7 @@ impl DatabaseEntity for DeviceEntity {
 }
 
 // Saved Places Repository
-#[derive(Clone)]
-pub struct SavedPlacesRepository {
-    base: BaseRepository<SavedPlaceEntity, i64>,
-}
-
-impl SavedPlacesRepository {
-    pub fn new(db: Arc<Mutex<Connection>>) -> Self {
-        Self {
-            base: BaseRepository::new(db),
-        }
-    }
-}
-
-// Delegate to base repository implementation
-impl Repository<SavedPlaceEntity, i64> for SavedPlacesRepository {
-    fn get_all(&self) -> Result<Vec<SavedPlaceEntity>> {
-        self.base.get_all()
-    }
-
-    fn get_by_id(&self, id: i64) -> Result<Option<SavedPlaceEntity>> {
-        self.base.get_by_id(id)
-    }
-
-    fn insert(&self, entity: SavedPlaceEntity) -> Result<i64> {
-        self.base.insert(entity)
-    }
-
-    fn update(&self, id: i64, entity: SavedPlaceEntity) -> Result<()> {
-        self.base.update(id, entity)
-    }
-
-    fn delete(&self, id: i64) -> Result<()> {
-        self.base.delete(id)
-    }
-}
+pub type SavedPlacesRepository = BaseRepository<SavedPlaceEntity, i64>;
 
 // Trip entity (database representation) for completed route history
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -302,40 +268,7 @@ impl DatabaseEntity for TripEntity {
 }
 
 // Trips Repository
-#[derive(Clone)]
-pub struct TripsRepository {
-    base: BaseRepository<TripEntity, i64>,
-}
-
-impl TripsRepository {
-    pub fn new(db: Arc<Mutex<Connection>>) -> Self {
-        Self {
-            base: BaseRepository::new(db),
-        }
-    }
-}
-
-impl Repository<TripEntity, i64> for TripsRepository {
-    fn get_all(&self) -> Result<Vec<TripEntity>> {
-        self.base.get_all()
-    }
-
-    fn get_by_id(&self, id: i64) -> Result<Option<TripEntity>> {
-        self.base.get_by_id(id)
-    }
-
-    fn insert(&self, entity: TripEntity) -> Result<i64> {
-        self.base.insert(entity)
-    }
-
-    fn update(&self, id: i64, entity: TripEntity) -> Result<()> {
-        self.base.update(id, entity)
-    }
-
-    fn delete(&self, id: i64) -> Result<()> {
-        self.base.delete(id)
-    }
-}
+pub type TripsRepository = BaseRepository<TripEntity, i64>;
 
 // Saved Route entity (database representation) for imported/saved routes
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -398,59 +331,24 @@ impl DatabaseEntity for SavedRouteEntity {
 }
 
 // Saved Routes Repository
-#[derive(Clone)]
-pub struct SavedRoutesRepository {
-    base: BaseRepository<SavedRouteEntity, i64>,
-}
-
-impl SavedRoutesRepository {
-    pub fn new(db: Arc<Mutex<Connection>>) -> Self {
-        Self {
-            base: BaseRepository::new(db),
-        }
-    }
-}
-
-impl Repository<SavedRouteEntity, i64> for SavedRoutesRepository {
-    fn get_all(&self) -> Result<Vec<SavedRouteEntity>> {
-        self.base.get_all()
-    }
-
-    fn get_by_id(&self, id: i64) -> Result<Option<SavedRouteEntity>> {
-        self.base.get_by_id(id)
-    }
-
-    fn insert(&self, entity: SavedRouteEntity) -> Result<i64> {
-        self.base.insert(entity)
-    }
-
-    fn update(&self, id: i64, entity: SavedRouteEntity) -> Result<()> {
-        self.base.update(id, entity)
-    }
-
-    fn delete(&self, id: i64) -> Result<()> {
-        self.base.delete(id)
-    }
-}
+pub type SavedRoutesRepository = BaseRepository<SavedRouteEntity, i64>;
 
 // Device Repository
 #[derive(Clone)]
 pub struct DeviceRepository {
     base: BaseRepository<DeviceEntity, i64>,
-    db: Arc<Mutex<Connection>>, // Keep for specialized methods
 }
 
 impl DeviceRepository {
     pub fn new(db: Arc<Mutex<Connection>>) -> Self {
         Self {
-            base: BaseRepository::new(db.clone()),
-            db,
+            base: BaseRepository::new(db),
         }
     }
 
     // Specialized method: query by remote_id
     pub fn get_by_remote_id(&self, remote_id: &str) -> Result<Option<DeviceEntity>> {
-        let conn = self.db.lock().unwrap();
+        let conn = self.base.db().lock().unwrap();
         let mut stmt = conn.prepare(
             "SELECT id, remote_id, name, device_type, connection_type, paired, 
                     last_connected, firmware_version, battery_level, created_at, updated_at 
@@ -468,7 +366,7 @@ impl DeviceRepository {
 
     // Specialized method: check existence by remote_id
     pub fn exists_by_remote_id(&self, remote_id: &str) -> Result<bool> {
-        let conn = self.db.lock().unwrap();
+        let conn = self.base.db().lock().unwrap();
         let count: i64 = conn.query_row(
             "SELECT COUNT(*) FROM devices WHERE remote_id = ?",
             [remote_id],
@@ -640,5 +538,217 @@ impl OfflineRegionsRepository {
 impl OfflineRegionEntity {
     pub fn intersects_bbox(&self, n: f64, s: f64, e: f64, w: f64) -> bool {
         !(n < self.south || s > self.north || e < self.west || w > self.east)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::migrations::{get_all_migrations, MigrationManager};
+    use rusqlite::Connection;
+
+    fn setup_db() -> Arc<Mutex<Connection>> {
+        let conn = Arc::new(Mutex::new(Connection::open_in_memory().unwrap()));
+        let mgr = MigrationManager::new(Arc::clone(&conn));
+        mgr.migrate(&get_all_migrations()).unwrap();
+        conn
+    }
+
+    // ── DeviceRepository ─────────────────────────────────────────────────────
+
+    fn make_device(remote_id: &str) -> DeviceEntity {
+        let now = chrono::Utc::now().timestamp_millis();
+        DeviceEntity {
+            id: None,
+            remote_id: remote_id.to_string(),
+            name: "Test Watch".to_string(),
+            device_type: "WearOs".to_string(),
+            connection_type: "BLE".to_string(),
+            paired: true,
+            last_connected: None,
+            firmware_version: None,
+            battery_level: None,
+            created_at: now,
+            updated_at: now,
+        }
+    }
+
+    #[test]
+    fn device_repo_get_by_remote_id_found() {
+        let conn = setup_db();
+        let repo = DeviceRepository::new(conn);
+        repo.insert(make_device("dev-abc")).unwrap();
+        let found = repo.get_by_remote_id("dev-abc").unwrap();
+        assert!(found.is_some());
+        assert_eq!(found.unwrap().remote_id, "dev-abc");
+    }
+
+    #[test]
+    fn device_repo_get_by_remote_id_not_found() {
+        let conn = setup_db();
+        let repo = DeviceRepository::new(conn);
+        assert!(repo.get_by_remote_id("nonexistent").unwrap().is_none());
+    }
+
+    #[test]
+    fn device_repo_exists_by_remote_id() {
+        let conn = setup_db();
+        let repo = DeviceRepository::new(conn);
+        assert!(!repo.exists_by_remote_id("dev-xyz").unwrap());
+        repo.insert(make_device("dev-xyz")).unwrap();
+        assert!(repo.exists_by_remote_id("dev-xyz").unwrap());
+    }
+
+    // ── OfflineRegionEntity::intersects_bbox ─────────────────────────────────
+
+    fn make_region(n: f64, s: f64, e: f64, w: f64) -> OfflineRegionEntity {
+        OfflineRegionEntity {
+            id: "r1".to_string(),
+            name: "Test Region".to_string(),
+            north: n,
+            south: s,
+            east: e,
+            west: w,
+            min_zoom: 8,
+            max_zoom: 14,
+            relative_path: "r1.mbtiles".to_string(),
+            size_bytes: 0,
+            created_at: 0,
+        }
+    }
+
+    #[test]
+    fn offline_region_intersects_overlapping_viewport() {
+        // Region covers 48-52°N, -2-2°E
+        let region = make_region(52.0, 48.0, 2.0, -2.0);
+        // Viewport: 50-55°N, 0-5°E — overlaps
+        assert!(region.intersects_bbox(55.0, 50.0, 5.0, 0.0));
+    }
+
+    #[test]
+    fn offline_region_does_not_intersect_disjoint_north() {
+        let region = make_region(52.0, 48.0, 2.0, -2.0);
+        // Viewport entirely north of region
+        assert!(!region.intersects_bbox(60.0, 55.0, 2.0, -2.0));
+    }
+
+    #[test]
+    fn offline_region_does_not_intersect_disjoint_south() {
+        let region = make_region(52.0, 48.0, 2.0, -2.0);
+        assert!(!region.intersects_bbox(46.0, 40.0, 2.0, -2.0));
+    }
+
+    #[test]
+    fn offline_region_does_not_intersect_disjoint_east() {
+        let region = make_region(52.0, 48.0, 2.0, -2.0);
+        assert!(!region.intersects_bbox(52.0, 48.0, 10.0, 5.0));
+    }
+
+    #[test]
+    fn offline_region_does_not_intersect_disjoint_west() {
+        let region = make_region(52.0, 48.0, 2.0, -2.0);
+        assert!(!region.intersects_bbox(52.0, 48.0, -5.0, -10.0));
+    }
+
+    #[test]
+    fn offline_region_intersects_when_viewport_contained_within() {
+        let region = make_region(60.0, 40.0, 20.0, -20.0);
+        // Viewport fully inside region
+        assert!(region.intersects_bbox(52.0, 48.0, 2.0, -2.0));
+    }
+
+    // ── OfflineRegionsRepository CRUD ────────────────────────────────────────
+
+    fn make_offline_region_entity(id: &str) -> OfflineRegionEntity {
+        OfflineRegionEntity {
+            id: id.to_string(),
+            name: "Region".to_string(),
+            north: 52.0,
+            south: 48.0,
+            east: 2.0,
+            west: -2.0,
+            min_zoom: 8,
+            max_zoom: 14,
+            relative_path: format!("{id}.mbtiles"),
+            size_bytes: 1024,
+            created_at: chrono::Utc::now().timestamp(),
+        }
+    }
+
+    #[test]
+    fn offline_regions_repo_insert_and_get_all() {
+        let conn = setup_db();
+        let storage = std::path::PathBuf::from("/tmp");
+        let repo = OfflineRegionsRepository::new(conn, storage);
+        repo.insert(&make_offline_region_entity("region-1"))
+            .unwrap();
+        repo.insert(&make_offline_region_entity("region-2"))
+            .unwrap();
+        let all = repo.get_all().unwrap();
+        assert_eq!(all.len(), 2);
+    }
+
+    #[test]
+    fn offline_regions_repo_get_by_id() {
+        let conn = setup_db();
+        let repo = OfflineRegionsRepository::new(conn, std::path::PathBuf::from("/tmp"));
+        repo.insert(&make_offline_region_entity("region-abc"))
+            .unwrap();
+        let found = repo.get_by_id("region-abc").unwrap();
+        assert!(found.is_some());
+        assert_eq!(found.unwrap().id, "region-abc");
+    }
+
+    #[test]
+    fn offline_regions_repo_delete() {
+        let conn = setup_db();
+        let repo = OfflineRegionsRepository::new(conn, std::path::PathBuf::from("/tmp"));
+        repo.insert(&make_offline_region_entity("region-del"))
+            .unwrap();
+        repo.delete("region-del").unwrap();
+        assert!(repo.get_by_id("region-del").unwrap().is_none());
+    }
+
+    // ── SavedPlacesRepository ─────────────────────────────────────────────────
+
+    #[test]
+    fn saved_places_repo_insert_and_retrieve() {
+        let conn = setup_db();
+        let repo = SavedPlacesRepository::new(conn);
+        let place = SavedPlaceEntity {
+            id: None,
+            type_id: None,
+            source: "manual".to_string(),
+            remote_id: None,
+            name: "Home".to_string(),
+            address: Some("1 Main St".to_string()),
+            lat: 51.5,
+            lon: -0.12,
+            created_at: chrono::Utc::now().timestamp_millis(),
+        };
+        let id = repo.insert(place).unwrap();
+        let found = repo.get_by_id(id).unwrap();
+        assert!(found.is_some());
+        assert_eq!(found.unwrap().name, "Home");
+    }
+
+    #[test]
+    fn saved_places_repo_delete() {
+        let conn = setup_db();
+        let repo = SavedPlacesRepository::new(conn);
+        let place = SavedPlaceEntity {
+            id: None,
+            type_id: None,
+            source: "manual".to_string(),
+            remote_id: None,
+            name: "Work".to_string(),
+            address: None,
+            lat: 51.5,
+            lon: -0.12,
+            created_at: chrono::Utc::now().timestamp_millis(),
+        };
+        let id = repo.insert(place).unwrap();
+        repo.delete(id).unwrap();
+        assert!(repo.get_by_id(id).unwrap().is_none());
     }
 }

@@ -9,6 +9,7 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 
 [dependencies]
 nav_core = { path = "../nav_core" }
+nav_route = { path = "../nav_route" }
 flutter_rust_bridge = "=2.11.1"
 anyhow = "1"
 
