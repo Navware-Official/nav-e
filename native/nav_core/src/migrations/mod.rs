@@ -243,6 +243,143 @@ impl MigrationManager {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rusqlite::Connection;
+
+    fn in_memory_conn() -> Arc<Mutex<Connection>> {
+        Arc::new(Mutex::new(Connection::open_in_memory().unwrap()))
+    }
+
+    struct TestMigration {
+        version: i64,
+        up_sql: &'static str,
+        down_sql: Option<&'static str>,
+    }
+
+    impl Migration for TestMigration {
+        fn version(&self) -> i64 { self.version }
+        fn description(&self) -> &str { "test migration" }
+        fn up(&self) -> &str { self.up_sql }
+        fn down(&self) -> Option<&str> { self.down_sql }
+    }
+
+    fn make_migration(version: i64, sql: &'static str) -> Box<dyn Migration> {
+        Box::new(TestMigration { version, up_sql: sql, down_sql: None })
+    }
+
+    fn make_reversible_migration(version: i64, up: &'static str, down: &'static str) -> Box<dyn Migration> {
+        Box::new(TestMigration { version, up_sql: up, down_sql: Some(down) })
+    }
+
+    #[test]
+    fn initialize_creates_schema_migrations_table() {
+        let conn = in_memory_conn();
+        let mgr = MigrationManager::new(conn.clone());
+        mgr.initialize().unwrap();
+        let c = conn.lock().unwrap();
+        let count: i64 = c.query_row(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='schema_migrations'",
+            [],
+            |r| r.get(0),
+        ).unwrap();
+        assert_eq!(count, 1);
+    }
+
+    #[test]
+    fn migrate_applies_pending_migrations() {
+        let conn = in_memory_conn();
+        let mgr = MigrationManager::new(conn.clone());
+        let migrations: Vec<Box<dyn Migration>> = vec![
+            make_migration(1, "CREATE TABLE foo (id INTEGER PRIMARY KEY);"),
+            make_migration(2, "CREATE TABLE bar (id INTEGER PRIMARY KEY);"),
+        ];
+        mgr.migrate(&migrations).unwrap();
+        let applied = mgr.get_applied_versions().unwrap();
+        assert_eq!(applied, vec![1, 2]);
+    }
+
+    #[test]
+    fn migrate_is_idempotent() {
+        let conn = in_memory_conn();
+        let mgr = MigrationManager::new(conn.clone());
+        let migrations: Vec<Box<dyn Migration>> = vec![
+            make_migration(1, "CREATE TABLE foo (id INTEGER PRIMARY KEY);"),
+        ];
+        mgr.migrate(&migrations).unwrap();
+        // running again should not fail
+        mgr.migrate(&migrations).unwrap();
+        assert_eq!(mgr.get_applied_versions().unwrap().len(), 1);
+    }
+
+    #[test]
+    fn is_applied_returns_false_before_migration() {
+        let conn = in_memory_conn();
+        let mgr = MigrationManager::new(conn);
+        mgr.initialize().unwrap();
+        assert!(!mgr.is_applied(99).unwrap());
+    }
+
+    #[test]
+    fn is_applied_returns_true_after_migration() {
+        let conn = in_memory_conn();
+        let mgr = MigrationManager::new(conn);
+        let migrations: Vec<Box<dyn Migration>> = vec![
+            make_migration(42, "CREATE TABLE baz (id INTEGER PRIMARY KEY);"),
+        ];
+        mgr.migrate(&migrations).unwrap();
+        assert!(mgr.is_applied(42).unwrap());
+    }
+
+    #[test]
+    fn migrate_down_removes_migration_record() {
+        let conn = in_memory_conn();
+        let mgr = MigrationManager::new(conn);
+        let migrations: Vec<Box<dyn Migration>> = vec![
+            make_reversible_migration(
+                10,
+                "CREATE TABLE rev_test (id INTEGER PRIMARY KEY);",
+                "DROP TABLE rev_test;",
+            ),
+        ];
+        mgr.migrate(&migrations).unwrap();
+        assert!(mgr.is_applied(10).unwrap());
+        mgr.migrate_down(migrations[0].as_ref()).unwrap();
+        assert!(!mgr.is_applied(10).unwrap());
+    }
+
+    #[test]
+    fn rollback_reverts_last_migration() {
+        let conn = in_memory_conn();
+        let mgr = MigrationManager::new(conn);
+        let migrations: Vec<Box<dyn Migration>> = vec![
+            make_migration(1, "CREATE TABLE a (id INTEGER PRIMARY KEY);"),
+            make_reversible_migration(
+                2,
+                "CREATE TABLE b (id INTEGER PRIMARY KEY);",
+                "DROP TABLE b;",
+            ),
+        ];
+        mgr.migrate(&migrations).unwrap();
+        mgr.rollback(&migrations, 1).unwrap();
+        assert!(mgr.is_applied(1).unwrap());
+        assert!(!mgr.is_applied(2).unwrap());
+    }
+
+    #[test]
+    fn failed_migration_is_not_recorded() {
+        let conn = in_memory_conn();
+        let mgr = MigrationManager::new(conn);
+        let bad: Vec<Box<dyn Migration>> = vec![
+            make_migration(99, "THIS IS NOT VALID SQL !!!"),
+        ];
+        assert!(mgr.migrate(&bad).is_err());
+        mgr.initialize().unwrap(); // re-init since migrate failed before it
+        assert!(!mgr.is_applied(99).unwrap());
+    }
+}
+
 /// Registry of all migrations - ADD NEW MIGRATIONS HERE
 pub fn get_all_migrations() -> Vec<Box<dyn Migration>> {
     vec![
