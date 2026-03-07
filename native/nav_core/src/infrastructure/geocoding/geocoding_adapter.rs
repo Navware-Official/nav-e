@@ -1,5 +1,8 @@
 // Geocoding Adapter - Implementation of GeocodingService port using Nominatim
-use crate::domain::{ports::GeocodingService, value_objects::Position};
+use crate::domain::{
+    ports::GeocodingService,
+    value_objects::{GeocodingSearchResult, Position},
+};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 
@@ -24,11 +27,16 @@ pub type PhotonGeocodingService = NominatimGeocodingService;
 
 #[async_trait]
 impl GeocodingService for NominatimGeocodingService {
-    async fn geocode(&self, address: &str) -> Result<Vec<Position>> {
+    async fn geocode(
+        &self,
+        address: &str,
+        limit: Option<u32>,
+    ) -> Result<Vec<GeocodingSearchResult>> {
         let url = format!(
-            "{}/search?q={}&format=json&limit=10",
+            "{}/search?q={}&format=json&limit={}&addressdetails=1",
             self.base_url,
-            urlencoding::encode(address)
+            urlencoding::encode(address),
+            limit.unwrap_or(10)
         );
 
         let response = self
@@ -43,16 +51,36 @@ impl GeocodingService for NominatimGeocodingService {
             .await
             .context("Failed to parse geocoding response")?;
 
-        let positions: Vec<Position> = data
+        let results = data
             .iter()
             .filter_map(|item| {
                 let lat = item["lat"].as_str()?.parse::<f64>().ok()?;
                 let lon = item["lon"].as_str()?.parse::<f64>().ok()?;
-                Position::new(lat, lon).ok()
+                let position = Position::new(lat, lon).ok()?;
+                let display_name = item["display_name"].as_str()?.to_string();
+                let osm_type = item["osm_type"].as_str().map(|s| s.to_string());
+                let osm_id = item["osm_id"].as_i64();
+                let addr = &item["address"];
+                let name = item["name"].as_str().map(|s| s.to_string());
+                let city = addr["city"]
+                    .as_str()
+                    .or(addr["town"].as_str())
+                    .or(addr["village"].as_str())
+                    .map(|s| s.to_string());
+                let country = addr["country"].as_str().map(|s| s.to_string());
+                Some(GeocodingSearchResult {
+                    position,
+                    display_name,
+                    name,
+                    city,
+                    country,
+                    osm_type,
+                    osm_id,
+                })
             })
             .collect();
 
-        Ok(positions)
+        Ok(results)
     }
 
     async fn reverse_geocode(&self, position: Position) -> Result<String> {

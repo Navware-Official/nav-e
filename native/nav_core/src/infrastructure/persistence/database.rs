@@ -605,8 +605,12 @@ mod tests {
         OfflineRegionEntity {
             id: "r1".to_string(),
             name: "Test Region".to_string(),
-            north: n, south: s, east: e, west: w,
-            min_zoom: 8, max_zoom: 14,
+            north: n,
+            south: s,
+            east: e,
+            west: w,
+            min_zoom: 8,
+            max_zoom: 14,
             relative_path: "r1.mbtiles".to_string(),
             size_bytes: 0,
             created_at: 0,
@@ -659,8 +663,12 @@ mod tests {
         OfflineRegionEntity {
             id: id.to_string(),
             name: "Region".to_string(),
-            north: 52.0, south: 48.0, east: 2.0, west: -2.0,
-            min_zoom: 8, max_zoom: 14,
+            north: 52.0,
+            south: 48.0,
+            east: 2.0,
+            west: -2.0,
+            min_zoom: 8,
+            max_zoom: 14,
             relative_path: format!("{id}.mbtiles"),
             size_bytes: 1024,
             created_at: chrono::Utc::now().timestamp(),
@@ -672,8 +680,10 @@ mod tests {
         let conn = setup_db();
         let storage = std::path::PathBuf::from("/tmp");
         let repo = OfflineRegionsRepository::new(conn, storage);
-        repo.insert(&make_offline_region_entity("region-1")).unwrap();
-        repo.insert(&make_offline_region_entity("region-2")).unwrap();
+        repo.insert(&make_offline_region_entity("region-1"))
+            .unwrap();
+        repo.insert(&make_offline_region_entity("region-2"))
+            .unwrap();
         let all = repo.get_all().unwrap();
         assert_eq!(all.len(), 2);
     }
@@ -682,7 +692,8 @@ mod tests {
     fn offline_regions_repo_get_by_id() {
         let conn = setup_db();
         let repo = OfflineRegionsRepository::new(conn, std::path::PathBuf::from("/tmp"));
-        repo.insert(&make_offline_region_entity("region-abc")).unwrap();
+        repo.insert(&make_offline_region_entity("region-abc"))
+            .unwrap();
         let found = repo.get_by_id("region-abc").unwrap();
         assert!(found.is_some());
         assert_eq!(found.unwrap().id, "region-abc");
@@ -692,7 +703,8 @@ mod tests {
     fn offline_regions_repo_delete() {
         let conn = setup_db();
         let repo = OfflineRegionsRepository::new(conn, std::path::PathBuf::from("/tmp"));
-        repo.insert(&make_offline_region_entity("region-del")).unwrap();
+        repo.insert(&make_offline_region_entity("region-del"))
+            .unwrap();
         repo.delete("region-del").unwrap();
         assert!(repo.get_by_id("region-del").unwrap().is_none());
     }
@@ -710,7 +722,8 @@ mod tests {
             remote_id: None,
             name: "Home".to_string(),
             address: Some("1 Main St".to_string()),
-            lat: 51.5, lon: -0.12,
+            lat: 51.5,
+            lon: -0.12,
             created_at: chrono::Utc::now().timestamp_millis(),
         };
         let id = repo.insert(place).unwrap();
@@ -724,9 +737,14 @@ mod tests {
         let conn = setup_db();
         let repo = SavedPlacesRepository::new(conn);
         let place = SavedPlaceEntity {
-            id: None, type_id: None, source: "manual".to_string(),
-            remote_id: None, name: "Work".to_string(), address: None,
-            lat: 51.5, lon: -0.12,
+            id: None,
+            type_id: None,
+            source: "manual".to_string(),
+            remote_id: None,
+            name: "Work".to_string(),
+            address: None,
+            lat: 51.5,
+            lon: -0.12,
             created_at: chrono::Utc::now().timestamp_millis(),
         };
         let id = repo.insert(place).unwrap();

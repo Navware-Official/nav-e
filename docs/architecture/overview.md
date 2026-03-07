@@ -37,90 +37,75 @@ Interfaces defining contracts (Dependency Inversion):
   - `DeviceMessageReceiver` - Handle incoming device messages
 
 #### **Events** (`events.rs`)
-Domain events for event sourcing:
-- `NavigationStartedEvent`
-- `PositionUpdatedEvent`
-- `WaypointReachedEvent`
-- `NavigationCompletedEvent`
-- `DeviceConnectedEvent`
-- `TrafficAlertDetectedEvent`
+Domain events published to an in-process `broadcast` channel. A single enum covers all navigation lifecycle events:
+
+```rust
+pub enum NavigationEvent {
+    Started { session_id: Uuid, route_id: Uuid },
+    PositionUpdated { session_id: Uuid, position: Position },
+    WaypointReached { session_id: Uuid, index: usize },
+    Completed { session_id: Uuid, distance_m: f64 },
+    Cancelled { session_id },
+}
+```
+
+Callers subscribe via `nav_core::api::subscribe_navigation_events() -> broadcast::Receiver<NavigationEvent>`.
 
 ### 2. Application Layer (`src/application/`)
 
 Orchestrates business logic using CQRS pattern.
 
 #### **Commands** (`commands.rs`)
-Write operations that change state:
-- `StartNavigationCommand` - Begin new navigation session
-- `UpdatePositionCommand` - Update current GPS position
-- `PauseNavigationCommand` / `ResumeNavigationCommand`
-- `StopNavigationCommand` - Complete or cancel
-- `RegisterDeviceCommand` - Connect new device
-- `SendRouteToDeviceCommand` - Push route to device
-- `ReportTrafficCommand` - Log traffic event
+Typed parameter bundles for write operations:
+- `StartNavigationCommand` — waypoints, current position, optional device ID
+- `UpdatePositionCommand` — session ID, new position
+- `PauseNavigationCommand` / `ResumeNavigationCommand` — session ID
+- `StopNavigationCommand` — session ID, completed flag
 
 #### **Queries** (`queries.rs`)
-Read operations that don't modify state:
-- `GetActiveSessionQuery` - Get current navigation
-- `GetSessionQuery` - Get session by ID
-- `GetConnectedDevicesQuery` - List devices
-- `GetTrafficAlertsQuery` - Get traffic for route
-- `CalculateRouteQuery` - Plan route without starting
-- `GeocodeQuery` / `ReverseGeocodeQuery` - Address lookup
+Typed parameter bundles for read operations:
+- `GetActiveSessionQuery` — returns the active `NavigationSession`
+- `GeocodeQuery` — address string + limit
+- `ReverseGeocodeQuery` — `Position`
+
+Saved places, routes, trips, and devices use repository methods directly from the API layer — no command/query wrappers for simple CRUD.
 
 #### **Handlers** (`handlers.rs`)
-Execute commands and queries:
-- `StartNavigationHandler` - Calculates route, creates session, sends to device
-- `UpdatePositionHandler` - Updates position, detects waypoint arrival
-- `CalculateRouteHandler` - Uses RouteService port
-- `GeocodeHandler` / `ReverseGeocodeHandler` - Uses GeocodingService port
+Plain async structs with a `pub async fn handle` method. No generic trait dispatch:
+- `StartNavigationHandler` — calculates route, creates session, notifies device, publishes `NavigationEvent::Started`
+- `UpdatePositionHandler` — loads session, updates position, detects waypoint proximity, publishes events
+- `PauseNavigationHandler` / `ResumeNavigationHandler` — load, mutate status, save
+- `StopNavigationHandler` — completes or cancels session, publishes event
+- `GetActiveSessionHandler` — delegates to `NavigationRepository::load_active_session`
+- `GeocodeHandler` / `ReverseGeocodeHandler` — delegate to `GeocodingService`
 
-### 3. Infrastructure Layer (`src/infrastructure/`)
+### 3. Infrastructure Layer (`src/infrastructure/` + `nav_route` crate)
 
-Adapters implementing domain ports (Hexagonal Architecture), grouped by adapter type:
+Adapters implementing domain ports, split across two crates:
 
-- **`persistence/`** – database, base_repository, in_memory_repo (SQLite, CRUD, in-memory session store)
-- **`routing/`** – osrm_adapter (OSRM routing)
-- **`geocoding/`** – geocoding_adapter (Nominatim/Photon)
-- **`device/`** – nav_ir_to_proto (Nav-IR → RouteBlob), protobuf_adapter (device communication)
+**`nav_core/src/infrastructure/`** — persistence and device adapters:
+- **`persistence/database.rs`** — `Database`, SQLite repositories for places, routes, trips, devices, offline regions
+- **`persistence/base_repository.rs`** — generic `BaseRepository<T>` with CRUD via `Repository<T, ID>` trait
+- **`persistence/sqlite_navigation_repo.rs`** — `SqliteNavigationRepository` (production navigation state)
+- **`persistence/in_memory_repo.rs`** — `InMemoryNavigationRepository` (**test-only**, `#[cfg(test)]`)
+- **`device/no_op_device_comm.rs`** — `NoOpDeviceComm` (default, swappable)
+- **`device/protobuf_adapter.rs`** — `ProtobufDeviceCommunicator` (future BLE impl)
 
-Types and functions are re-exported from `infrastructure` so existing paths (e.g. `crate::infrastructure::Database`, `crate::infrastructure::nav_ir_to_proto`) remain valid.
-
-#### **Adapters**
-
-**`routing/osrm_adapter.rs`** - OSRM routing implementation
+**`nav_route/`** — routing and geocoding adapters (separate crate, feature-flagged):
 ```rust
-impl RouteService for OsrmRouteService {
-    async fn calculate_route(&self, waypoints: Vec<Position>) -> Result<Route>
-    async fn recalculate_from_position(&self, route: &Route, current_position: Position) -> Result<Route>
+// nav_route implements nav_core port traits
+impl RouteService for OsrmRouteService {                // feature: osrm
+    async fn calculate_route(&self, waypoints: Vec<Position>) -> Result<NavIrRoute>
+    async fn recalculate_from_position(&self, route: &NavIrRoute, current_position: Position) -> Result<NavIrRoute>
 }
-```
 
-**`geocoding/geocoding_adapter.rs`** - Photon/Nominatim geocoding
-```rust
-impl GeocodingService for PhotonGeocodingService {
-    async fn geocode(&self, address: &str) -> Result<Vec<Position>>
+impl GeocodingService for NominatimGeocodingService {   // feature: nominatim
+    async fn geocode(&self, address: &str, limit: Option<u32>) -> Result<Vec<GeocodingSearchResult>>
     async fn reverse_geocode(&self, position: Position) -> Result<String>
 }
 ```
 
-**`device/protobuf_adapter.rs`** - Device communication via Protocol Buffers
-```rust
-impl DeviceCommunicationPort for ProtobufDeviceCommunicator {
-    async fn send_route_summary(&self, device_id: &str, session: &NavigationSession) -> Result<()>
-    async fn send_route_blob(&self, device_id: &str, route: &Route) -> Result<()>
-    async fn send_position_update(&self, device_id: &str, position: Position) -> Result<()>
-    async fn send_traffic_alert(&self, device_id: &str, event: &TrafficEvent) -> Result<()>
-}
-```
-
-**`persistence/in_memory_repo.rs`** - In-memory navigation state (for testing/development)
-```rust
-impl NavigationRepository for InMemoryNavigationRepository {
-    async fn save_session(&self, session: &NavigationSession) -> Result<()>
-    async fn load_active_session(&self) -> Result<Option<NavigationSession>>
-}
-```
+`nav_e_ffi` constructs and injects these services into `nav_core` at startup. `nav_core` itself has no dependency on `nav_route`.
 
 ### 3.5 API Layer (`src/api/`)
 
@@ -219,32 +204,26 @@ DeviceCommError(message)
 
 ### Rust Side
 
+Services are injected at startup by `nav_e_ffi`. Application code then calls API functions directly:
+
 ```rust
-use nav_core::application::{commands::*, handlers::*};
-use nav_core::infrastructure::*;
+// nav_e_ffi initialises the engine once
+nav_core::api::initialize_database(db_path, route_service, geocoding_service)?;
 
-// Setup dependencies (Hexagonal Architecture)
-let route_service = Arc::new(OsrmRouteService::new("https://router.project-osrm.org".into()));
-let navigation_repo = Arc::new(InMemoryNavigationRepository::new());
-let geocoding_service = Arc::new(PhotonGeocodingService::new("https://photon.komoot.io".into()));
-let device_comm = Arc::new(ProtobufDeviceCommunicator::new(transport));
+// nav_core API layer creates and runs handlers internally
+let session_json = nav_core::api::start_navigation_session(waypoints, current_pos)?;
 
-// Create handlers
-let start_handler = StartNavigationHandler::new(
-    route_service.clone(),
-    navigation_repo.clone(),
-    device_comm.clone()
-);
-
-// Execute command
-let command = StartNavigationCommand {
-    waypoints: vec![start_pos, end_pos],
-    current_position: start_pos,
-    device_id: Some("watch-123".into()),
-};
-
-let session = start_handler.handle(command).await?;
-println!("Navigation started: {}", session.id);
+// Subscribe to live navigation events
+let mut rx = nav_core::api::subscribe_navigation_events();
+tokio::spawn(async move {
+    while let Ok(event) = rx.recv().await {
+        match event {
+            NavigationEvent::PositionUpdated { session_id, position } => { /* … */ }
+            NavigationEvent::WaypointReached { session_id, index } => { /* … */ }
+            _ => {}
+        }
+    }
+});
 ```
 
 ### Flutter Side

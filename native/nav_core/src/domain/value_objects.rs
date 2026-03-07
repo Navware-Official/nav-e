@@ -39,6 +39,18 @@ impl Position {
     }
 }
 
+/// Geocoding search result with rich metadata
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct GeocodingSearchResult {
+    pub position: Position,
+    pub display_name: String,
+    pub name: Option<String>,
+    pub city: Option<String>,
+    pub country: Option<String>,
+    pub osm_type: Option<String>,
+    pub osm_id: Option<i64>,
+}
+
 /// Device capabilities (value object)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DeviceCapabilities {

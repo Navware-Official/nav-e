@@ -1,5 +1,7 @@
-#![allow(dead_code)]
 // Ports - Interfaces for external dependencies (Hexagonal Architecture)
+// Future ports (DeviceMessageReceiver, TrafficService) and reserved methods are intentional
+// architecture that will be wired up as device communication is implemented.
+#![allow(dead_code)]
 use crate::domain::{entities::*, value_objects::*};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -52,7 +54,11 @@ pub trait RouteService: Send + Sync {
 /// Port for geocoding service
 #[async_trait]
 pub trait GeocodingService: Send + Sync {
-    async fn geocode(&self, address: &str) -> Result<Vec<Position>>;
+    async fn geocode(
+        &self,
+        address: &str,
+        limit: Option<u32>,
+    ) -> Result<Vec<GeocodingSearchResult>>;
     async fn reverse_geocode(&self, position: Position) -> Result<String>;
 }
 

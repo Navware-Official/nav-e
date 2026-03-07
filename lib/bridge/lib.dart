@@ -6,8 +6,9 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Initialize the database with the platform-specific path
-/// Must be called before any database operations
+/// Initialize the database with the platform-specific path.
+/// Constructs OSRM routing and Nominatim geocoding services and injects them into nav_core.
+/// Must be called before any database operations.
 Future<void> initializeDatabase({required String dbPath}) =>
     RustBridge.instance.api.crateInitializeDatabase(dbPath: dbPath);
 

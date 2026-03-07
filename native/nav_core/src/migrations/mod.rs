@@ -1,4 +1,3 @@
-#![allow(dead_code)]
 /// Database migration system inspired by Symfony/Doctrine
 ///
 /// Features:
@@ -17,6 +16,7 @@ mod m20231201000000_initial_schema;
 mod m20250212000000_offline_regions;
 mod m20250224000000_trips;
 mod m20250225000000_saved_routes;
+mod m20260307000000_navigation_sessions;
 
 // Re-export migrations (internal use only, not for FFI)
 pub use m20231201000000_initial_schema::InitialSchema;
@@ -33,6 +33,7 @@ pub trait Migration: Send + Sync {
     fn up(&self) -> &str;
 
     /// SQL to rollback the migration (optional)
+    #[allow(dead_code)]
     fn down(&self) -> Option<&str> {
         None
     }
@@ -126,6 +127,7 @@ impl MigrationManager {
     }
 
     /// Rollback a single migration
+    #[allow(dead_code)]
     pub fn migrate_down(&self, migration: &dyn Migration) -> Result<()> {
         let version = migration.version();
 
@@ -194,6 +196,7 @@ impl MigrationManager {
     }
 
     /// Rollback the last N migrations
+    #[allow(dead_code)]
     pub fn rollback(&self, migrations: &[Box<dyn Migration>], steps: usize) -> Result<()> {
         let applied = self.get_applied_versions()?;
 
@@ -220,6 +223,7 @@ impl MigrationManager {
     }
 
     /// Show migration status
+    #[allow(dead_code)]
     pub fn status(&self, migrations: &[Box<dyn Migration>]) -> Result<()> {
         self.initialize()?;
 
@@ -259,18 +263,38 @@ mod tests {
     }
 
     impl Migration for TestMigration {
-        fn version(&self) -> i64 { self.version }
-        fn description(&self) -> &str { "test migration" }
-        fn up(&self) -> &str { self.up_sql }
-        fn down(&self) -> Option<&str> { self.down_sql }
+        fn version(&self) -> i64 {
+            self.version
+        }
+        fn description(&self) -> &str {
+            "test migration"
+        }
+        fn up(&self) -> &str {
+            self.up_sql
+        }
+        fn down(&self) -> Option<&str> {
+            self.down_sql
+        }
     }
 
     fn make_migration(version: i64, sql: &'static str) -> Box<dyn Migration> {
-        Box::new(TestMigration { version, up_sql: sql, down_sql: None })
+        Box::new(TestMigration {
+            version,
+            up_sql: sql,
+            down_sql: None,
+        })
     }
 
-    fn make_reversible_migration(version: i64, up: &'static str, down: &'static str) -> Box<dyn Migration> {
-        Box::new(TestMigration { version, up_sql: up, down_sql: Some(down) })
+    fn make_reversible_migration(
+        version: i64,
+        up: &'static str,
+        down: &'static str,
+    ) -> Box<dyn Migration> {
+        Box::new(TestMigration {
+            version,
+            up_sql: up,
+            down_sql: Some(down),
+        })
     }
 
     #[test]
@@ -304,9 +328,10 @@ mod tests {
     fn migrate_is_idempotent() {
         let conn = in_memory_conn();
         let mgr = MigrationManager::new(conn.clone());
-        let migrations: Vec<Box<dyn Migration>> = vec![
-            make_migration(1, "CREATE TABLE foo (id INTEGER PRIMARY KEY);"),
-        ];
+        let migrations: Vec<Box<dyn Migration>> = vec![make_migration(
+            1,
+            "CREATE TABLE foo (id INTEGER PRIMARY KEY);",
+        )];
         mgr.migrate(&migrations).unwrap();
         // running again should not fail
         mgr.migrate(&migrations).unwrap();
@@ -325,9 +350,10 @@ mod tests {
     fn is_applied_returns_true_after_migration() {
         let conn = in_memory_conn();
         let mgr = MigrationManager::new(conn);
-        let migrations: Vec<Box<dyn Migration>> = vec![
-            make_migration(42, "CREATE TABLE baz (id INTEGER PRIMARY KEY);"),
-        ];
+        let migrations: Vec<Box<dyn Migration>> = vec![make_migration(
+            42,
+            "CREATE TABLE baz (id INTEGER PRIMARY KEY);",
+        )];
         mgr.migrate(&migrations).unwrap();
         assert!(mgr.is_applied(42).unwrap());
     }
@@ -336,13 +362,11 @@ mod tests {
     fn migrate_down_removes_migration_record() {
         let conn = in_memory_conn();
         let mgr = MigrationManager::new(conn);
-        let migrations: Vec<Box<dyn Migration>> = vec![
-            make_reversible_migration(
-                10,
-                "CREATE TABLE rev_test (id INTEGER PRIMARY KEY);",
-                "DROP TABLE rev_test;",
-            ),
-        ];
+        let migrations: Vec<Box<dyn Migration>> = vec![make_reversible_migration(
+            10,
+            "CREATE TABLE rev_test (id INTEGER PRIMARY KEY);",
+            "DROP TABLE rev_test;",
+        )];
         mgr.migrate(&migrations).unwrap();
         assert!(mgr.is_applied(10).unwrap());
         mgr.migrate_down(migrations[0].as_ref()).unwrap();
@@ -371,9 +395,7 @@ mod tests {
     fn failed_migration_is_not_recorded() {
         let conn = in_memory_conn();
         let mgr = MigrationManager::new(conn);
-        let bad: Vec<Box<dyn Migration>> = vec![
-            make_migration(99, "THIS IS NOT VALID SQL !!!"),
-        ];
+        let bad: Vec<Box<dyn Migration>> = vec![make_migration(99, "THIS IS NOT VALID SQL !!!")];
         assert!(mgr.migrate(&bad).is_err());
         mgr.initialize().unwrap(); // re-init since migrate failed before it
         assert!(!mgr.is_applied(99).unwrap());
@@ -387,5 +409,6 @@ pub fn get_all_migrations() -> Vec<Box<dyn Migration>> {
         Box::new(m20250212000000_offline_regions::OfflineRegionsSchema {}),
         Box::new(m20250224000000_trips::TripsSchema {}),
         Box::new(m20250225000000_saved_routes::SavedRoutesSchema {}),
+        Box::new(m20260307000000_navigation_sessions::NavigationSessionsSchema {}),
     ]
 }

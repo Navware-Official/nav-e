@@ -8,7 +8,11 @@ pub struct NoOpDeviceComm;
 
 #[async_trait]
 impl DeviceCommunicationPort for NoOpDeviceComm {
-    async fn send_route_summary(&self, _device_id: String, _session: &NavigationSession) -> Result<()> {
+    async fn send_route_summary(
+        &self,
+        _device_id: String,
+        _session: &NavigationSession,
+    ) -> Result<()> {
         Ok(())
     }
     async fn send_route_blob(&self, _device_id: String, _route: &NavIrRoute) -> Result<()> {
@@ -20,7 +24,11 @@ impl DeviceCommunicationPort for NoOpDeviceComm {
     async fn send_traffic_alert(&self, _device_id: String, _event: &TrafficEvent) -> Result<()> {
         Ok(())
     }
-    async fn send_control_command(&self, _device_id: String, _command: ControlCommand) -> Result<()> {
+    async fn send_control_command(
+        &self,
+        _device_id: String,
+        _command: ControlCommand,
+    ) -> Result<()> {
         Ok(())
     }
 }
