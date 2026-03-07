@@ -190,41 +190,7 @@ impl DatabaseEntity for DeviceEntity {
 }
 
 // Saved Places Repository
-#[derive(Clone)]
-pub struct SavedPlacesRepository {
-    base: BaseRepository<SavedPlaceEntity, i64>,
-}
-
-impl SavedPlacesRepository {
-    pub fn new(db: Arc<Mutex<Connection>>) -> Self {
-        Self {
-            base: BaseRepository::new(db),
-        }
-    }
-}
-
-// Delegate to base repository implementation
-impl Repository<SavedPlaceEntity, i64> for SavedPlacesRepository {
-    fn get_all(&self) -> Result<Vec<SavedPlaceEntity>> {
-        self.base.get_all()
-    }
-
-    fn get_by_id(&self, id: i64) -> Result<Option<SavedPlaceEntity>> {
-        self.base.get_by_id(id)
-    }
-
-    fn insert(&self, entity: SavedPlaceEntity) -> Result<i64> {
-        self.base.insert(entity)
-    }
-
-    fn update(&self, id: i64, entity: SavedPlaceEntity) -> Result<()> {
-        self.base.update(id, entity)
-    }
-
-    fn delete(&self, id: i64) -> Result<()> {
-        self.base.delete(id)
-    }
-}
+pub type SavedPlacesRepository = BaseRepository<SavedPlaceEntity, i64>;
 
 // Trip entity (database representation) for completed route history
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -302,40 +268,7 @@ impl DatabaseEntity for TripEntity {
 }
 
 // Trips Repository
-#[derive(Clone)]
-pub struct TripsRepository {
-    base: BaseRepository<TripEntity, i64>,
-}
-
-impl TripsRepository {
-    pub fn new(db: Arc<Mutex<Connection>>) -> Self {
-        Self {
-            base: BaseRepository::new(db),
-        }
-    }
-}
-
-impl Repository<TripEntity, i64> for TripsRepository {
-    fn get_all(&self) -> Result<Vec<TripEntity>> {
-        self.base.get_all()
-    }
-
-    fn get_by_id(&self, id: i64) -> Result<Option<TripEntity>> {
-        self.base.get_by_id(id)
-    }
-
-    fn insert(&self, entity: TripEntity) -> Result<i64> {
-        self.base.insert(entity)
-    }
-
-    fn update(&self, id: i64, entity: TripEntity) -> Result<()> {
-        self.base.update(id, entity)
-    }
-
-    fn delete(&self, id: i64) -> Result<()> {
-        self.base.delete(id)
-    }
-}
+pub type TripsRepository = BaseRepository<TripEntity, i64>;
 
 // Saved Route entity (database representation) for imported/saved routes
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
@@ -398,59 +331,24 @@ impl DatabaseEntity for SavedRouteEntity {
 }
 
 // Saved Routes Repository
-#[derive(Clone)]
-pub struct SavedRoutesRepository {
-    base: BaseRepository<SavedRouteEntity, i64>,
-}
-
-impl SavedRoutesRepository {
-    pub fn new(db: Arc<Mutex<Connection>>) -> Self {
-        Self {
-            base: BaseRepository::new(db),
-        }
-    }
-}
-
-impl Repository<SavedRouteEntity, i64> for SavedRoutesRepository {
-    fn get_all(&self) -> Result<Vec<SavedRouteEntity>> {
-        self.base.get_all()
-    }
-
-    fn get_by_id(&self, id: i64) -> Result<Option<SavedRouteEntity>> {
-        self.base.get_by_id(id)
-    }
-
-    fn insert(&self, entity: SavedRouteEntity) -> Result<i64> {
-        self.base.insert(entity)
-    }
-
-    fn update(&self, id: i64, entity: SavedRouteEntity) -> Result<()> {
-        self.base.update(id, entity)
-    }
-
-    fn delete(&self, id: i64) -> Result<()> {
-        self.base.delete(id)
-    }
-}
+pub type SavedRoutesRepository = BaseRepository<SavedRouteEntity, i64>;
 
 // Device Repository
 #[derive(Clone)]
 pub struct DeviceRepository {
     base: BaseRepository<DeviceEntity, i64>,
-    db: Arc<Mutex<Connection>>, // Keep for specialized methods
 }
 
 impl DeviceRepository {
     pub fn new(db: Arc<Mutex<Connection>>) -> Self {
         Self {
-            base: BaseRepository::new(db.clone()),
-            db,
+            base: BaseRepository::new(db),
         }
     }
 
     // Specialized method: query by remote_id
     pub fn get_by_remote_id(&self, remote_id: &str) -> Result<Option<DeviceEntity>> {
-        let conn = self.db.lock().unwrap();
+        let conn = self.base.db().lock().unwrap();
         let mut stmt = conn.prepare(
             "SELECT id, remote_id, name, device_type, connection_type, paired, 
                     last_connected, firmware_version, battery_level, created_at, updated_at 
@@ -468,7 +366,7 @@ impl DeviceRepository {
 
     // Specialized method: check existence by remote_id
     pub fn exists_by_remote_id(&self, remote_id: &str) -> Result<bool> {
-        let conn = self.db.lock().unwrap();
+        let conn = self.base.db().lock().unwrap();
         let count: i64 = conn.query_row(
             "SELECT COUNT(*) FROM devices WHERE remote_id = ?",
             [remote_id],

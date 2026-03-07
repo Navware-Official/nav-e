@@ -15,23 +15,17 @@ pub fn parse_route_from_gpx(bytes: &[u8]) -> Result<String> {
     serde_json::to_string(&route).map_err(Into::into)
 }
 
-/// Save a pre-parsed route (Nav-IR JSON) to the database. Validates JSON and extracts name from metadata.
-pub fn save_route_from_json(route_json: &str, source: String) -> Result<String> {
-    let route: NavIrRoute = serde_json::from_str(route_json)
-        .map_err(|e| anyhow::anyhow!("Invalid route JSON: {}", e))?;
-    route.validate().map_err(|e| anyhow::anyhow!("{}", e))?;
-    let name = route.metadata.name.clone();
-    let now = Utc::now().timestamp();
+/// Persist a validated route and return the saved row as JSON.
+fn persist_route(route: &NavIrRoute, route_json: String, source: String) -> Result<String> {
     let id = command_with_id(|| {
-        let ctx = get_context();
         let entity = SavedRouteEntity {
             id: None,
-            name,
-            route_json: route_json.to_string(),
+            name: route.metadata.name.clone(),
+            route_json,
             source,
-            created_at: now,
+            created_at: Utc::now().timestamp(),
         };
-        ctx.saved_routes_repo.insert(entity)
+        get_context().saved_routes_repo.insert(entity)
     })?;
     let entity = get_context()
         .saved_routes_repo
@@ -40,28 +34,19 @@ pub fn save_route_from_json(route_json: &str, source: String) -> Result<String> 
     Ok(serde_json::to_string(&entity)?)
 }
 
+/// Save a pre-parsed route (Nav-IR JSON) to the database. Validates JSON and extracts name from metadata.
+pub fn save_route_from_json(route_json: &str, source: String) -> Result<String> {
+    let route: NavIrRoute = serde_json::from_str(route_json)
+        .map_err(|e| anyhow::anyhow!("Invalid route JSON: {}", e))?;
+    route.validate().map_err(|e| anyhow::anyhow!("{}", e))?;
+    persist_route(&route, route_json.to_string(), source)
+}
+
 /// Import a route from GPX bytes, persist it, and return the saved route as JSON.
 pub fn import_route_from_gpx(bytes: &[u8]) -> Result<String> {
     let route = nav_ir::normalize_gpx(bytes).map_err(|e| anyhow::anyhow!("{}", e))?;
-    let name = route.metadata.name.clone();
     let route_json = serde_json::to_string(&route)?;
-    let now = Utc::now().timestamp();
-    let id = command_with_id(|| {
-        let ctx = get_context();
-        let entity = SavedRouteEntity {
-            id: None,
-            name,
-            route_json,
-            source: "gpx".to_string(),
-            created_at: now,
-        };
-        ctx.saved_routes_repo.insert(entity)
-    })?;
-    let entity = get_context()
-        .saved_routes_repo
-        .get_by_id(id)?
-        .ok_or_else(|| anyhow::anyhow!("Saved route not found after insert"))?;
-    Ok(serde_json::to_string(&entity)?)
+    persist_route(&route, route_json, "gpx".to_string())
 }
 
 /// Build a Nav-IR route from plan data (waypoints + optional polyline), persist it, return the new row id.
