@@ -37,7 +37,7 @@ int _markerStrokeForFill(int fillArgb) {
   final g = (fillArgb >> 8) & 0xFF;
   final b = fillArgb & 0xFF;
   final luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance < 0.5 ? AppPalette.white.value : 0xFF343535;
+  return luminance < 0.5 ? AppPalette.white.toARGB32() : 0xFF343535;
 }
 
 class MapStylingSection extends StatelessWidget {
@@ -77,7 +77,8 @@ class MapStylingSection extends StatelessWidget {
                 final polylineWidth =
                     state.defaultPolylineWidth ?? _defaultPolylineWidth;
                 final markerFill =
-                    state.markerFillColorArgb ?? AppPalette.blueRibbon.value;
+                    state.markerFillColorArgb ??
+                    AppPalette.blueRibbon.toARGB32();
                 final hasOverrides =
                     state.defaultPolylineColorArgb != null ||
                     state.defaultPolylineWidth != null ||

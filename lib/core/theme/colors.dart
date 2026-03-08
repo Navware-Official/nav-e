@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 /// Semantic colour tokens that extend Material's ColorScheme.
 ///
 /// Access in widgets:
-///   final appColors = Theme.of(context).extension<AppColors>()!;
+///   final appColors = Theme.of(context).extension[AppColors]()!;
 ///   appColors.success / appColors.successContainer / etc.
 ///
 /// Registered in AppTheme via ThemeData.extensions.
