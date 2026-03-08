@@ -669,7 +669,7 @@ class _ImportPreviewMapPolylineInitiatorState
           PolylineModel(
             id: 'import-preview-route',
             points: widget.points,
-            colorArgb: AppPalette.blueRibbonDark02.value,
+            colorArgb: AppPalette.blueRibbonDark02.toARGB32(),
             strokeWidth: 4.0,
           ),
         ], fit: true),

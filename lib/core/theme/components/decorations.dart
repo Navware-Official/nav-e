@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../palette.dart';
 
 class AppDecorations {
   /// Panel/section container: theme surface background for readability,

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 /// low-level infrastructure code (map layers, protobuf colour args).
 ///
 /// Do NOT import this in widget build methods. Widgets should read semantic
-/// tokens from colorScheme or Theme.of(context).extension<AppColors>().
+/// tokens from colorScheme or Theme.of(context).extension[AppColors]().
 class AppPalette {
   AppPalette._();
 
