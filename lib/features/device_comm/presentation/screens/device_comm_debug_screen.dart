@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/colors.dart' show AppColors;
 import 'package:nav_e/core/device_comm/device_comm_transport.dart';
 import 'package:nav_e/core/device_comm/device_communication_service.dart';
 import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
@@ -114,6 +114,7 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final appColors = theme.extension<AppColors>()!;
 
     return Scaffold(
       appBar: AppBar(
@@ -129,7 +130,7 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
           _buildRouteInfo(colorScheme),
 
           // Device Comm State
-          _buildDeviceCommState(colorScheme),
+          _buildDeviceCommState(colorScheme, appColors),
 
           // Send Buttons
           Padding(
@@ -159,7 +160,7 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
           ),
 
           // Event Log
-          Expanded(child: _buildEventLog(colorScheme)),
+          Expanded(child: _buildEventLog(colorScheme, appColors)),
         ],
       ),
     );
@@ -296,7 +297,7 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
     );
   }
 
-  Widget _buildDeviceCommState(ColorScheme colorScheme) {
+  Widget _buildDeviceCommState(ColorScheme colorScheme, AppColors appColors) {
     return BlocConsumer<DeviceCommBloc, DeviceCommState>(
       listener: (context, state) {
         if (!mounted) return;
@@ -324,8 +325,8 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
           stateText = 'Sending... ${(state.progress * 100).toInt()}%';
           icon = Icons.sync;
         } else if (state is DeviceCommSuccess) {
-          bgColor = AppColors.successContainer;
-          borderColor = AppColors.success;
+          bgColor = appColors.successContainer;
+          borderColor = appColors.success;
           stateText = 'Success!';
           icon = Icons.check_circle;
         } else if (state is DeviceCommError) {
@@ -376,7 +377,7 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
     );
   }
 
-  Widget _buildEventLog(ColorScheme colorScheme) {
+  Widget _buildEventLog(ColorScheme colorScheme, AppColors appColors) {
     final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.all(16),
@@ -447,7 +448,7 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
                             color: isError
                                 ? colorScheme.errorContainer
                                 : isSuccess
-                                ? AppColors.successContainer
+                                ? appColors.successContainer
                                 : null,
                             border: Border(
                               bottom: BorderSide(
@@ -463,7 +464,7 @@ class _DeviceCommDebugScreenState extends State<DeviceCommDebugScreen> {
                               color: isError
                                   ? colorScheme.error
                                   : isSuccess
-                                  ? AppColors.success
+                                  ? appColors.success
                                   : colorScheme.onSurface,
                             ),
                           ),

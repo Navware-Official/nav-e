@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:nav_e/core/domain/entities/trip.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/palette.dart';
 import 'package:nav_e/features/map_layers/presentation/map_widget.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
@@ -239,7 +239,7 @@ class _TripDetailMapPolylineInitiatorState
           PolylineModel(
             id: 'trip-detail-preview',
             points: widget.points,
-            colorArgb: AppColors.blueRibbonDark02.toARGB32(),
+            colorArgb: AppPalette.blueRibbonDark02.toARGB32(),
             strokeWidth: 4.0,
           ),
         ], fit: true),
