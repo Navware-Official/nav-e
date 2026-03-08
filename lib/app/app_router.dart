@@ -51,14 +51,18 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
     redirect: (BuildContext context, GoRouterState state) {
       if (state.uri.path == '/plan-route') {
         final g = GeocodingResult.fromPathParams(state.uri.queryParameters);
-        if (g == null) return '/';
+        if (g == null) {
+          return '/';
+        }
       }
-      if (state.uri.path == '/plan-route/saved' && state.extra == null)
+      if (state.uri.path == '/plan-route/saved' && state.extra == null) {
         return '/';
+      }
       if (state.uri.path == '/trip-detail' && state.extra == null) return '/';
       if (state.uri.path == '/route-finish' && state.extra == null) return '/';
-      if (state.uri.path == '/device-comm-debug' && state.extra == null)
+      if (state.uri.path == '/device-comm-debug' && state.extra == null) {
         return '/';
+      }
       if (state.error != null) return '/';
       return null;
     },
@@ -72,7 +76,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
               GoRoute(
                 path: '/home',
                 name: 'home',
-                builder: (_, __) => const HomeDashboardScreen(),
+                builder: (_, state) => const HomeDashboardScreen(),
               ),
             ],
           ),
@@ -96,7 +100,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
               GoRoute(
                 path: '/plan',
                 name: 'plan',
-                builder: (_, __) => const PlanScreen(),
+                builder: (_, state) => const PlanScreen(),
               ),
             ],
           ),
@@ -105,7 +109,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
               GoRoute(
                 path: '/profile',
                 name: 'profile',
-                builder: (_, __) => const ProfileScreen(),
+                builder: (_, state) => const ProfileScreen(),
               ),
             ],
           ),
@@ -125,13 +129,13 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         path: '/saved-places',
         name: 'savedPlaces',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (_, __) => const SavedPlacesScreen(),
+        builder: (_, state) => const SavedPlacesScreen(),
       ),
       GoRoute(
         path: '/saved-routes',
         name: 'savedRoutes',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (_, __) => const SavedRoutesScreen(),
+        builder: (_, state) => const SavedRoutesScreen(),
       ),
       GoRoute(
         path: '/saved-routes/import-preview',
@@ -151,32 +155,32 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
       GoRoute(
         path: '/devices',
         name: 'devices',
-        builder: (_, _) => const DeviceManagementScreen(),
+        builder: (_, state) => const DeviceManagementScreen(),
       ),
       GoRoute(
         path: '/add-device',
         name: 'addDevice',
-        builder: (_, _) => const AddDeviceScreen(),
+        builder: (_, state) => const AddDeviceScreen(),
       ),
       GoRoute(
         path: '/settings',
         name: 'settings',
-        builder: (_, _) => const SettingsScreen(),
+        builder: (_, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: '/offline-maps',
         name: 'offlineMaps',
-        builder: (_, _) => const OfflineMapsScreen(),
+        builder: (_, state) => const OfflineMapsScreen(),
       ),
       GoRoute(
         path: '/licenses',
         name: 'licenses',
-        builder: (_, _) => const LicensesScreen(),
+        builder: (_, state) => const LicensesScreen(),
       ),
       GoRoute(
         path: '/navigate',
         name: 'navigate',
-        builder: (_, _) => const SettingsScreen(),
+        builder: (_, state) => const SettingsScreen(),
       ),
       GoRoute(
         path: '/plan-route',
@@ -200,7 +204,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         path: '/trips',
         name: 'trips',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (_, __) => const TripHistoryScreen(),
+        builder: (_, state) => const TripHistoryScreen(),
       ),
       GoRoute(
         path: '/trip-detail',
@@ -236,7 +240,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         },
       ),
     ],
-    errorBuilder: (_, __) => HomeScreen(),
+    errorBuilder: (_, state) => HomeScreen(),
   );
 }
 
