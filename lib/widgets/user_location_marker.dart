@@ -59,10 +59,10 @@ class _ArrowPainter extends CustomPainter {
     // Navigation arrow: nose at top, concave swept wings, notched tail.
     // All coordinates are relative to the 44×44 canvas; arrow points up (north).
     final path = Path()
-      ..moveTo(cx, h * 0.09)            // nose
+      ..moveTo(cx, h * 0.09) // nose
       ..lineTo(cx + w * 0.44, h * 0.76) // right wing tip
       ..lineTo(cx + w * 0.18, h * 0.58) // right inner concave
-      ..lineTo(cx, h * 0.88)            // tail centre
+      ..lineTo(cx, h * 0.88) // tail centre
       ..lineTo(cx - w * 0.18, h * 0.58) // left inner concave
       ..lineTo(cx - w * 0.44, h * 0.76) // left wing tip
       ..close();
@@ -110,11 +110,7 @@ class _DotPainter extends CustomPainter {
     );
 
     // White outline ring
-    canvas.drawCircle(
-      center,
-      dotRadius + 2.5,
-      Paint()..color = outlineColor,
-    );
+    canvas.drawCircle(center, dotRadius + 2.5, Paint()..color = outlineColor);
 
     // Filled dot
     canvas.drawCircle(center, dotRadius, Paint()..color = fillColor);

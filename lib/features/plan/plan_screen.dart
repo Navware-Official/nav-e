@@ -141,10 +141,9 @@ class _ActionCard extends StatelessWidget {
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelLarge
-                    ?.copyWith(color: fg),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(color: fg),
               ),
             ],
           ),
@@ -164,11 +163,7 @@ class _SourceFilterChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const filters = [
-      ('all', 'All'),
-      ('gpx', 'GPX'),
-      ('plan', 'Planned'),
-    ];
+    const filters = [('all', 'All'), ('gpx', 'GPX'), ('plan', 'Planned')];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -215,10 +210,9 @@ class _RoutesBody extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               state.message,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: colorScheme.error),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: colorScheme.error),
             ),
           );
         }
@@ -238,9 +232,9 @@ class _RoutesBody extends StatelessWidget {
           final filtered = sourceFilter == 'all'
               ? pairs.take(_previewCount).toList()
               : pairs
-                  .where((p) => p.$1.source == sourceFilter)
-                  .take(_previewCount)
-                  .toList();
+                    .where((p) => p.$1.source == sourceFilter)
+                    .take(_previewCount)
+                    .toList();
 
           if (filtered.isEmpty) {
             return Padding(
@@ -314,8 +308,9 @@ class _RouteCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isGpx = route.source == 'gpx';
-    final badgeBg =
-        isGpx ? colorScheme.tertiaryContainer : colorScheme.primaryContainer;
+    final badgeBg = isGpx
+        ? colorScheme.tertiaryContainer
+        : colorScheme.primaryContainer;
     final badgeFg = isGpx
         ? colorScheme.onTertiaryContainer
         : colorScheme.onPrimaryContainer;
@@ -325,10 +320,7 @@ class _RouteCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: colorScheme.outlineVariant,
-          width: 1,
-        ),
+        side: BorderSide(color: colorScheme.outlineVariant, width: 1),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
