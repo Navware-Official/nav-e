@@ -95,6 +95,7 @@ class _ImportPreviewScreenState extends State<ImportPreviewScreen> {
         setState(() => _loading = false);
         return;
       }
+      if (!mounted) return;
       final repo = context.read<ISavedRoutesRepository>();
       final routeJson = await repo.parseRouteFromGpxBytes(bytes);
       if (!mounted) return;
