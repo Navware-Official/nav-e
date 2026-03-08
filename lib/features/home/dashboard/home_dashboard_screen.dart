@@ -2,21 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/domain/entities/saved_place.dart';
-import 'package:nav_e/core/domain/entities/saved_route.dart';
 import 'package:nav_e/core/domain/entities/trip.dart';
-import 'package:nav_e/core/domain/entities/offline_region.dart';
-import 'package:nav_e/core/domain/repositories/offline_regions_repository.dart';
-import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_state.dart';
-import 'package:nav_e/features/saved_routes/cubit/saved_routes_cubit.dart';
-import 'package:nav_e/features/saved_routes/cubit/saved_routes_state.dart';
-import 'package:nav_e/features/saved_routes/route_enrichment.dart';
 import 'package:nav_e/features/trip_history/cubit/trip_history_cubit.dart';
 import 'package:nav_e/features/trip_history/cubit/trip_history_state.dart';
-
-const int _previewCount = 5;
 
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
@@ -26,16 +17,17 @@ class HomeDashboardScreen extends StatefulWidget {
 }
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
-  bool _tripsLoaded = false;
+  bool _loaded = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_tripsLoaded) {
-      _tripsLoaded = true;
+    if (!_loaded) {
+      _loaded = true;
       context.read<TripHistoryCubit>().loadTrips();
-      context.read<DevicesBloc>().add(LoadDevices());
-      context.read<SavedRoutesCubit>().loadRoutes();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) context.read<SavedPlacesCubit>().loadPlaces();
+      });
     }
   }
 
@@ -46,204 +38,93 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         children: [
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.map),
-              title: const Text('Plan a route'),
-              subtitle: const Text('Search and plan on the map'),
-              onTap: () => context.go('/'),
-            ),
-          ),
-          const SizedBox(height: 24),
-          _SavedPlacesSection(),
-          const SizedBox(height: 24),
-          _HomeSavedRoutesSection(),
-          const SizedBox(height: 24),
-          _DevicesSection(),
-          const SizedBox(height: 24),
-          _OfflineMapsSection(),
-          const SizedBox(height: 24),
-          _RecentTripsSection(),
+          _HeroCard(onTap: () => context.go('/')),
+          const SizedBox(height: 28),
+          _PlacesCarousel(),
+          const SizedBox(height: 28),
+          _RecentTripsCarousel(),
+          const SizedBox(height: 16),
         ],
       ),
     );
   }
 }
 
-class _HomeSavedRoutesSection extends StatelessWidget {
-  String _formatDate(DateTime d) {
-    return '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
-  }
+// ── Hero card ────────────────────────────────────────────────────────────────
 
-  String _subtitleText(SavedRoute route, RouteEnrichment e) {
-    final parts = <String>['${route.source} · ${_formatDate(route.createdAt)}'];
-    if (e.distanceKm != null)
-      parts.add('${e.distanceKm!.toStringAsFixed(1)} km');
-    if (e.durationMinutes != null) parts.add('${e.durationMinutes} min');
-    return parts.join(' · ');
-  }
+class _HeroCard extends StatelessWidget {
+  const _HeroCard({required this.onTap});
+
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SavedRoutesCubit, SavedRoutesState>(
-      builder: (context, state) {
-        final routes = state is SavedRoutesLoaded
-            ? state.routes.take(_previewCount).toList()
-            : <SavedRoute>[];
-        final enrichments = state is SavedRoutesLoaded
-            ? state.enrichments.take(_previewCount).toList()
-            : <RouteEnrichment>[];
-        final hasMore =
-            state is SavedRoutesLoaded && state.routes.length > _previewCount;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Saved routes',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                TextButton(
-                  onPressed: () => context.pushNamed('savedRoutes'),
-                  child: const Text('See all'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            if (state is SavedRoutesLoading && routes.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (routes.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: Text(
-                  'No saved routes yet. Import a GPX or save a route from the map.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              )
-            else
-              ...List.generate(routes.length, (i) {
-                final route = routes[i];
-                final enrichment = i < enrichments.length
-                    ? enrichments[i]
-                    : const RouteEnrichment();
-                return ListTile(
-                  leading: const Icon(Icons.route, size: 20),
-                  title: Text(
-                    route.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    _subtitleText(route, enrichment),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  onTap: () =>
-                      context.pushNamed('savedRoutePreview', extra: route),
-                );
-              }),
-            if (hasMore)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: TextButton(
-                  onPressed: () => context.pushNamed('savedRoutes'),
-                  child: const Text('See all'),
+    return Card(
+      elevation: 0,
+      color: colorScheme.primaryContainer,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Start a ride',
+                      style: textTheme.headlineMedium?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Search a destination and navigate',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.8,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    FilledButton.tonal(
+                      onPressed: onTap,
+                      child: const Text('Open map'),
+                    ),
+                  ],
                 ),
               ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _DevicesSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<DevicesBloc, DevicesState>(
-      builder: (context, state) {
-        final count = state is DeviceLoadSuccess ? state.devices.length : null;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Devices', style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 8),
-            ListTile(
-              leading: const Icon(Icons.devices, size: 20),
-              title: const Text('Device management'),
-              subtitle: Text(
-                count != null ? '$count device(s)' : 'Manage devices',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              onTap: () => context.push('/devices'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _OfflineMapsSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text('Offline maps', style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: 8),
-        FutureBuilder<List<OfflineRegion>>(
-          future: context.read<IOfflineRegionsRepository>().getAll(),
-          builder: (context, snapshot) {
-            final count = snapshot.hasData ? snapshot.data!.length : null;
-            return ListTile(
-              leading: const Icon(Icons.map_outlined, size: 20),
-              title: const Text('Offline maps'),
-              subtitle: Text(
-                count != null
-                    ? '$count region(s) downloaded'
-                    : 'Manage offline maps',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              onTap: () => context.push('/offline-maps'),
-            );
-          },
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }
 
-class _SavedPlacesSection extends StatelessWidget {
+// ── Saved places carousel ────────────────────────────────────────────────────
+
+class _PlacesCarousel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BlocBuilder<SavedPlacesCubit, SavedPlacesState>(
       builder: (context, state) {
-        final places = state is SavedPlacesLoaded
-            ? state.places.take(_previewCount).toList()
-            : <SavedPlace>[];
-        final hasMore =
-            state is SavedPlacesLoaded && state.places.length > _previewCount;
-
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Saved places',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
+                Text('Saved places', style: textTheme.headlineSmall),
                 TextButton(
                   onPressed: () => context.pushNamed('savedPlaces'),
                   child: const Text('See all'),
@@ -251,106 +132,140 @@ class _SavedPlacesSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            if (state is SavedPlacesLoading && places.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(24),
+            if (state is SavedPlacesLoading)
+              const SizedBox(
+                height: 80,
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (places.isEmpty)
+            else if (state is SavedPlacesLoaded && state.places.isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
                   'No saved places yet.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               )
-            else
-              ...places.map(
-                (p) => ListTile(
-                  leading: const Icon(Icons.bookmark_border, size: 20),
-                  title: Text(
-                    p.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: p.address != null && p.address!.isNotEmpty
-                      ? Text(
-                          p.address!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        )
-                      : null,
-                  onTap: () {
-                    context.read<PreviewCubit>().showCoords(
-                      lat: p.lat,
-                      lon: p.lon,
-                      label: p.name,
-                      placeId: p.id?.toString(),
+            else if (state is SavedPlacesLoaded)
+              SizedBox(
+                height: 80,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: state.places.length,
+                  itemBuilder: (context, index) {
+                    final place = state.places[index];
+                    return _PlaceChipCard(
+                      place: place,
+                      onTap: () => _navigateToPlace(context, place),
                     );
-                    final uri = Uri(
-                      path: '/',
-                      queryParameters: <String, String>{
-                        'lat': p.lat.toStringAsFixed(6),
-                        'lon': p.lon.toStringAsFixed(6),
-                        'label': p.name,
-                        if (p.id != null) 'placeId': p.id.toString(),
-                        'zoom': '14',
-                      },
-                    );
-                    context.go(uri.toString());
                   },
                 ),
               ),
-            if (hasMore)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: TextButton(
-                  onPressed: () => context.pushNamed('savedPlaces'),
-                  child: const Text('See all'),
-                ),
-              ),
           ],
         );
       },
     );
   }
+
+  void _navigateToPlace(BuildContext context, SavedPlace place) {
+    context.read<PreviewCubit>().showCoords(
+      lat: place.lat,
+      lon: place.lon,
+      label: place.name,
+      placeId: place.id?.toString(),
+    );
+    final uri = Uri(
+      path: '/',
+      queryParameters: <String, String>{
+        'lat': place.lat.toStringAsFixed(6),
+        'lon': place.lon.toStringAsFixed(6),
+        'label': place.name,
+        if (place.id != null) 'placeId': place.id.toString(),
+        'zoom': '14',
+      },
+    );
+    context.go(uri.toString());
+  }
 }
 
-class _RecentTripsSection extends StatelessWidget {
+class _PlaceChipCard extends StatelessWidget {
+  const _PlaceChipCard({required this.place, required this.onTap});
+
+  final SavedPlace place;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 10),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          width: 130,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: colorScheme.tertiaryContainer,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.bookmark, size: 18, color: colorScheme.onTertiaryContainer),
+              const SizedBox(height: 6),
+              Text(
+                place.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onTertiaryContainer,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Recent trips carousel ────────────────────────────────────────────────────
+
+class _RecentTripsCarousel extends StatelessWidget {
   String _formatDate(DateTime dt) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final tripDay = DateTime(dt.year, dt.month, dt.day);
-    if (tripDay == today) {
-      return 'Today ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
-    }
-    final yesterday = today.subtract(const Duration(days: 1));
-    if (tripDay == yesterday) return 'Yesterday';
+    if (tripDay == today) return 'Today';
+    if (tripDay == today.subtract(const Duration(days: 1))) return 'Yesterday';
     return '${dt.day}/${dt.month}/${dt.year}';
+  }
+
+  String _formatDuration(int seconds) {
+    final h = seconds ~/ 3600;
+    final m = (seconds % 3600) ~/ 60;
+    if (h > 0) return '${h}h ${m}min';
+    return '${m}min';
   }
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BlocBuilder<TripHistoryCubit, TripHistoryState>(
       builder: (context, state) {
-        final trips = state is TripHistoryLoaded
-            ? state.trips.take(_previewCount).toList()
-            : <Trip>[];
-        final hasMore =
-            state is TripHistoryLoaded && state.trips.length > _previewCount;
-
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Recent trips',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
+                Text('Recent trips', style: textTheme.headlineSmall),
                 TextButton(
                   onPressed: () => context.pushNamed('trips'),
                   child: const Text('See all'),
@@ -358,61 +273,116 @@ class _RecentTripsSection extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            if (state is TripHistoryLoading && trips.isEmpty)
-              const Padding(
-                padding: EdgeInsets.all(24),
+            if (state is TripHistoryLoading)
+              const SizedBox(
+                height: 120,
                 child: Center(child: CircularProgressIndicator()),
               )
-            else if (trips.isEmpty)
+            else if (state is TripHistoryLoaded && state.trips.isEmpty)
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
-                  'No trips yet. Complete a route and tap "Finish" to save it here.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  'No trips yet. Complete a route to see it here.',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               )
-            else
-              ...trips.map(
-                (trip) => ListTile(
-                  leading: Icon(
-                    Icons.route,
-                    size: 20,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: Text(
-                    trip.destinationLabel?.isNotEmpty == true
-                        ? trip.destinationLabel!
-                        : 'Trip',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    '${(trip.distanceM / 1000).toStringAsFixed(2)} km · ${_formatDate(trip.completedAt)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: Text(
-                    '${(trip.durationSeconds / 60).round()} min',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  onTap: () => context.pushNamed('tripDetail', extra: trip),
-                ),
-              ),
-            if (hasMore)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: TextButton(
-                  onPressed: () => context.pushNamed('trips'),
-                  child: const Text('See all'),
+            else if (state is TripHistoryLoaded)
+              SizedBox(
+                height: 120,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: state.trips.length,
+                  itemBuilder: (context, index) {
+                    final trip = state.trips[index];
+                    return _TripCard(
+                      trip: trip,
+                      date: _formatDate(trip.completedAt),
+                      duration: _formatDuration(trip.durationSeconds),
+                      onTap: () =>
+                          context.pushNamed('tripDetail', extra: trip),
+                    );
+                  },
                 ),
               ),
           ],
         );
       },
+    );
+  }
+}
+
+class _TripCard extends StatelessWidget {
+  const _TripCard({
+    required this.trip,
+    required this.date,
+    required this.duration,
+    required this.onTap,
+  });
+
+  final Trip trip;
+  final String date;
+  final String duration;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          width: 200,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: colorScheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.route, size: 16, color: colorScheme.onSecondaryContainer),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      trip.destinationLabel?.isNotEmpty == true
+                          ? trip.destinationLabel!
+                          : 'Trip',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Text(
+                '${(trip.distanceM / 1000).toStringAsFixed(1)} km',
+                style: textTheme.headlineSmall?.copyWith(
+                  color: colorScheme.onSecondaryContainer,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '$duration · $date',
+                style: textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSecondaryContainer.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

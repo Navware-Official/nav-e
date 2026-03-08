@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 import 'package:maplibre_gl/maplibre_gl.dart' as ml;
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/palette.dart';
 import 'package:nav_e/features/map_layers/models/data_layer_definition.dart';
 
 /// Converts a Color to hex string format for MapLibre (#RRGGBB).
@@ -485,10 +485,10 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
 
     final fillColor = widget.markerFillColorArgb != null
         ? Color(widget.markerFillColorArgb!)
-        : AppColors.blueRibbon;
+        : AppPalette.blueRibbon;
     final strokeColor = widget.markerStrokeColorArgb != null
         ? Color(widget.markerStrokeColorArgb!)
-        : AppColors.white;
+        : AppPalette.white;
 
     // Add or update circles for each marker
     for (final marker in widget.markers) {

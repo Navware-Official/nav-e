@@ -16,7 +16,7 @@ import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/palette.dart';
 import 'package:nav_e/widgets/user_location_marker.dart';
 import 'package:nav_e/features/nav/ui/route_finish_screen.dart';
 import 'package:nav_e/app/app_router.dart';
@@ -166,7 +166,7 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
                       PolylineModel(
                         id: '${widget.routeId}-prog',
                         points: state.progressPolyline,
-                        colorArgb: AppColors.blueRibbonDark02.toARGB32(),
+                        colorArgb: AppPalette.blueRibbonDark02.toARGB32(),
                         strokeWidth: 6.0,
                       ),
                     ], fit: false),

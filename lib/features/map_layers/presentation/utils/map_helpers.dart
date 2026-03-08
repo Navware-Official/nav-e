@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/palette.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
 import 'package:nav_e/features/map_layers/presentation/bloc/map_bloc.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,7 +20,7 @@ List<MarkerModel> markersForPreview(PreviewState state) {
     MarkerModel(
       id: 'preview',
       position: r.position,
-      icon: const Icon(Icons.place, color: AppColors.blueRibbon, size: 52),
+      icon: const Icon(Icons.place, color: AppPalette.blueRibbon, size: 52),
     ),
   ];
 }

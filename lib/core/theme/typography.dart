@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'colors.dart';
+import 'palette.dart';
 
 /// App typography. Prefer Theme.of(context).textTheme (titleLarge, bodyMedium,
 /// etc.) for all text; avoid raw TextStyle for body/title so theme and dark mode stay consistent.
@@ -77,12 +77,12 @@ class AppTypography {
   );
 
   static TextTheme light = base.apply(
-    bodyColor: AppColors.capeCodDark01,
-    displayColor: AppColors.blueRibbonDark04,
+    bodyColor: AppPalette.capeCodDark01,
+    displayColor: AppPalette.blueRibbonDark04,
   );
 
   static TextTheme dark = base.apply(
-    bodyColor: AppColors.white,
-    displayColor: AppColors.blueRibbon,
+    bodyColor: AppPalette.white,
+    displayColor: AppPalette.blueRibbon,
   );
 }
