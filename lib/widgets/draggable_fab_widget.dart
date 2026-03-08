@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/palette.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DraggableFAB extends StatefulWidget {
@@ -26,7 +26,7 @@ class DraggableFAB extends StatefulWidget {
     this.shape = const RoundedRectangleBorder(
       borderRadius: BorderRadius.all(Radius.circular(30)),
     ),
-    this.iconColor = AppColors.blueRibbonDark02,
+    this.iconColor = AppPalette.blueRibbonDark02,
     this.backgroundColor,
   });
 

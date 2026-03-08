@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'colors.dart';
+import 'palette.dart';
 
 /// App typography. Prefer Theme.of(context).textTheme (titleLarge, bodyMedium,
 /// etc.) for all text; avoid raw TextStyle for body/title so theme and dark mode stay consistent.
@@ -18,71 +18,50 @@ class AppTypography {
 
   static const TextTheme base = TextTheme(
     // Display & headline: decorative font
-    displayLarge: const TextStyle(
+    displayLarge: TextStyle(
       fontFamily: decorativeFamily,
       fontWeight: FontWeight.w800,
     ),
-    displayMedium: const TextStyle(
+    displayMedium: TextStyle(
       fontFamily: decorativeFamily,
       fontWeight: FontWeight.w700,
     ),
-    displaySmall: const TextStyle(
+    displaySmall: TextStyle(
       fontFamily: decorativeFamily,
       fontWeight: FontWeight.w600,
     ),
-    headlineLarge: const TextStyle(
+    headlineLarge: TextStyle(
       fontFamily: decorativeFamily,
       fontWeight: FontWeight.w700,
     ),
-    headlineMedium: const TextStyle(
+    headlineMedium: TextStyle(
       fontFamily: decorativeFamily,
       fontWeight: FontWeight.w600,
     ),
-    headlineSmall: const TextStyle(
+    headlineSmall: TextStyle(
       fontFamily: decorativeFamily,
       fontWeight: FontWeight.w600,
     ),
 
     // Titles / labels / body: main font
-    titleLarge: const TextStyle(
-      fontFamily: family,
-      fontWeight: FontWeight.w600,
-    ),
-    titleMedium: const TextStyle(
-      fontFamily: family,
-      fontWeight: FontWeight.w500,
-    ),
-    titleSmall: const TextStyle(
-      fontFamily: family,
-      fontWeight: FontWeight.w500,
-    ),
-    bodyLarge: const TextStyle(fontFamily: family, fontWeight: FontWeight.w400),
-    bodyMedium: const TextStyle(
-      fontFamily: family,
-      fontWeight: FontWeight.w400,
-    ),
-    bodySmall: const TextStyle(fontFamily: family, fontWeight: FontWeight.w400),
-    labelLarge: const TextStyle(
-      fontFamily: family,
-      fontWeight: FontWeight.w600,
-    ),
-    labelMedium: const TextStyle(
-      fontFamily: family,
-      fontWeight: FontWeight.w500,
-    ),
-    labelSmall: const TextStyle(
-      fontFamily: family,
-      fontWeight: FontWeight.w500,
-    ),
+    titleLarge: TextStyle(fontFamily: family, fontWeight: FontWeight.w600),
+    titleMedium: TextStyle(fontFamily: family, fontWeight: FontWeight.w500),
+    titleSmall: TextStyle(fontFamily: family, fontWeight: FontWeight.w500),
+    bodyLarge: TextStyle(fontFamily: family, fontWeight: FontWeight.w400),
+    bodyMedium: TextStyle(fontFamily: family, fontWeight: FontWeight.w400),
+    bodySmall: TextStyle(fontFamily: family, fontWeight: FontWeight.w400),
+    labelLarge: TextStyle(fontFamily: family, fontWeight: FontWeight.w600),
+    labelMedium: TextStyle(fontFamily: family, fontWeight: FontWeight.w500),
+    labelSmall: TextStyle(fontFamily: family, fontWeight: FontWeight.w500),
   );
 
   static TextTheme light = base.apply(
-    bodyColor: AppColors.capeCodDark01,
-    displayColor: AppColors.blueRibbonDark04,
+    bodyColor: AppPalette.capeCodDark01,
+    displayColor: AppPalette.blueRibbonDark04,
   );
 
   static TextTheme dark = base.apply(
-    bodyColor: AppColors.white,
-    displayColor: AppColors.blueRibbon,
+    bodyColor: AppPalette.white,
+    displayColor: AppPalette.blueRibbon,
   );
 }

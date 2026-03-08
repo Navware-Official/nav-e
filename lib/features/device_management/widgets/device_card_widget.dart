@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/colors.dart' show AppColors;
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
@@ -325,7 +325,7 @@ class DeviceCard extends StatelessWidget {
   Color _getConnectionColor(BuildContext context, String connectionStatus) {
     final colorScheme = Theme.of(context).colorScheme;
     if (connectionStatus == 'Connected') {
-      return AppColors.success;
+      return Theme.of(context).extension<AppColors>()!.success;
     }
     if (connectionStatus == 'Disconnected') {
       return colorScheme.error;
