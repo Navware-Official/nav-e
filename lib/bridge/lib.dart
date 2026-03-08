@@ -168,18 +168,11 @@ String getSavedRouteById({required PlatformInt64 id}) =>
 void deleteSavedRoute({required PlatformInt64 id}) =>
     RustBridge.instance.api.crateDeleteSavedRoute(id: id);
 
-/// Send route data to a connected device via Bluetooth
+/// Send route data to a connected device via Bluetooth.
 ///
-/// # Arguments
-/// * `device_id` - The device ID (from saved devices)
-/// * `route_json` - JSON string containing route waypoints and metadata
-///
-/// # Returns
-/// Result indicating success or failure
-///
-/// # Note
-/// Currently returns a stub implementation. Full device communication
-/// will be implemented using device_comm crate and protobuf protocol.
+/// Serialises the route to protobuf via `nav_protocol` and emits the bytes on the
+/// device message channel. Flutter must be subscribed to `subscribe_device_messages()`
+/// to receive and write them over BLE.
 Future<void> sendRouteToDevice({
   required PlatformInt64 deviceId,
   required String routeJson,
