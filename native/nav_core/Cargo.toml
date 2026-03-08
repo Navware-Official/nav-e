@@ -21,7 +21,7 @@ crc32fast = "1"
 uuid = { version = "1", features = ["v4", "serde"] }
 async-trait = "0.1"
 sha2 = "0.10"
-device_comm = { path = "../device_comm" }
+device_comm = { package = "nav_protocol", path = "../nav_protocol" }
 nav_ir = { path = "../nav_ir" }
 geo-types = "0.7"
 rusqlite = { version = "0.32", features = ["bundled"] }

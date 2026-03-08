@@ -1,4 +1,4 @@
-use crate::domain::ports::Repository;
+use crate::navigation::domain::ports::Repository;
 use crate::infrastructure::persistence::base_repository::{BaseRepository, DatabaseEntity};
 use crate::migrations::{get_all_migrations, MigrationManager};
 /// SQLite database infrastructure for persistent storage

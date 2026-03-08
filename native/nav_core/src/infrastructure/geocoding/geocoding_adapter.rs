@@ -1,8 +1,6 @@
 // Geocoding Adapter - Implementation of GeocodingService port using Nominatim
-use crate::domain::{
-    ports::GeocodingService,
-    value_objects::{GeocodingSearchResult, Position},
-};
+use crate::navigation::domain::ports::GeocodingService;
+use crate::shared::value_objects::{GeocodingSearchResult, Position};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 
