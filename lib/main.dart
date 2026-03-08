@@ -256,6 +256,7 @@ class _PendingImportWrapperState extends State<_PendingImportWrapper> {
     if (ctx == null) return;
     try {
       final bytes = await readFileFromUri(uri);
+      if (!ctx.mounted) return;
       final repo = ctx.read<ISavedRoutesRepository>();
       final routeJson = await repo.parseRouteFromGpxBytes(bytes);
       if (!ctx.mounted) return;
