@@ -5,7 +5,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:nav_e/core/domain/entities/trip.dart';
 import 'package:nav_e/core/domain/repositories/trip_repository.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/palette.dart';
 import 'package:nav_e/features/settings/widgets/trip_history_settings_section.dart';
 import 'package:nav_e/features/map_layers/presentation/map_widget.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
@@ -273,7 +273,7 @@ class _MapPreviewPolylineInitiatorState
             PolylineModel(
               id: 'finish-preview',
               points: widget.routePoints,
-              colorArgb: AppColors.blueRibbonDark02.toARGB32(),
+              colorArgb: AppPalette.blueRibbonDark02.toARGB32(),
               strokeWidth: 4.0,
             ),
           ], fit: true),

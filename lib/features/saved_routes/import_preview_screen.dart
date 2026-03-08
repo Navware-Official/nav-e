@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:nav_e/core/domain/repositories/map_source_repository.dart';
 import 'package:nav_e/core/domain/repositories/saved_routes_repository.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/palette.dart';
 import 'package:nav_e/core/platform/route_import_channel.dart';
 import 'package:nav_e/features/map_layers/models/marker_model.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
@@ -669,7 +669,7 @@ class _ImportPreviewMapPolylineInitiatorState
           PolylineModel(
             id: 'import-preview-route',
             points: widget.points,
-            colorArgb: AppColors.blueRibbonDark02.value,
+            colorArgb: AppPalette.blueRibbonDark02.value,
             strokeWidth: 4.0,
           ),
         ], fit: true),

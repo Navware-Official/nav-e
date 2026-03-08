@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nav_e/core/bloc/bluetooth/bluetooth_bloc.dart';
 import 'package:nav_e/core/device_comm/device_comm_transport.dart';
 import 'package:nav_e/core/domain/entities/device.dart';
-import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/colors.dart' show AppColors;
 import 'package:nav_e/core/theme/components/decorations.dart';
 import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
@@ -239,6 +239,7 @@ class _SendToDeviceSectionState extends State<_SendToDeviceSection> {
   Widget build(BuildContext context) {
     final hasConnected =
         _connectedDevices != null && _connectedDevices!.isNotEmpty;
+    final appColors = Theme.of(context).extension<AppColors>()!;
 
     return BlocListener<BluetoothBloc, ApplicationBluetoothState>(
       listenWhen: (_, current) => current is BluetoothConnetionStatusAquired,
@@ -251,7 +252,7 @@ class _SendToDeviceSectionState extends State<_SendToDeviceSection> {
             onPressed: widget.routeReady ? _onSendToDeviceTap : null,
             icon: Icon(
               Icons.bluetooth,
-              color: hasConnected ? AppColors.success : null,
+              color: hasConnected ? appColors.success : null,
             ),
             label: Text(
               hasConnected
@@ -471,6 +472,7 @@ class RouteBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final appColors = theme.extension<AppColors>()!;
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -650,7 +652,7 @@ class RouteBottomSheet extends StatelessWidget {
                                       alpha: 0.3,
                                     )
                                   : routePoints.isNotEmpty
-                                  ? AppColors.successContainer
+                                  ? appColors.successContainer
                                   : colorScheme.surfaceContainerHighest,
                               borderRadius: BorderRadius.zero,
                               border: Border.all(
@@ -659,7 +661,7 @@ class RouteBottomSheet extends StatelessWidget {
                                     : computeError != null
                                     ? colorScheme.errorContainer
                                     : routePoints.isNotEmpty
-                                    ? AppColors.success
+                                    ? appColors.success
                                     : colorScheme.outlineVariant,
                                 width: 1,
                               ),
@@ -686,7 +688,7 @@ class RouteBottomSheet extends StatelessWidget {
                                 else if (routePoints.isNotEmpty)
                                   Icon(
                                     Icons.check_circle,
-                                    color: AppColors.success,
+                                    color: appColors.success,
                                     size: 16,
                                   )
                                 else
@@ -735,7 +737,7 @@ class RouteBottomSheet extends StatelessWidget {
                                           'Route ready',
                                           style: theme.textTheme.bodySmall
                                               ?.copyWith(
-                                                color: AppColors.success,
+                                                color: appColors.success,
                                                 fontWeight: FontWeight.w500,
                                               ),
                                         ),

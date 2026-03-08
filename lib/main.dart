@@ -32,6 +32,7 @@ import 'package:nav_e/core/data/remote/map_source_repository_impl.dart';
 import 'package:nav_e/core/domain/repositories/map_source_repository.dart';
 import 'package:nav_e/core/data/remote/composite_map_source_repository.dart';
 import 'package:nav_e/core/domain/repositories/offline_regions_repository.dart';
+import 'package:nav_e/features/offline_maps/cubit/offline_maps_cubit.dart';
 import 'package:nav_e/features/offline_maps/data/offline_map_style_resolver.dart';
 import 'package:nav_e/features/offline_maps/data/offline_regions_repository_rust.dart';
 
@@ -196,6 +197,10 @@ class _AppLoaderState extends State<_AppLoader> {
           BlocProvider(
             create: (ctx) =>
                 SavedRoutesCubit(ctx.read<ISavedRoutesRepository>()),
+          ),
+          BlocProvider(
+            create: (ctx) =>
+                OfflineMapsCubit(ctx.read<IOfflineRegionsRepository>()),
           ),
         ],
         child: BlocBuilder<ThemeCubit, AppThemeMode>(
