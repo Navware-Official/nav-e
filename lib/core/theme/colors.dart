@@ -30,24 +30,24 @@ class AppColors extends ThemeExtension<AppColors> {
   final Color onWarningContainer;
 
   static const light = AppColors(
-    success:            Color(0xFF2E7D32),
-    onSuccess:          Color(0xFFFFFFFF),
-    successContainer:   Color(0xFFC8E6C9),
+    success: Color(0xFF2E7D32),
+    onSuccess: Color(0xFFFFFFFF),
+    successContainer: Color(0xFFC8E6C9),
     onSuccessContainer: Color(0xFF1B5E20),
-    warning:            Color(0xFFF9A825),
-    onWarning:          Color(0xFF000000),
-    warningContainer:   Color(0xFFFFF8E1),
+    warning: Color(0xFFF9A825),
+    onWarning: Color(0xFF000000),
+    warningContainer: Color(0xFFFFF8E1),
     onWarningContainer: Color(0xFF7A5000),
   );
 
   static const dark = AppColors(
-    success:            Color(0xFF66BB6A),
-    onSuccess:          Color(0xFF000000),
-    successContainer:   Color(0xFF1B5E20),
+    success: Color(0xFF66BB6A),
+    onSuccess: Color(0xFF000000),
+    successContainer: Color(0xFF1B5E20),
     onSuccessContainer: Color(0xFFC8E6C9),
-    warning:            Color(0xFFFFD54F),
-    onWarning:          Color(0xFF000000),
-    warningContainer:   Color(0xFF7A5000),
+    warning: Color(0xFFFFD54F),
+    onWarning: Color(0xFF000000),
+    warningContainer: Color(0xFF7A5000),
     onWarningContainer: Color(0xFFFFF8E1),
   );
 
@@ -63,13 +63,13 @@ class AppColors extends ThemeExtension<AppColors> {
     Color? onWarningContainer,
   }) {
     return AppColors(
-      success:            success            ?? this.success,
-      onSuccess:          onSuccess          ?? this.onSuccess,
-      successContainer:   successContainer   ?? this.successContainer,
+      success: success ?? this.success,
+      onSuccess: onSuccess ?? this.onSuccess,
+      successContainer: successContainer ?? this.successContainer,
       onSuccessContainer: onSuccessContainer ?? this.onSuccessContainer,
-      warning:            warning            ?? this.warning,
-      onWarning:          onWarning          ?? this.onWarning,
-      warningContainer:   warningContainer   ?? this.warningContainer,
+      warning: warning ?? this.warning,
+      onWarning: onWarning ?? this.onWarning,
+      warningContainer: warningContainer ?? this.warningContainer,
       onWarningContainer: onWarningContainer ?? this.onWarningContainer,
     );
   }
@@ -78,14 +78,30 @@ class AppColors extends ThemeExtension<AppColors> {
   AppColors lerp(AppColors? other, double t) {
     if (other is! AppColors) return this;
     return AppColors(
-      success:            Color.lerp(success,            other.success,            t)!,
-      onSuccess:          Color.lerp(onSuccess,          other.onSuccess,          t)!,
-      successContainer:   Color.lerp(successContainer,   other.successContainer,   t)!,
-      onSuccessContainer: Color.lerp(onSuccessContainer, other.onSuccessContainer, t)!,
-      warning:            Color.lerp(warning,            other.warning,            t)!,
-      onWarning:          Color.lerp(onWarning,          other.onWarning,          t)!,
-      warningContainer:   Color.lerp(warningContainer,   other.warningContainer,   t)!,
-      onWarningContainer: Color.lerp(onWarningContainer, other.onWarningContainer, t)!,
+      success: Color.lerp(success, other.success, t)!,
+      onSuccess: Color.lerp(onSuccess, other.onSuccess, t)!,
+      successContainer: Color.lerp(
+        successContainer,
+        other.successContainer,
+        t,
+      )!,
+      onSuccessContainer: Color.lerp(
+        onSuccessContainer,
+        other.onSuccessContainer,
+        t,
+      )!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      onWarning: Color.lerp(onWarning, other.onWarning, t)!,
+      warningContainer: Color.lerp(
+        warningContainer,
+        other.warningContainer,
+        t,
+      )!,
+      onWarningContainer: Color.lerp(
+        onWarningContainer,
+        other.onWarningContainer,
+        t,
+      )!,
     );
   }
 }

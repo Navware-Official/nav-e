@@ -89,10 +89,26 @@ class CornerBlockBorder extends OutlinedBorder {
     );
 
     // Lines between corners
-    canvas.drawLine(Offset(tl.right, rect.top),  Offset(tr.left, rect.top),   borderPaint);
-    canvas.drawLine(Offset(bl.right, rect.bottom), Offset(br.left, rect.bottom), borderPaint);
-    canvas.drawLine(Offset(rect.left, tl.bottom), Offset(rect.left, bl.top),   borderPaint);
-    canvas.drawLine(Offset(rect.right, tr.bottom), Offset(rect.right, br.top), borderPaint);
+    canvas.drawLine(
+      Offset(tl.right, rect.top),
+      Offset(tr.left, rect.top),
+      borderPaint,
+    );
+    canvas.drawLine(
+      Offset(bl.right, rect.bottom),
+      Offset(br.left, rect.bottom),
+      borderPaint,
+    );
+    canvas.drawLine(
+      Offset(rect.left, tl.bottom),
+      Offset(rect.left, bl.top),
+      borderPaint,
+    );
+    canvas.drawLine(
+      Offset(rect.right, tr.bottom),
+      Offset(rect.right, br.top),
+      borderPaint,
+    );
 
     // Corner blocks drawn on top
     canvas.drawRect(tl, cornerFill);

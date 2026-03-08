@@ -215,7 +215,11 @@ class _PlaceChipCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.bookmark, size: 18, color: colorScheme.onTertiaryContainer),
+              Icon(
+                Icons.bookmark,
+                size: 18,
+                color: colorScheme.onTertiaryContainer,
+              ),
               const SizedBox(height: 6),
               Text(
                 place.name,
@@ -300,8 +304,7 @@ class _RecentTripsCarousel extends StatelessWidget {
                       trip: trip,
                       date: _formatDate(trip.completedAt),
                       duration: _formatDuration(trip.durationSeconds),
-                      onTap: () =>
-                          context.pushNamed('tripDetail', extra: trip),
+                      onTap: () => context.pushNamed('tripDetail', extra: trip),
                     );
                   },
                 ),
@@ -348,7 +351,11 @@ class _TripCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(Icons.route, size: 16, color: colorScheme.onSecondaryContainer),
+                  Icon(
+                    Icons.route,
+                    size: 16,
+                    color: colorScheme.onSecondaryContainer,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -376,7 +383,9 @@ class _TripCard extends StatelessWidget {
               Text(
                 '$duration · $date',
                 style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSecondaryContainer.withValues(alpha: 0.7),
+                  color: colorScheme.onSecondaryContainer.withValues(
+                    alpha: 0.7,
+                  ),
                 ),
               ),
             ],
