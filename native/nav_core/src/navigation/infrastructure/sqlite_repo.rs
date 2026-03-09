@@ -1,9 +1,9 @@
 // SQLite-backed NavigationRepository — survives app restarts
-use crate::domain::{
-    entities::{NavigationSession, NavigationStatus},
+use crate::navigation::domain::{
     ports::NavigationRepository,
-    value_objects::Position,
+    session::{NavigationSession, NavigationStatus},
 };
+use crate::shared::value_objects::Position;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use chrono::TimeZone;

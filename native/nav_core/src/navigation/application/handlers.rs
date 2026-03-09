@@ -1,9 +1,115 @@
 // Command and Query Handlers - Application logic
-use crate::application::{commands::*, queries::*};
-use crate::domain::{entities::*, events::NavigationEvent, ports::*, value_objects::*};
+use crate::navigation::application::{commands::*, queries::*};
+use crate::navigation::domain::{events::NavigationEvent, ports::*, session::*};
+use crate::shared::value_objects::*;
 use anyhow::{Context, Result};
 use std::sync::Arc;
 use tokio::sync::broadcast;
+
+// ── Aggregated handler structs ────────────────────────────────────────────────
+
+/// Pre-constructed navigation application service.
+///
+/// Held for the lifetime of the app in `AppContainer`. All navigation API
+/// functions dispatch through this struct — no per-call handler construction.
+pub struct NavigationHandlers {
+    route_service: Arc<dyn RouteService>,
+    start_handler: StartNavigationHandler,
+    update_position_handler: UpdatePositionHandler,
+    pause_handler: PauseNavigationHandler,
+    resume_handler: ResumeNavigationHandler,
+    stop_handler: StopNavigationHandler,
+    get_active_handler: GetActiveSessionHandler,
+    event_bus: broadcast::Sender<NavigationEvent>,
+}
+
+impl NavigationHandlers {
+    pub fn new(
+        route_service: Arc<dyn RouteService>,
+        navigation_repo: Arc<dyn NavigationRepository>,
+        device_comm: Arc<dyn DeviceCommunicationPort>,
+        event_bus: broadcast::Sender<NavigationEvent>,
+    ) -> Self {
+        Self {
+            start_handler: StartNavigationHandler::new(
+                Arc::clone(&route_service),
+                Arc::clone(&navigation_repo),
+                Arc::clone(&device_comm),
+                event_bus.clone(),
+            ),
+            update_position_handler: UpdatePositionHandler::new(
+                Arc::clone(&navigation_repo),
+                event_bus.clone(),
+            ),
+            pause_handler: PauseNavigationHandler::new(Arc::clone(&navigation_repo)),
+            resume_handler: ResumeNavigationHandler::new(Arc::clone(&navigation_repo)),
+            stop_handler: StopNavigationHandler::new(
+                Arc::clone(&navigation_repo),
+                event_bus.clone(),
+            ),
+            get_active_handler: GetActiveSessionHandler::new(navigation_repo),
+            route_service,
+            event_bus,
+        }
+    }
+
+    pub async fn calculate_route(&self, waypoints: Vec<Position>) -> Result<nav_ir::Route> {
+        self.route_service.calculate_route(waypoints).await
+    }
+
+    pub async fn start(&self, cmd: StartNavigationCommand) -> Result<NavigationSession> {
+        self.start_handler.handle(cmd).await
+    }
+
+    pub async fn update_position(&self, cmd: UpdatePositionCommand) -> Result<()> {
+        self.update_position_handler.handle(cmd).await
+    }
+
+    pub async fn pause(&self, cmd: PauseNavigationCommand) -> Result<()> {
+        self.pause_handler.handle(cmd).await
+    }
+
+    pub async fn resume(&self, cmd: ResumeNavigationCommand) -> Result<()> {
+        self.resume_handler.handle(cmd).await
+    }
+
+    pub async fn stop(&self, cmd: StopNavigationCommand) -> Result<()> {
+        self.stop_handler.handle(cmd).await
+    }
+
+    pub async fn get_active(&self, q: GetActiveSessionQuery) -> Result<Option<NavigationSession>> {
+        self.get_active_handler.handle(q).await
+    }
+
+    pub fn subscribe(&self) -> broadcast::Receiver<NavigationEvent> {
+        self.event_bus.subscribe()
+    }
+}
+
+/// Pre-constructed geocoding application service.
+///
+/// Held for the lifetime of the app in `AppContainer`.
+pub struct GeocodingHandlers {
+    geocode_handler: GeocodeHandler,
+    reverse_geocode_handler: ReverseGeocodeHandler,
+}
+
+impl GeocodingHandlers {
+    pub fn new(geocoding_service: Arc<dyn GeocodingService>) -> Self {
+        Self {
+            geocode_handler: GeocodeHandler::new(Arc::clone(&geocoding_service)),
+            reverse_geocode_handler: ReverseGeocodeHandler::new(geocoding_service),
+        }
+    }
+
+    pub async fn geocode(&self, q: GeocodeQuery) -> Result<Vec<GeocodingSearchResult>> {
+        self.geocode_handler.handle(q).await
+    }
+
+    pub async fn reverse_geocode(&self, q: ReverseGeocodeQuery) -> Result<String> {
+        self.reverse_geocode_handler.handle(q).await
+    }
+}
 
 /// Command handler for StartNavigationCommand
 pub struct StartNavigationHandler {
@@ -277,11 +383,12 @@ impl ReverseGeocodeHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::{entities::NavigationStatus, value_objects::Position};
     use crate::infrastructure::{
         device::no_op_device_comm::NoOpDeviceComm,
         persistence::in_memory_repo::InMemoryNavigationRepository,
     };
+    use crate::navigation::domain::session::NavigationStatus;
+    use crate::shared::value_objects::Position;
     use async_trait::async_trait;
     use nav_ir::*;
 

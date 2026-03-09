@@ -1,5 +1,5 @@
 // Commands - Write operations
-use crate::domain::value_objects::*;
+use crate::shared::value_objects::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

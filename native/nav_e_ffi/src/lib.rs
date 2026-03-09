@@ -233,22 +233,19 @@ pub fn delete_saved_route(id: i64) -> Result<()> {
 // Device Communication API
 // ============================================================================
 
-/// Send route data to a connected device via Bluetooth
+/// Send route data to a connected device via Bluetooth.
 ///
-/// # Arguments
-/// * `device_id` - The device ID (from saved devices)
-/// * `route_json` - JSON string containing route waypoints and metadata
-///
-/// # Returns
-/// Result indicating success or failure
-///
-/// # Note
-/// Currently returns a stub implementation. Full device communication
-/// will be implemented using device_comm crate and protobuf protocol.
+/// Serialises the route to protobuf via `nav_protocol` and emits the bytes on the
+/// device message channel. Flutter must be subscribed to `subscribe_device_messages()`
+/// to receive and write them over BLE.
 #[frb]
 pub fn send_route_to_device(device_id: i64, route_json: String) -> Result<()> {
     nav_core::api::send_route_to_device(device_id, route_json)
 }
+
+// NOTE: subscribe_device_messages() is available in nav_core::api but requires FRB stream
+// wiring to expose to Flutter. See nav_core::api::subscribe_device_messages and
+// DeviceMessage for the shape. Wire as a StreamSink<DeviceMessage> when BLE streaming is needed.
 
 // ============================================================================
 // Devices API

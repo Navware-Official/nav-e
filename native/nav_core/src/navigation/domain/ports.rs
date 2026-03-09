@@ -2,7 +2,8 @@
 // Future ports (DeviceMessageReceiver, TrafficService) and reserved methods are intentional
 // architecture that will be wired up as device communication is implemented.
 #![allow(dead_code)]
-use crate::domain::{entities::*, value_objects::*};
+use crate::navigation::domain::session::*;
+use crate::shared::value_objects::*;
 use anyhow::Result;
 use async_trait::async_trait;
 use nav_ir::Route as NavIrRoute;

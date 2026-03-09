@@ -6,7 +6,9 @@
 mod adapters;
 mod types;
 
-pub use adapters::{normalize_custom, normalize_gpx, normalize_graphhopper, normalize_osrm, OsrmResponse};
+pub use adapters::{
+    normalize_custom, normalize_gpx, normalize_graphhopper, normalize_osrm, OsrmResponse,
+};
 pub use types::*;
 
 #[cfg(test)]
@@ -94,11 +96,22 @@ mod tests {
         assert_eq!(route.schema_version, route2.schema_version);
         assert_eq!(route.metadata.name, route2.metadata.name);
         assert_eq!(route.segments.len(), route2.segments.len());
-        for (i, (s1, s2)) in route.segments.iter().zip(route2.segments.iter()).enumerate() {
+        for (i, (s1, s2)) in route
+            .segments
+            .iter()
+            .zip(route2.segments.iter())
+            .enumerate()
+        {
             assert_eq!(s1.intent, s2.intent, "segment {}", i);
             assert_eq!(s1.waypoints.len(), s2.waypoints.len(), "segment {}", i);
-            assert_eq!(s1.geometry.bounding_box.min_lat, s2.geometry.bounding_box.min_lat);
-            assert_eq!(s1.geometry.bounding_box.max_lon, s2.geometry.bounding_box.max_lon);
+            assert_eq!(
+                s1.geometry.bounding_box.min_lat,
+                s2.geometry.bounding_box.min_lat
+            );
+            assert_eq!(
+                s1.geometry.bounding_box.max_lon,
+                s2.geometry.bounding_box.max_lon
+            );
         }
         route2
     }
@@ -479,10 +492,12 @@ mod tests {
         };
         assert!(matches!(
             route.validate(),
-            Err(ValidationError::InstructionMissingCoordinateAndGeometryRef {
-                segment_index: 0,
-                instruction_index: 0
-            })
+            Err(
+                ValidationError::InstructionMissingCoordinateAndGeometryRef {
+                    segment_index: 0,
+                    instruction_index: 0
+                }
+            )
         ));
     }
 }

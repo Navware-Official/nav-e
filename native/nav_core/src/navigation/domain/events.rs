@@ -1,5 +1,5 @@
 // Domain Events — typed enum published to the broadcast event bus.
-use crate::domain::value_objects::Position;
+use crate::shared::value_objects::Position;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 

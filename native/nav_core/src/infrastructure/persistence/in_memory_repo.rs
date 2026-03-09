@@ -1,5 +1,5 @@
 // In-memory repository implementation for development/testing
-use crate::domain::{entities::NavigationSession, ports::NavigationRepository};
+use crate::navigation::domain::{ports::NavigationRepository, session::NavigationSession};
 use anyhow::Result;
 use async_trait::async_trait;
 use std::collections::HashMap;
@@ -42,7 +42,7 @@ impl NavigationRepository for InMemoryNavigationRepository {
         let sessions = self.sessions.read().await;
         Ok(sessions
             .values()
-            .find(|s| s.status == crate::domain::entities::NavigationStatus::Active)
+            .find(|s| s.status == crate::navigation::domain::session::NavigationStatus::Active)
             .cloned())
     }
 
@@ -56,7 +56,8 @@ impl NavigationRepository for InMemoryNavigationRepository {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::{entities::*, value_objects::Position};
+    use crate::navigation::domain::session::*;
+    use crate::shared::value_objects::Position;
 
     fn make_session(status: NavigationStatus) -> NavigationSession {
         use chrono::Utc;

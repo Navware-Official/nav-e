@@ -8,7 +8,7 @@ use rusqlite::{Connection, Row};
 use std::marker::PhantomData;
 use std::sync::{Arc, Mutex};
 
-use crate::domain::ports::Repository;
+use crate::navigation::domain::ports::Repository;
 
 /// Trait for entities that can be persisted to database
 ///
