@@ -1,4 +1,4 @@
-use crate::domain::entities::*;
+use crate::navigation::domain::session::*;
 /// Data Transfer Objects (DTOs) for Flutter <-> Rust boundary
 ///
 /// These DTOs define the serialization format for complex types
@@ -55,8 +55,8 @@ pub struct GeocodingResultDto {
     pub osm_id: Option<i64>,
 }
 
-impl From<crate::domain::value_objects::GeocodingSearchResult> for GeocodingResultDto {
-    fn from(r: crate::domain::value_objects::GeocodingSearchResult) -> Self {
+impl From<crate::shared::value_objects::GeocodingSearchResult> for GeocodingResultDto {
+    fn from(r: crate::shared::value_objects::GeocodingSearchResult) -> Self {
         Self {
             latitude: r.position.latitude,
             longitude: r.position.longitude,
@@ -136,7 +136,7 @@ pub(crate) fn navigation_session_to_dto(session: &NavigationSession) -> Navigati
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::value_objects::Position;
+    use crate::shared::value_objects::Position;
     use chrono::Utc;
     use nav_ir::{
         EncodedPolyline, RouteGeometry, RouteMetadata, RouteSegment, SegmentIntent,

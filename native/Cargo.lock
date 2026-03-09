@@ -337,24 +337,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "device_comm"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "crc32fast",
- "geo-types",
- "nav_ir",
- "polyline",
- "prost",
- "prost-build",
- "serde_json",
- "sha2",
- "thiserror 1.0.69",
- "uuid",
-]
-
-[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1087,9 +1069,9 @@ dependencies = [
  "bytes",
  "chrono",
  "crc32fast",
- "device_comm",
  "geo-types",
  "nav_ir",
+ "nav_protocol",
  "polyline",
  "prost",
  "prost-build",
@@ -1124,6 +1106,24 @@ dependencies = [
  "polyline",
  "serde",
  "serde_json",
+ "uuid",
+]
+
+[[package]]
+name = "nav_protocol"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "crc32fast",
+ "geo-types",
+ "nav_ir",
+ "polyline",
+ "prost",
+ "prost-build",
+ "serde_json",
+ "sha2",
+ "thiserror 1.0.69",
  "uuid",
 ]
 

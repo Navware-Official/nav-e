@@ -1,9 +1,11 @@
-// No-op device communication stub used when no real device is connected.
-use crate::domain::{entities::*, ports::*, value_objects::*};
+// No-op device communication stub — used as a test double in handler tests.
+use crate::navigation::domain::{ports::*, session::*};
+use crate::shared::value_objects::*;
 use anyhow::Result;
 use async_trait::async_trait;
 use nav_ir::Route as NavIrRoute;
 
+#[allow(dead_code)]
 pub struct NoOpDeviceComm;
 
 #[async_trait]

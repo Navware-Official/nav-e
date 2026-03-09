@@ -1,19 +1,23 @@
 /// Trips API - completed route history
 use anyhow::Result;
 
-use crate::api::get_context;
 use crate::api::helpers::*;
-use crate::domain::ports::Repository;
-use crate::infrastructure::database::TripEntity;
+use crate::app::container::get_container;
+use crate::places::commands::*;
+use crate::places::queries::*;
 
 /// Get all trips as JSON array (newest first)
 pub fn get_all_trips() -> Result<String> {
-    query_json(|| get_context().trips_repo.get_all())
+    query_json(|| get_container().places.get_all_trips(GetAllTripsQuery))
 }
 
 /// Get a trip by ID as JSON object
 pub fn get_trip_by_id(id: i64) -> Result<String> {
-    query_json(|| get_context().trips_repo.get_by_id(id))
+    query_json(|| {
+        get_container()
+            .places
+            .get_trip_by_id(GetTripByIdQuery { id })
+    })
 }
 
 /// Save a new trip and return the assigned ID
@@ -27,25 +31,19 @@ pub fn save_trip(
     route_id: Option<String>,
     polyline_encoded: Option<String>,
 ) -> Result<i64> {
-    command_with_id(|| {
-        let ctx = get_context();
-        let entity = TripEntity {
-            id: None,
-            distance_m,
-            duration_seconds,
-            started_at,
-            completed_at,
-            status,
-            destination_label,
-            route_id,
-            polyline_encoded,
-            created_at: completed_at,
-        };
-        ctx.trips_repo.insert(entity)
+    get_container().places.save_trip(SaveTripCommand {
+        distance_m,
+        duration_seconds,
+        started_at,
+        completed_at,
+        status,
+        destination_label,
+        route_id,
+        polyline_encoded,
     })
 }
 
 /// Delete a trip by ID
 pub fn delete_trip(id: i64) -> Result<()> {
-    command(|| get_context().trips_repo.delete(id))
+    get_container().places.delete_trip(DeleteTripCommand { id })
 }

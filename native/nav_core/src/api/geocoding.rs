@@ -2,16 +2,17 @@
 use anyhow::Result;
 
 use super::dto::GeocodingResultDto;
-use crate::application::{handlers::*, queries::*};
-use crate::domain::value_objects::*;
+use super::helpers::block_on;
+use crate::app::container::get_container;
+use crate::navigation::application::queries::*;
+use crate::shared::value_objects::*;
 
 /// Search for locations by address/name
 pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
-    let results = super::block_on(async {
-        let ctx = super::get_context();
-        let handler = GeocodeHandler::new(ctx.geocoding_service.clone());
-        handler
-            .handle(GeocodeQuery {
+    let results = block_on(async {
+        get_container()
+            .geocoding
+            .geocode(GeocodeQuery {
                 address: query,
                 limit,
             })
@@ -24,11 +25,11 @@ pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
 
 /// Reverse geocode coordinates to address
 pub fn reverse_geocode(latitude: f64, longitude: f64) -> Result<String> {
-    super::block_on(async {
-        let ctx = super::get_context();
-        let handler = ReverseGeocodeHandler::new(ctx.geocoding_service.clone());
+    block_on(async {
         let position = Position::new(latitude, longitude).map_err(|e| anyhow::anyhow!(e))?;
-        let query = ReverseGeocodeQuery { position };
-        handler.handle(query).await
+        get_container()
+            .geocoding
+            .reverse_geocode(ReverseGeocodeQuery { position })
+            .await
     })
 }

@@ -4,9 +4,9 @@
 //! Use for custom routing engines or precomputed routes.
 
 use crate::{
-    BoundingBox, EncodedPolyline, GeometryConfidence, GeometrySource, Coordinate, Route,
-    RouteGeometry, RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints,
-    SegmentId, SegmentIntent, Waypoint, WaypointId, WaypointKind,
+    BoundingBox, Coordinate, EncodedPolyline, GeometryConfidence, GeometrySource, Route,
+    RouteGeometry, RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints, SegmentId,
+    SegmentIntent, Waypoint, WaypointId, WaypointKind,
 };
 use chrono::Utc;
 

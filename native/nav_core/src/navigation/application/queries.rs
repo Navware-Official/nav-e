@@ -1,5 +1,5 @@
 // Queries - Read operations
-use crate::domain::value_objects::Position;
+use crate::shared::value_objects::Position;
 use serde::{Deserialize, Serialize};
 
 /// Get active navigation session

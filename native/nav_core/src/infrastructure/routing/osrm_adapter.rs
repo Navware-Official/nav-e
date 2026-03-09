@@ -1,5 +1,6 @@
 // OSRM Adapter - Implementation of RouteService port. Returns Nav-IR Route.
-use crate::domain::{ports::RouteService, value_objects::*};
+use crate::navigation::domain::ports::RouteService;
+use crate::shared::value_objects::*;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use nav_ir::{normalize_osrm, Route as NavIrRoute};

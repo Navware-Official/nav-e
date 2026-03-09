@@ -4,7 +4,7 @@
 //! Computes total distance from track/route points; optionally estimates duration from distance.
 
 use crate::{
-    BoundingBox, EncodedPolyline, GeometryConfidence, GeometrySource, Coordinate, ImportSource,
+    BoundingBox, Coordinate, EncodedPolyline, GeometryConfidence, GeometrySource, ImportSource,
     Route, RouteGeometry, RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints,
     SegmentId, SegmentIntent, Waypoint, WaypointId, WaypointKind,
 };
@@ -19,7 +19,10 @@ fn haversine_m(lat1: f64, lon1: f64, lat2: f64, lon2: f64) -> f64 {
     let lat2 = lat2.to_radians();
     let dlat = lat2 - lat1;
     let dlon = (lon2 - lon1).to_radians();
-    let a = (dlat / 2.0).sin().mul_add((dlat / 2.0).sin(), lat1.cos() * lat2.cos() * (dlon / 2.0).sin() * (dlon / 2.0).sin());
+    let a = (dlat / 2.0).sin().mul_add(
+        (dlat / 2.0).sin(),
+        lat1.cos() * lat2.cos() * (dlon / 2.0).sin() * (dlon / 2.0).sin(),
+    );
     let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
     R * c
 }
@@ -82,8 +85,8 @@ pub fn normalize_gpx(bytes: &[u8]) -> Result<Route, String> {
         .iter()
         .map(|(lat, lon)| Coord { x: *lon, y: *lat })
         .collect();
-    let polyline_str =
-        polyline::encode_coordinates(coords.clone(), 5).map_err(|e| format!("Polyline encode: {}", e))?;
+    let polyline_str = polyline::encode_coordinates(coords.clone(), 5)
+        .map_err(|e| format!("Polyline encode: {}", e))?;
 
     let (min_lat, max_lat, min_lon, max_lon) = points.iter().fold(
         (90.0_f64, -90.0_f64, 180.0_f64, -180.0_f64),
@@ -131,7 +134,10 @@ pub fn normalize_gpx(bytes: &[u8]) -> Result<Route, String> {
         .and_then(|r| r.comment.as_deref())
         .or_else(|| gpx.tracks.first().and_then(|t| t.comment.as_deref()))
     {
-        extras.insert("comment".to_string(), serde_json::Value::String(comment.to_string()));
+        extras.insert(
+            "comment".to_string(),
+            serde_json::Value::String(comment.to_string()),
+        );
     }
 
     let waypoints: Vec<Waypoint> = if !gpx.routes.is_empty() && gpx.routes[0].points.len() >= 2 {

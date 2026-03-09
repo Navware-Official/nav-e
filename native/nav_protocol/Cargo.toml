@@ -1,5 +1,5 @@
 [package]
-name = "device_comm"
+name = "nav_protocol"
 version = "0.1.0"
 edition = "2021"
 
