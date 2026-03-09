@@ -13,7 +13,11 @@ pub fn get_all_saved_places() -> Result<String> {
 
 /// Get a saved place by ID as JSON object
 pub fn get_saved_place_by_id(id: i64) -> Result<String> {
-    query_json(|| get_container().places.get_place_by_id(GetPlaceByIdQuery { id }))
+    query_json(|| {
+        get_container()
+            .places
+            .get_place_by_id(GetPlaceByIdQuery { id })
+    })
 }
 
 /// Save a new place and return the assigned ID
@@ -39,5 +43,7 @@ pub fn save_place(
 
 /// Delete a saved place by ID
 pub fn delete_saved_place(id: i64) -> Result<()> {
-    get_container().places.delete_place(DeletePlaceCommand { id })
+    get_container()
+        .places
+        .delete_place(DeletePlaceCommand { id })
 }

@@ -12,7 +12,10 @@ pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
     let results = block_on(async {
         get_container()
             .geocoding
-            .geocode(GeocodeQuery { address: query, limit })
+            .geocode(GeocodeQuery {
+                address: query,
+                limit,
+            })
             .await
     })?;
 

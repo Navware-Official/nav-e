@@ -71,12 +71,23 @@ impl Default for ProtobufDeviceAdapter {
 
 #[async_trait]
 impl DeviceCommunicationPort for ProtobufDeviceAdapter {
-    async fn send_route_summary(&self, device_id: String, session: &NavigationSession) -> Result<()> {
+    async fn send_route_summary(
+        &self,
+        device_id: String,
+        session: &NavigationSession,
+    ) -> Result<()> {
         let route = &session.route;
-        let distance_m = route.metadata.total_distance_m.map(|m| m as u32).unwrap_or(0);
-        let duration_s = route.metadata.estimated_duration_s.map(|s| s as u32).unwrap_or(0);
-        let eta_unix_ms =
-            (chrono::Utc::now().timestamp() + duration_s as i64) as u64 * 1000;
+        let distance_m = route
+            .metadata
+            .total_distance_m
+            .map(|m| m as u32)
+            .unwrap_or(0);
+        let duration_s = route
+            .metadata
+            .estimated_duration_s
+            .map(|s| s as u32)
+            .unwrap_or(0);
+        let eta_unix_ms = (chrono::Utc::now().timestamp() + duration_s as i64) as u64 * 1000;
 
         let summary = proto::RouteSummary {
             header: Some(create_header(1)),
@@ -173,7 +184,10 @@ mod tests {
         let mut rx = adapter.subscribe();
 
         let pos = Position::new(52.37, 4.90).unwrap();
-        adapter.send_position_update("dev-1".into(), pos).await.unwrap();
+        adapter
+            .send_position_update("dev-1".into(), pos)
+            .await
+            .unwrap();
 
         let msg = rx.recv().await.unwrap();
         assert_eq!(msg.device_id, "dev-1");

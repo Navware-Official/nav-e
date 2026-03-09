@@ -1,5 +1,5 @@
 // In-memory repository implementation for development/testing
-use crate::navigation::domain::{session::NavigationSession, ports::NavigationRepository};
+use crate::navigation::domain::{ports::NavigationRepository, session::NavigationSession};
 use anyhow::Result;
 use async_trait::async_trait;
 use std::collections::HashMap;

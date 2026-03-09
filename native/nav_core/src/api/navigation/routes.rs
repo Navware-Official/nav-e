@@ -13,7 +13,10 @@ pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
             .map(|(lat, lon)| Position::new(lat, lon))
             .collect();
 
-        let route = get_container().navigation.calculate_route(waypoints?).await?;
+        let route = get_container()
+            .navigation
+            .calculate_route(waypoints?)
+            .await?;
         Ok(route_to_dto(&route))
     })
 }

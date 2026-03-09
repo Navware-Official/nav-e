@@ -10,17 +10,21 @@ use crate::places::queries::*;
 pub fn parse_route_from_gpx(bytes: &[u8]) -> Result<String> {
     let route = get_container()
         .places
-        .parse_route_from_gpx(ParseRouteFromGpxQuery { bytes: bytes.to_vec() })?;
+        .parse_route_from_gpx(ParseRouteFromGpxQuery {
+            bytes: bytes.to_vec(),
+        })?;
     serde_json::to_string(&route).map_err(Into::into)
 }
 
 /// Save a pre-parsed route (Nav-IR JSON) to the database. Returns the saved entity as JSON.
 pub fn save_route_from_json(route_json: &str, source: String) -> Result<String> {
     query_json(|| {
-        get_container().places.save_route_from_json(SaveRouteFromJsonCommand {
-            route_json: route_json.to_string(),
-            source,
-        })
+        get_container()
+            .places
+            .save_route_from_json(SaveRouteFromJsonCommand {
+                route_json: route_json.to_string(),
+                source,
+            })
     })
 }
 
@@ -29,7 +33,9 @@ pub fn import_route_from_gpx(bytes: &[u8]) -> Result<String> {
     query_json(|| {
         get_container()
             .places
-            .import_route_from_gpx(ImportRouteFromGpxCommand { bytes: bytes.to_vec() })
+            .import_route_from_gpx(ImportRouteFromGpxCommand {
+                bytes: bytes.to_vec(),
+            })
     })
 }
 
@@ -41,26 +47,38 @@ pub fn save_route_from_plan(
     distance_m: Option<f64>,
     duration_s: Option<u64>,
 ) -> Result<i64> {
-    get_container().places.save_route_from_plan(SaveRouteFromPlanCommand {
-        name,
-        waypoints,
-        polyline_encoded,
-        distance_m,
-        duration_s,
-    })
+    get_container()
+        .places
+        .save_route_from_plan(SaveRouteFromPlanCommand {
+            name,
+            waypoints,
+            polyline_encoded,
+            distance_m,
+            duration_s,
+        })
 }
 
 /// Get all saved routes as JSON array (newest first).
 pub fn get_all_saved_routes() -> Result<String> {
-    query_json(|| get_container().places.get_all_saved_routes(GetAllSavedRoutesQuery))
+    query_json(|| {
+        get_container()
+            .places
+            .get_all_saved_routes(GetAllSavedRoutesQuery)
+    })
 }
 
 /// Get a saved route by ID as JSON object (or null if not found).
 pub fn get_saved_route_by_id(id: i64) -> Result<String> {
-    query_json(|| get_container().places.get_saved_route_by_id(GetSavedRouteByIdQuery { id }))
+    query_json(|| {
+        get_container()
+            .places
+            .get_saved_route_by_id(GetSavedRouteByIdQuery { id })
+    })
 }
 
 /// Delete a saved route by ID.
 pub fn delete_saved_route(id: i64) -> Result<()> {
-    get_container().places.delete_saved_route(DeleteSavedRouteCommand { id })
+    get_container()
+        .places
+        .delete_saved_route(DeleteSavedRouteCommand { id })
 }

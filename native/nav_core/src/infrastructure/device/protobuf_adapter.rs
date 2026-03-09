@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 // Protobuf Adapter - Device communication using Protocol Buffers
-use crate::navigation::domain::{session::*, ports::*};
+use crate::navigation::domain::{ports::*, session::*};
 use crate::shared::value_objects::*;
 use anyhow::{Context, Result};
 use async_trait::async_trait;

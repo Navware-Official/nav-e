@@ -13,7 +13,11 @@ pub fn get_all_trips() -> Result<String> {
 
 /// Get a trip by ID as JSON object
 pub fn get_trip_by_id(id: i64) -> Result<String> {
-    query_json(|| get_container().places.get_trip_by_id(GetTripByIdQuery { id }))
+    query_json(|| {
+        get_container()
+            .places
+            .get_trip_by_id(GetTripByIdQuery { id })
+    })
 }
 
 /// Save a new trip and return the assigned ID

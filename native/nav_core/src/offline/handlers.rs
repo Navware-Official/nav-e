@@ -3,9 +3,9 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
+use crate::infrastructure::database::{OfflineRegionEntity, OfflineRegionsRepository};
 use crate::offline::commands::*;
 use crate::offline::queries::*;
-use crate::infrastructure::database::{OfflineRegionEntity, OfflineRegionsRepository};
 
 const DEFAULT_TILE_URL: &str = "https://demotiles.maplibre.org/tiles/{z}/{x}/{y}.pbf";
 
@@ -18,7 +18,9 @@ pub struct OfflineHandlers {
 
 impl OfflineHandlers {
     pub fn new(offline_regions_repo: OfflineRegionsRepository) -> Self {
-        Self { offline_regions_repo }
+        Self {
+            offline_regions_repo,
+        }
     }
 
     pub fn get_all_offline_regions(
@@ -62,21 +64,13 @@ impl OfflineHandlers {
 
         for z_entry in fs::read_dir(&region_dir).context("Read region directory")? {
             let z_entry = z_entry?;
-            let z: i32 = z_entry
-                .file_name()
-                .to_string_lossy()
-                .parse()
-                .unwrap_or(-1);
+            let z: i32 = z_entry.file_name().to_string_lossy().parse().unwrap_or(-1);
             if z < 0 {
                 continue;
             }
             for x_entry in fs::read_dir(z_entry.path()).context("Read z directory")? {
                 let x_entry = x_entry?;
-                let x: i32 = x_entry
-                    .file_name()
-                    .to_string_lossy()
-                    .parse()
-                    .unwrap_or(-1);
+                let x: i32 = x_entry.file_name().to_string_lossy().parse().unwrap_or(-1);
                 if x < 0 {
                     continue;
                 }
@@ -198,10 +192,7 @@ fn tile_xy(lat: f64, lon: f64, z: i32) -> (i32, i32) {
     let lat_rad = lat.to_radians();
     let n = 2f64.powi(z);
     let x = ((lon + 180.0) / 360.0 * n).floor() as i32;
-    let y = ((1.0
-        - (lat_rad.tan() + (1.0 / lat_rad.cos())).ln() / std::f64::consts::PI)
-        / 2.0
-        * n)
+    let y = ((1.0 - (lat_rad.tan() + (1.0 / lat_rad.cos())).ln() / std::f64::consts::PI) / 2.0 * n)
         .floor() as i32;
     (x, y)
 }

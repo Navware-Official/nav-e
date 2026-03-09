@@ -1,6 +1,6 @@
 // Command and Query Handlers - Application logic
 use crate::navigation::application::{commands::*, queries::*};
-use crate::navigation::domain::{session::*, events::NavigationEvent, ports::*};
+use crate::navigation::domain::{events::NavigationEvent, ports::*, session::*};
 use crate::shared::value_objects::*;
 use anyhow::{Context, Result};
 use std::sync::Arc;
@@ -383,12 +383,12 @@ impl ReverseGeocodeHandler {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::navigation::domain::session::NavigationStatus;
-    use crate::shared::value_objects::Position;
     use crate::infrastructure::{
         device::no_op_device_comm::NoOpDeviceComm,
         persistence::in_memory_repo::InMemoryNavigationRepository,
     };
+    use crate::navigation::domain::session::NavigationStatus;
+    use crate::shared::value_objects::Position;
     use async_trait::async_trait;
     use nav_ir::*;
 

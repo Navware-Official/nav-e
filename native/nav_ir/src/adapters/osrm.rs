@@ -3,9 +3,9 @@
 //! Normalizes OSRM route/v1/driving JSON into a single Nav-IR Route (one segment, Recalculatable, SnappedToGraph).
 
 use crate::{
-    BoundingBox, EncodedPolyline, GeometryConfidence, GeometrySource, Coordinate, Route,
-    RouteGeometry, RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints,
-    SegmentId, SegmentIntent, Waypoint, WaypointId, WaypointKind,
+    BoundingBox, Coordinate, EncodedPolyline, GeometryConfidence, GeometrySource, Route,
+    RouteGeometry, RouteMetadata, RoutePolicies, RouteSegment, SegmentConstraints, SegmentId,
+    SegmentIntent, Waypoint, WaypointId, WaypointKind,
 };
 use chrono::Utc;
 use serde::Deserialize;
@@ -41,9 +41,7 @@ impl TryFrom<OsrmResponse> for Route {
             .routes
             .first()
             .ok_or_else(|| "OSRM response has no routes".to_string())?;
-        let geometry = route_data
-            .geometry
-            .as_str();
+        let geometry = route_data.geometry.as_str();
         let decoded = polyline::decode_polyline(geometry, 5)
             .map_err(|e| format!("Failed to decode OSRM polyline: {}", e))?;
         let (min_lat, max_lat, min_lon, max_lon) = decoded.coords().fold(
