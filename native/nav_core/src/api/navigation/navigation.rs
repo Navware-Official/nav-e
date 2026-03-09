@@ -49,7 +49,10 @@ pub fn update_navigation_position(session_id: String, latitude: f64, longitude: 
 /// Get the currently active navigation session
 pub fn get_active_session() -> Result<Option<String>> {
     block_on(async {
-        let session = get_container().navigation.get_active(GetActiveSessionQuery {}).await?;
+        let session = get_container()
+            .navigation
+            .get_active(GetActiveSessionQuery {})
+            .await?;
         Ok(session
             .as_ref()
             .map(|s| serde_json::to_string(&navigation_session_to_dto(s)).unwrap()))
@@ -62,7 +65,9 @@ pub fn pause_navigation(session_id: String) -> Result<()> {
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
         get_container()
             .navigation
-            .pause(PauseNavigationCommand { session_id: session_uuid })
+            .pause(PauseNavigationCommand {
+                session_id: session_uuid,
+            })
             .await
     })
 }
@@ -73,7 +78,9 @@ pub fn resume_navigation(session_id: String) -> Result<()> {
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
         get_container()
             .navigation
-            .resume(ResumeNavigationCommand { session_id: session_uuid })
+            .resume(ResumeNavigationCommand {
+                session_id: session_uuid,
+            })
             .await
     })
 }

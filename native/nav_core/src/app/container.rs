@@ -6,6 +6,10 @@
 
 use crate::devices::handlers::DevicesHandlers;
 use crate::devices::infrastructure::{DeviceMessage, ProtobufDeviceAdapter};
+use crate::infrastructure::database::{
+    Database, DeviceRepository, OfflineRegionsRepository, SavedPlacesRepository,
+    SavedRoutesRepository, TripsRepository,
+};
 use crate::navigation::application::handlers::{GeocodingHandlers, NavigationHandlers};
 use crate::navigation::domain::{
     events::NavigationEvent,
@@ -14,10 +18,6 @@ use crate::navigation::domain::{
 use crate::navigation::infrastructure::SqliteNavigationRepository;
 use crate::offline::handlers::OfflineHandlers;
 use crate::places::handlers::PlacesHandlers;
-use crate::infrastructure::database::{
-    Database, DeviceRepository, OfflineRegionsRepository, SavedPlacesRepository,
-    SavedRoutesRepository, TripsRepository,
-};
 use std::sync::{Arc, OnceLock};
 use tokio::sync::broadcast;
 

@@ -3,10 +3,10 @@ pub(crate) mod infrastructure; // Internal - adapters
 pub(crate) mod shared; // Internal - shared value objects
 
 // Vertical bounded-context modules
-pub(crate) mod navigation; // Navigation domain + application + infrastructure
-pub(crate) mod places; // Places/trips/routes bounded context
 pub(crate) mod devices; // Devices bounded context
-pub(crate) mod offline; // Offline regions bounded context
+pub(crate) mod navigation; // Navigation domain + application + infrastructure
+pub(crate) mod offline;
+pub(crate) mod places; // Places/trips/routes bounded context // Offline regions bounded context
 
 // Composition root
 pub(crate) mod app;

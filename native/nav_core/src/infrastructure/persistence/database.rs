@@ -1,6 +1,6 @@
-use crate::navigation::domain::ports::Repository;
 use crate::infrastructure::persistence::base_repository::{BaseRepository, DatabaseEntity};
 use crate::migrations::{get_all_migrations, MigrationManager};
+use crate::navigation::domain::ports::Repository;
 /// SQLite database infrastructure for persistent storage
 use anyhow::{Context, Result};
 use rusqlite::{Connection, Row};

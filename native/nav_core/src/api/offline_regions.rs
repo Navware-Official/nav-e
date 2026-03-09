@@ -9,17 +9,27 @@ use crate::offline::queries::*;
 
 /// Get all offline regions as JSON array.
 pub fn get_all_offline_regions() -> Result<String> {
-    query_json(|| get_container().offline.get_all_offline_regions(GetAllOfflineRegionsQuery))
+    query_json(|| {
+        get_container()
+            .offline
+            .get_all_offline_regions(GetAllOfflineRegionsQuery)
+    })
 }
 
 /// Get one offline region by id as JSON object.
 pub fn get_offline_region_by_id(id: String) -> Result<String> {
-    query_json(|| get_container().offline.get_offline_region_by_id(GetOfflineRegionByIdQuery { id }))
+    query_json(|| {
+        get_container()
+            .offline
+            .get_offline_region_by_id(GetOfflineRegionByIdQuery { id })
+    })
 }
 
 /// Delete an offline region by id and remove its tile directory.
 pub fn delete_offline_region(id: String) -> Result<()> {
-    get_container().offline.delete_offline_region(DeleteOfflineRegionCommand { id })
+    get_container()
+        .offline
+        .delete_offline_region(DeleteOfflineRegionCommand { id })
 }
 
 /// Get list of tiles for a region as JSON array of {z, x, y}.
@@ -59,7 +69,9 @@ pub fn get_offline_region_for_viewport(
 
 /// Get storage root path for offline regions.
 pub fn get_offline_regions_storage_path() -> Result<String> {
-    get_container().offline.get_storage_path(GetStoragePathQuery)
+    get_container()
+        .offline
+        .get_storage_path(GetStoragePathQuery)
 }
 
 /// Download a region: fetch tiles, write to directory, insert into DB. Returns region JSON.
@@ -73,14 +85,16 @@ pub fn download_offline_region(
     max_zoom: i32,
     tile_url_template: Option<String>,
 ) -> Result<String> {
-    get_container().offline.download_offline_region(DownloadOfflineRegionCommand {
-        name,
-        north,
-        south,
-        east,
-        west,
-        min_zoom,
-        max_zoom,
-        tile_url_template,
-    })
+    get_container()
+        .offline
+        .download_offline_region(DownloadOfflineRegionCommand {
+            name,
+            north,
+            south,
+            east,
+            west,
+            min_zoom,
+            max_zoom,
+            tile_url_template,
+        })
 }

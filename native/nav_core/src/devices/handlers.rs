@@ -4,8 +4,8 @@ use chrono::Utc;
 
 use crate::devices::commands::*;
 use crate::devices::queries::*;
-use crate::navigation::domain::ports::Repository;
 use crate::infrastructure::database::{DeviceEntity, DeviceRepository};
+use crate::navigation::domain::ports::Repository;
 
 /// Handles all use cases for device registration and lookup.
 ///

@@ -1,7 +1,7 @@
 // SQLite-backed NavigationRepository — survives app restarts
 use crate::navigation::domain::{
-    session::{NavigationSession, NavigationStatus},
     ports::NavigationRepository,
+    session::{NavigationSession, NavigationStatus},
 };
 use crate::shared::value_objects::Position;
 use anyhow::{Context, Result};

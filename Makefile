@@ -72,7 +72,8 @@ fmt-rust:
 	@echo "Formatting Rust code..."
 	@cd native/nav_e_ffi && cargo fmt
 	@cd native/nav_core && cargo fmt
-	@cd native/device_comm && cargo fmt
+	@cd native/nav_protocol && cargo fmt
+	@cd native/nav_ir && cargo fmt
 	@echo "✓ Rust code formatted"
 
 ## Format Flutter/Dart code
@@ -93,6 +94,8 @@ lint-rust:
 	@cd native/nav_core && cargo clippy --all-targets --all-features -- -D warnings
 	@echo "Running clippy on nav_e_ffi (allow warnings; FRB cfg may be noisy)..."
 	@cd native/nav_e_ffi && cargo clippy --all-targets --all-features -- -A warnings || { echo "⚠ nav_e_ffi clippy failed; see output above"; exit 1; }
+	@cd native/nav_protocol && cargo clippy --all-targets --all-features -- -A warnings || { echo "⚠ nav_protocol clippy failed; see output above"; exit 1; }
+	@cd native/nav_ir && cargo clippy --all-targets --all-features -- -A warnings || { echo "⚠ nav_ir clippy failed; see output above"; exit 1; }
 	@echo "✓ Rust linting passed"
 
 fix-rust:
@@ -100,7 +103,8 @@ fix-rust:
 	@echo "Fixing Rust code with clippy suggestions..."
 	@cd native/nav_core && cargo clippy --fix --allow-dirty --allow-staged
 	@cd native/nav_e_ffi && cargo clippy --fix --allow-dirty --allow-staged
-	@cd native/device_comm && cargo clippy --fix --allow-dirty --allow-staged
+	@cd native/nav_protocol && cargo clippy --fix --allow-dirty --allow-staged
+	@cd native/nav_ir && cargo clippy --fix --allow-dirty --allow-staged
 	@echo "✓ Rust code fixed where possible"
 
 cs-fix:
@@ -135,7 +139,7 @@ test:
 	@echo "Running Flutter tests..."
 	flutter test
 	@echo "Running Rust tests..."
-	@cd native/nav_e_ffi && cargo test
+	@make test-rust
 	@echo "✓ All tests ran"
 
 ## Run Rust API smoke tests only (no Flutter) — tests the FFI surface Flutter uses
@@ -143,6 +147,9 @@ test-rust:
 	@command -v cargo >/dev/null 2>&1 || { echo "cargo not found. Install Rust toolchain"; exit 1; }
 	@echo "Running nav_e_ffi API smoke tests..."
 	@cd native/nav_e_ffi && cargo test
+	@cd native/nav_protocol && cargo test
+	@cd native/nav_ir && cargo test
+	@cd native/nav_core && cargo test
 	@echo "✓ Rust API tests ran"
 
 ci: codegen build-native

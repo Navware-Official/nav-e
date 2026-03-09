@@ -3,13 +3,13 @@ use anyhow::{Context, Result};
 use chrono::Utc;
 use geo_types::Coord;
 
-use crate::places::commands::*;
-use crate::places::queries::*;
-use crate::navigation::domain::ports::Repository;
 use crate::infrastructure::database::{
     SavedPlaceEntity, SavedPlacesRepository, SavedRouteEntity, SavedRoutesRepository, TripEntity,
     TripsRepository,
 };
+use crate::navigation::domain::ports::Repository;
+use crate::places::commands::*;
+use crate::places::queries::*;
 
 /// Handles all use cases for saved places, trips, and saved routes.
 ///
@@ -134,8 +134,7 @@ impl PlacesHandlers {
         &self,
         cmd: ImportRouteFromGpxCommand,
     ) -> Result<SavedRouteEntity> {
-        let route =
-            nav_ir::normalize_gpx(&cmd.bytes).map_err(|e| anyhow::anyhow!("{}", e))?;
+        let route = nav_ir::normalize_gpx(&cmd.bytes).map_err(|e| anyhow::anyhow!("{}", e))?;
         let route_json = serde_json::to_string(&route)?;
         let entity = SavedRouteEntity {
             id: None,
@@ -163,13 +162,16 @@ impl PlacesHandlers {
                     .iter()
                     .map(|(lat, lon)| Coord { x: *lon, y: *lat })
                     .collect();
-                polyline::encode_coordinates(coords, 5)
-                    .map_err(|e| anyhow::anyhow!("{}", e))?
+                polyline::encode_coordinates(coords, 5).map_err(|e| anyhow::anyhow!("{}", e))?
             }
         };
-        let mut route =
-            nav_ir::normalize_custom(&cmd.waypoints, &polyline_str, cmd.distance_m, cmd.duration_s)
-                .map_err(|e| anyhow::anyhow!("{}", e))?;
+        let mut route = nav_ir::normalize_custom(
+            &cmd.waypoints,
+            &polyline_str,
+            cmd.distance_m,
+            cmd.duration_s,
+        )
+        .map_err(|e| anyhow::anyhow!("{}", e))?;
         route.metadata.name = cmd.name;
         let route_json = serde_json::to_string(&route)?;
         let entity = SavedRouteEntity {
@@ -386,7 +388,9 @@ mod tests {
         })
         .unwrap();
         assert_eq!(
-            h.get_all_saved_routes(GetAllSavedRoutesQuery).unwrap().len(),
+            h.get_all_saved_routes(GetAllSavedRoutesQuery)
+                .unwrap()
+                .len(),
             2
         );
     }
@@ -403,7 +407,8 @@ mod tests {
                 duration_s: None,
             })
             .unwrap();
-        h.delete_saved_route(DeleteSavedRouteCommand { id }).unwrap();
+        h.delete_saved_route(DeleteSavedRouteCommand { id })
+            .unwrap();
         assert!(h
             .get_saved_route_by_id(GetSavedRouteByIdQuery { id })
             .unwrap()

@@ -390,9 +390,16 @@ pub struct Route {
 pub enum ValidationError {
     UnsupportedSchemaVersion(u16),
     EmptySegments,
-    SegmentMissingStartOrStop { segment_index: usize },
-    InvalidBoundingBox { segment_index: usize },
-    CoordinateOutOfRange { lat: f64, lon: f64 },
+    SegmentMissingStartOrStop {
+        segment_index: usize,
+    },
+    InvalidBoundingBox {
+        segment_index: usize,
+    },
+    CoordinateOutOfRange {
+        lat: f64,
+        lon: f64,
+    },
     InstructionMissingCoordinateAndGeometryRef {
         segment_index: usize,
         instruction_index: usize,
@@ -409,14 +416,21 @@ pub enum ValidationError {
         segment_index: usize,
         leg_index: usize,
     },
-    LegsNotMonotonic { segment_index: usize },
+    LegsNotMonotonic {
+        segment_index: usize,
+    },
 }
 
 impl std::fmt::Display for ValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ValidationError::UnsupportedSchemaVersion(v) => {
-                write!(f, "unsupported schema_version: {} (supported: {})", v, Route::CURRENT_SCHEMA_VERSION)
+                write!(
+                    f,
+                    "unsupported schema_version: {} (supported: {})",
+                    v,
+                    Route::CURRENT_SCHEMA_VERSION
+                )
             }
             ValidationError::EmptySegments => write!(f, "route must have at least one segment"),
             ValidationError::SegmentMissingStartOrStop { segment_index } => write!(
@@ -445,7 +459,11 @@ impl std::fmt::Display for ValidationError {
             ValidationError::GeometryRefInvalid {
                 segment_index,
                 message,
-            } => write!(f, "segment {} geometry_ref invalid: {}", segment_index, message),
+            } => write!(
+                f,
+                "segment {} geometry_ref invalid: {}",
+                segment_index, message
+            ),
             ValidationError::LegVertexRangeInvalid {
                 segment_index,
                 leg_index,
@@ -480,10 +498,7 @@ fn validate_coordinate(lat: f64, lon: f64) -> Result<(), ValidationError> {
     Ok(())
 }
 
-fn validate_geometry_ref(
-    segment_index: usize,
-    r: &GeometryRef,
-) -> Result<(), ValidationError> {
+fn validate_geometry_ref(segment_index: usize, r: &GeometryRef) -> Result<(), ValidationError> {
     match r.kind {
         GeometryRefKind::VertexIndex => {
             if r.vertex_index.is_none() {
@@ -518,29 +533,25 @@ impl Route {
     /// Validates the route against Nav-IR invariants. Returns `Ok(())` if valid.
     pub fn validate(&self) -> Result<(), ValidationError> {
         if self.schema_version != Self::CURRENT_SCHEMA_VERSION {
-            return Err(ValidationError::UnsupportedSchemaVersion(self.schema_version));
+            return Err(ValidationError::UnsupportedSchemaVersion(
+                self.schema_version,
+            ));
         }
         if self.segments.is_empty() {
             return Err(ValidationError::EmptySegments);
         }
         for (idx, seg) in self.segments.iter().enumerate() {
             if seg.waypoints.len() < 2 {
-                return Err(ValidationError::SegmentMissingStartOrStop {
-                    segment_index: idx,
-                });
+                return Err(ValidationError::SegmentMissingStartOrStop { segment_index: idx });
             }
             let first = &seg.waypoints[0];
             let last = seg.waypoints.last().unwrap();
             if first.kind != WaypointKind::Start || last.kind != WaypointKind::Stop {
-                return Err(ValidationError::SegmentMissingStartOrStop {
-                    segment_index: idx,
-                });
+                return Err(ValidationError::SegmentMissingStartOrStop { segment_index: idx });
             }
             let b = &seg.geometry.bounding_box;
             if b.min_lat > b.max_lat || b.min_lon > b.max_lon {
-                return Err(ValidationError::InvalidBoundingBox {
-                    segment_index: idx,
-                });
+                return Err(ValidationError::InvalidBoundingBox { segment_index: idx });
             }
             for wp in &seg.waypoints {
                 validate_coordinate(wp.coordinate.latitude, wp.coordinate.longitude)?;
@@ -550,10 +561,12 @@ impl Route {
             }
             for (inst_idx, inst) in seg.instructions.iter().enumerate() {
                 if inst.coordinate.is_none() && inst.geometry_ref.is_none() {
-                    return Err(ValidationError::InstructionMissingCoordinateAndGeometryRef {
-                        segment_index: idx,
-                        instruction_index: inst_idx,
-                    });
+                    return Err(
+                        ValidationError::InstructionMissingCoordinateAndGeometryRef {
+                            segment_index: idx,
+                            instruction_index: inst_idx,
+                        },
+                    );
                 }
                 if let Some(ref coord) = inst.coordinate {
                     validate_coordinate(coord.latitude, coord.longitude)?;
@@ -562,8 +575,7 @@ impl Route {
                     validate_geometry_ref(idx, gr)?;
                 }
             }
-            let wp_ids: std::collections::HashSet<_> =
-                seg.waypoints.iter().map(|w| w.id).collect();
+            let wp_ids: std::collections::HashSet<_> = seg.waypoints.iter().map(|w| w.id).collect();
             for (leg_idx, leg) in seg.legs.iter().enumerate() {
                 if leg.vertex_range.start > leg.vertex_range.end {
                     return Err(ValidationError::LegVertexRangeInvalid {
@@ -582,9 +594,7 @@ impl Route {
             for leg in &seg.legs {
                 if let Some(pe) = prev_end {
                     if leg.vertex_range.start < pe {
-                        return Err(ValidationError::LegsNotMonotonic {
-                            segment_index: idx,
-                        });
+                        return Err(ValidationError::LegsNotMonotonic { segment_index: idx });
                     }
                 }
                 prev_end = Some(leg.vertex_range.end);
