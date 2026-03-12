@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "nav_ir",
   "nav_protocol",
+  "nav_engine",
   "nav_core",
   "nav_route",
   "nav_e_ffi",

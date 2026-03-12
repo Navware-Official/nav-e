@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nav_e/bridge/lib.dart' as api;
 import 'package:nav_e/core/domain/repositories/trip_repository.dart';
 import 'package:nav_e/features/device_management/bloc/devices_bloc.dart';
 import 'package:nav_e/features/offline_maps/cubit/offline_maps_cubit.dart';
@@ -17,6 +20,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   double _totalKm = 0;
   int _totalDurationSeconds = 0;
   int _tripCount = 0;
+  double _avgKm = 0;
   bool _loading = true;
   String? _error;
   bool _loaded = false;
@@ -41,22 +45,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _error = null;
     });
     try {
+      // Trip count: from completed trips
       final trips = await repo.getAll();
-      double km = 0;
-      int sec = 0;
       int count = 0;
       for (final t in trips) {
-        if (t.status == 'completed') {
-          km += t.distanceM / 1000;
-          sec += t.durationSeconds;
-          count++;
-        }
+        if (t.status == 'Completed') count++;
       }
+
+      // Distance, duration, avg: from actual tracked session data
+      final statsJson = await api.getSessionStats();
+      final stats = jsonDecode(statsJson) as Map<String, dynamic>;
+      final totalDistM = (stats['total_distance_m'] as num).toDouble();
+      final totalSec = (stats['total_duration_seconds'] as num).toInt();
+      final sessionCount = (stats['session_count'] as num).toInt();
+
       if (mounted) {
         setState(() {
-          _totalKm = km;
-          _totalDurationSeconds = sec;
+          _totalKm = totalDistM / 1000;
+          _totalDurationSeconds = totalSec;
           _tripCount = count;
+          _avgKm = sessionCount > 0 ? totalDistM / sessionCount / 1000 : 0;
           _loading = false;
         });
       }
@@ -90,7 +98,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             totalKm: _totalKm,
             totalDuration: _formatDuration(_totalDurationSeconds),
             tripCount: _tripCount,
-            avgKm: _tripCount > 0 ? _totalKm / _tripCount : 0,
+            avgKm: _avgKm,
           ),
           const SizedBox(height: 16),
           _DevicesCard(onManage: () => context.pushNamed('devices')),
@@ -240,7 +248,13 @@ class _StatCell extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
-              Text(value, style: textTheme.headlineSmall?.copyWith(color: fg)),
+              Flexible(
+                child: Text(
+                  value,
+                  style: textTheme.headlineSmall?.copyWith(color: fg),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               if (unit != null) ...[
                 const SizedBox(width: 3),
                 Text(

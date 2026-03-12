@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:nav_e/core/domain/entities/trip.dart';
 import 'package:nav_e/core/widgets/state_views.dart';
 import 'package:nav_e/features/trip_history/cubit/trip_history_cubit.dart';
 import 'package:nav_e/features/trip_history/cubit/trip_history_state.dart';
@@ -59,43 +60,131 @@ class _TripHistoryScreenState extends State<TripHistoryScreen> {
                 onAction: null,
               );
             }
+            final colorScheme = Theme.of(context).colorScheme;
             return ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: trips.length,
               separatorBuilder: (_, _) => const Divider(height: 1),
               itemBuilder: (context, index) {
                 final trip = trips[index];
-                return ListTile(
-                  leading: Icon(
-                    Icons.route,
-                    color: Theme.of(context).colorScheme.primary,
+                return Dismissible(
+                  key: ValueKey(
+                    trip.id ?? '${trip.startedAt.millisecondsSinceEpoch}',
                   ),
-                  title: Text(
-                    trip.destinationLabel?.isNotEmpty == true
-                        ? trip.destinationLabel!
-                        : 'Trip',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: colorScheme.error,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Icon(Icons.delete, color: colorScheme.onError),
                   ),
-                  subtitle: Text(
-                    '${(trip.distanceM / 1000).toStringAsFixed(2)} km · '
-                    '${_formatDate(trip.completedAt)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  confirmDismiss: (_) async {
+                    return await showDialog<bool>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('Delete trip'),
+                            content: const Text(
+                              'Remove this trip from your history?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        ) ??
+                        false;
+                  },
+                  onDismissed: (_) {
+                    if (trip.id != null) {
+                      context.read<TripHistoryCubit>().deleteTrip(trip.id!);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Trip deleted')),
+                      );
+                    }
+                  },
+                  child: _TripListTile(
+                    trip: trip,
+                    onTap: () => context.pushNamed('tripDetail', extra: trip),
                   ),
-                  trailing: Text(
-                    '${(trip.durationSeconds / 60).round()} min',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  onTap: () => context.pushNamed('tripDetail', extra: trip),
                 );
               },
             );
           }
           return const SizedBox.shrink();
         },
+      ),
+    );
+  }
+}
+
+class _TripListTile extends StatelessWidget {
+  const _TripListTile({required this.trip, required this.onTap});
+
+  final Trip trip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final date = _formatDate(trip.completedAt);
+    final duration = _formatDuration(trip.durationSeconds);
+
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        color: colorScheme.secondaryContainer,
+        child: Row(
+          children: [
+            Icon(
+              Icons.route,
+              size: 20,
+              color: colorScheme.onSecondaryContainer,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    trip.destinationLabel?.isNotEmpty == true
+                        ? trip.destinationLabel!
+                        : 'Trip',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSecondaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$duration · $date',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSecondaryContainer.withValues(
+                        alpha: 0.7,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              '${(trip.distanceM / 1000).toStringAsFixed(1)} km',
+              style: textTheme.headlineSmall?.copyWith(
+                color: colorScheme.onSecondaryContainer,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -112,5 +201,16 @@ class _TripHistoryScreenState extends State<TripHistoryScreen> {
       return 'Yesterday';
     }
     return '${dt.day}/${dt.month}/${dt.year}';
+  }
+
+  String _formatDuration(int seconds) {
+    if (seconds < 60) return '$seconds s';
+    final minutes = seconds ~/ 60;
+    if (minutes < 60) return '$minutes min';
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+    return remainingMinutes > 0
+        ? '${hours}h ${remainingMinutes}m'
+        : '${hours}h';
   }
 }

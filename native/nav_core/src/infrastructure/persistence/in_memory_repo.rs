@@ -51,6 +51,21 @@ impl NavigationRepository for InMemoryNavigationRepository {
         sessions.remove(&id);
         Ok(())
     }
+
+    async fn get_session_stats(&self) -> Result<crate::navigation::domain::session::SessionStats> {
+        use crate::navigation::domain::session::NavigationStatus;
+        let sessions = self.sessions.read().await;
+        let mut stats = crate::navigation::domain::session::SessionStats::default();
+        for s in sessions.values() {
+            if s.status == NavigationStatus::Cancelled {
+                continue;
+            }
+            stats.total_distance_m += s.distance_traveled_m;
+            stats.total_duration_seconds += (s.updated_at - s.started_at).num_seconds();
+            stats.session_count += 1;
+        }
+        Ok(stats)
+    }
 }
 
 #[cfg(test)]

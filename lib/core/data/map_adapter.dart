@@ -38,6 +38,15 @@ abstract class MapAdapter {
   /// Move the map camera to a specific location
   void moveCamera(LatLng center, double zoom, {double? tilt, double? bearing});
 
+  /// Animate the map camera to a specific location over [duration]
+  void animateCamera(
+    LatLng center,
+    double zoom, {
+    Duration duration = const Duration(milliseconds: 900),
+    double? tilt,
+    double? bearing,
+  });
+
   /// Reset the map bearing (rotation) to north
   void resetBearing();
 

@@ -17,9 +17,6 @@ import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
 import 'package:nav_e/features/plan_route/widgets/route_top_panel.dart';
 import 'package:nav_e/features/plan_route/widgets/route_bottom_sheet.dart';
-import 'package:nav_e/features/nav/utils/turn_feed.dart';
-import 'package:nav_e/features/nav/bloc/nav_bloc.dart';
-import 'package:nav_e/features/nav/bloc/nav_event.dart';
 import 'package:nav_e/widgets/user_location_marker.dart';
 
 class PlanRouteScreen extends StatefulWidget {
@@ -112,10 +109,6 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
         if (!mounted) return;
         final pts = _routePoints;
         if (pts.length >= 2) {
-          try {
-            final turnFeed = buildTurnFeed(pts);
-            context.read<NavBloc>().add(SetTurnFeed(turnFeed));
-          } catch (_) {}
           try {
             final mapState = context.read<MapBloc>().state;
             final model = PolylineModel(
@@ -260,12 +253,6 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
       });
 
       if (!mounted) return;
-      final turnFeed = buildTurnFeed(pts);
-      try {
-        context.read<NavBloc>().add(SetTurnFeed(turnFeed));
-      } catch (_) {
-        // NavBloc not available in this context; ignore
-      }
 
       // Convert to a lightweight PolylineModel and push to MapBloc so the
       // map renders the polyline via the shared map state. This is useful

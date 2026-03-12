@@ -25,8 +25,8 @@ Future<String> startNavigationSession({
   currentPosition: currentPosition,
 );
 
-/// Update current position during navigation
-Future<void> updateNavigationPosition({
+/// Update current position during navigation. Returns `NavigationStateDto` as JSON.
+Future<String> updateNavigationPosition({
   required String sessionId,
   required double latitude,
   required double longitude,
@@ -35,6 +35,11 @@ Future<void> updateNavigationPosition({
   latitude: latitude,
   longitude: longitude,
 );
+
+/// Get the latest navigation state for an active session without moving.
+/// Returns `NavigationStateDto` JSON or null if session not found.
+Future<String?> getNavigationState({required String sessionId}) =>
+    RustBridge.instance.api.crateGetNavigationState(sessionId: sessionId);
 
 /// Get the currently active navigation session
 Future<String?> getActiveSession() =>
@@ -51,6 +56,14 @@ Future<void> resumeNavigation({required String sessionId}) =>
 /// Stop and complete navigation session
 Future<void> stopNavigation({required String sessionId}) =>
     RustBridge.instance.api.crateStopNavigation(sessionId: sessionId);
+
+/// Get aggregated stats (distance, duration, count) from all non-cancelled sessions
+Future<String> getSessionStats() =>
+    RustBridge.instance.api.crateGetSessionStats();
+
+/// Get all route steps (turn-by-turn instructions) for a session as JSON array
+Future<String> getRouteSteps({required String sessionId}) =>
+    RustBridge.instance.api.crateGetRouteSteps(sessionId: sessionId);
 
 /// Search for locations by address/name
 Future<String> geocodeSearch({required String query, int? limit}) =>

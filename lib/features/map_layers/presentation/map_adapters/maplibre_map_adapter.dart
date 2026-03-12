@@ -170,6 +170,33 @@ class MapLibreMapAdapter implements MapAdapter {
   }
 
   @override
+  void animateCamera(
+    LatLng center,
+    double zoom, {
+    Duration duration = const Duration(milliseconds: 900),
+    double? tilt,
+    double? bearing,
+  }) {
+    _currentCenter = center;
+    _currentZoom = zoom;
+    if (tilt != null) _currentTilt = tilt;
+    if (bearing != null) _currentBearing = bearing;
+    if (_controller != null) {
+      try {
+        _controller!.animateCamera(
+          center,
+          zoom,
+          duration: duration,
+          tilt: tilt,
+          bearing: bearing,
+        );
+      } catch (e) {
+        _clearControllerIfGone(e);
+      }
+    }
+  }
+
+  @override
   void resetBearing() {
     debugPrint('[MapLibreAdapter] resetBearing');
     if (_controller != null) {

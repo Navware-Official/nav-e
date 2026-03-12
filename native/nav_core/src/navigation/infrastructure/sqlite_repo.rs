@@ -30,14 +30,17 @@ impl NavigationRepository for SqliteNavigationRepository {
         let conn = self.db.lock().unwrap();
         conn.execute(
             "INSERT INTO navigation_sessions
-                 (id, route_json, current_lat, current_lon, status, started_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                 (id, route_json, current_lat, current_lon, status, started_at, updated_at,
+                  current_step_index, distance_traveled_m)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
              ON CONFLICT(id) DO UPDATE SET
-                 route_json  = excluded.route_json,
-                 current_lat = excluded.current_lat,
-                 current_lon = excluded.current_lon,
-                 status      = excluded.status,
-                 updated_at  = excluded.updated_at",
+                 route_json          = excluded.route_json,
+                 current_lat         = excluded.current_lat,
+                 current_lon         = excluded.current_lon,
+                 status              = excluded.status,
+                 updated_at          = excluded.updated_at,
+                 current_step_index  = excluded.current_step_index,
+                 distance_traveled_m = excluded.distance_traveled_m",
             params![
                 session.id.to_string(),
                 route_json,
@@ -46,6 +49,8 @@ impl NavigationRepository for SqliteNavigationRepository {
                 status,
                 session.started_at.timestamp(),
                 session.updated_at.timestamp(),
+                session.current_step_index as i64,
+                session.distance_traveled_m,
             ],
         )
         .context("Failed to save navigation session")?;
@@ -55,7 +60,8 @@ impl NavigationRepository for SqliteNavigationRepository {
     async fn load_session(&self, id: Uuid) -> Result<Option<NavigationSession>> {
         let conn = self.db.lock().unwrap();
         let result = conn.query_row(
-            "SELECT id, route_json, current_lat, current_lon, status, started_at, updated_at
+            "SELECT id, route_json, current_lat, current_lon, status, started_at, updated_at,
+                    COALESCE(current_step_index, 0), COALESCE(distance_traveled_m, 0.0)
              FROM navigation_sessions WHERE id = ?",
             [id.to_string()],
             extract_row,
@@ -70,7 +76,8 @@ impl NavigationRepository for SqliteNavigationRepository {
     async fn load_active_session(&self) -> Result<Option<NavigationSession>> {
         let conn = self.db.lock().unwrap();
         let result = conn.query_row(
-            "SELECT id, route_json, current_lat, current_lon, status, started_at, updated_at
+            "SELECT id, route_json, current_lat, current_lon, status, started_at, updated_at,
+                    COALESCE(current_step_index, 0), COALESCE(distance_traveled_m, 0.0)
              FROM navigation_sessions WHERE status = 'Active' LIMIT 1",
             [],
             extract_row,
@@ -91,11 +98,38 @@ impl NavigationRepository for SqliteNavigationRepository {
         .context("Failed to delete navigation session")?;
         Ok(())
     }
+
+    async fn get_session_stats(&self) -> Result<crate::navigation::domain::session::SessionStats> {
+        let conn = self.db.lock().unwrap();
+        let (total_distance_m, total_duration_seconds, session_count) = conn
+            .query_row(
+                "SELECT
+                    COALESCE(SUM(COALESCE(distance_traveled_m, 0.0)), 0.0),
+                    COALESCE(SUM(updated_at - started_at), 0),
+                    COUNT(*)
+                 FROM navigation_sessions
+                 WHERE status != 'Cancelled'",
+                [],
+                |row| {
+                    Ok((
+                        row.get::<_, f64>(0)?,
+                        row.get::<_, i64>(1)?,
+                        row.get::<_, i64>(2)?,
+                    ))
+                },
+            )
+            .context("Failed to query session stats")?;
+        Ok(crate::navigation::domain::session::SessionStats {
+            total_distance_m,
+            total_duration_seconds,
+            session_count,
+        })
+    }
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
-type RawRow = (String, String, f64, f64, String, i64, i64);
+type RawRow = (String, String, f64, f64, String, i64, i64, i64, f64);
 
 fn extract_row(row: &rusqlite::Row) -> rusqlite::Result<RawRow> {
     Ok((
@@ -106,11 +140,13 @@ fn extract_row(row: &rusqlite::Row) -> rusqlite::Result<RawRow> {
         row.get(4)?,
         row.get(5)?,
         row.get(6)?,
+        row.get(7)?,
+        row.get(8)?,
     ))
 }
 
 fn deserialize_session(
-    (id_str, route_json, lat, lon, status_str, started_ts, updated_ts): RawRow,
+    (id_str, route_json, lat, lon, status_str, started_ts, updated_ts, step_idx, dist_m): RawRow,
 ) -> Result<NavigationSession> {
     let id = Uuid::parse_str(&id_str).context("Invalid session UUID")?;
     let route = serde_json::from_str(&route_json).context("Failed to deserialize route")?;
@@ -137,6 +173,8 @@ fn deserialize_session(
         status,
         started_at,
         updated_at,
+        current_step_index: step_idx.max(0) as usize,
+        distance_traveled_m: dist_m,
     })
 }
 
