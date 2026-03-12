@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
@@ -6,7 +8,6 @@ import 'package:nav_e/features/nav/bloc/nav_bloc.dart';
 import 'package:nav_e/features/nav/bloc/nav_event.dart';
 import 'package:nav_e/features/nav/bloc/nav_state.dart';
 import 'package:nav_e/features/nav/models/nav_models.dart';
-import 'package:nav_e/features/nav/utils/turn_feed.dart';
 import 'package:nav_e/features/map_layers/presentation/map_widget.dart';
 import 'package:nav_e/features/map_layers/models/polyline_model.dart';
 import 'package:nav_e/features/map_layers/models/marker_model.dart';
@@ -29,6 +30,9 @@ class ActiveNavScreen extends StatefulWidget {
   final double? durationS;
   final String? destinationLabel;
 
+  /// When set, reuses this Rust session instead of creating a new one (e.g. resume from home).
+  final String? sessionId;
+
   const ActiveNavScreen({
     super.key,
     required this.routeId,
@@ -36,19 +40,40 @@ class ActiveNavScreen extends StatefulWidget {
     this.distanceM,
     this.durationS,
     this.destinationLabel,
+    this.sessionId,
   });
 
   @override
   State<ActiveNavScreen> createState() => _ActiveNavScreenState();
 }
 
-class _ActiveNavScreenState extends State<ActiveNavScreen> {
+class _ActiveNavScreenState extends State<ActiveNavScreen>
+    with SingleTickerProviderStateMixin {
   late final NavBloc _navBloc;
+  late final AnimationController _puckController;
+  LatLng? _puckFrom;
+  LatLng? _puckTo;
+  LatLng? _puckCurrent;
+
+  void _onPuckTick() {
+    if (_puckFrom == null || _puckTo == null) return;
+    final t = Curves.easeInOut.transform(_puckController.value);
+    setState(() {
+      _puckCurrent = LatLng(
+        _puckFrom!.latitude + (_puckTo!.latitude - _puckFrom!.latitude) * t,
+        _puckFrom!.longitude + (_puckTo!.longitude - _puckFrom!.longitude) * t,
+      );
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     _navBloc = NavBloc();
+    _puckController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..addListener(_onPuckTick);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _navBloc.add(
@@ -58,28 +83,27 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
           distanceM: widget.distanceM,
           durationS: widget.durationS,
           destinationLabel: widget.destinationLabel,
+          sessionId: widget.sessionId,
         ),
       );
       _navBloc.add(SetFollowMode(true));
-      _navBloc.add(SetTurnFeed(buildTurnFeed(widget.routePoints)));
+
       final mapBloc = context.read<MapBloc>();
-      final mapState = mapBloc.state;
       final locState = context.read<LocationBloc>().state;
-      final targetCenter = locState.position ?? mapState.center;
-      final targetZoom = mapState.zoom < 17.0 ? 17.0 : mapState.zoom;
-      mapBloc.add(ToggleFollowUser(true));
-      mapBloc.add(
-        MapMoved(
-          targetCenter,
-          targetZoom,
-          force: true,
-          tilt: 45.0,
-          bearing: locState.heading,
-        ),
-      );
+      final targetCenter = locState.position ?? mapBloc.state.center;
+      final targetZoom = mapBloc.state.zoom < 17.0 ? 17.0 : mapBloc.state.zoom;
+
+      // Use GPS heading if available, otherwise derive from the first route
+      // segment so the camera already faces the direction of travel.
+      final initialBearing =
+          locState.heading ??
+          (widget.routePoints.length >= 2
+              ? _bearingBetween(widget.routePoints[0], widget.routePoints[1])
+              : null);
+
+      // Draw the route polyline first (this disables followUser in MapBloc).
       try {
-        final mapState = context.read<MapBloc>().state;
-        context.read<MapBloc>().add(
+        mapBloc.add(
           ReplacePolylines(
             widget.routePoints.isNotEmpty
                 ? [
@@ -87,20 +111,35 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
                       id: widget.routeId,
                       points: widget.routePoints,
                       colorArgb:
-                          mapState.defaultPolylineColorArgb ?? 0xFF375AF9,
-                      strokeWidth: mapState.defaultPolylineWidth ?? 4.0,
+                          mapBloc.state.defaultPolylineColorArgb ?? 0xFF375AF9,
+                      strokeWidth: mapBloc.state.defaultPolylineWidth ?? 4.0,
                     ),
                   ]
                 : const [],
-            fit: true,
+            fit: false,
           ),
         );
       } catch (_) {}
+
+      // Position the camera tilted toward the direction of travel.
+      mapBloc.add(
+        MapMoved(
+          targetCenter,
+          targetZoom,
+          force: true,
+          tilt: 45.0,
+          bearing: initialBearing,
+        ),
+      );
+
+      // Re-enable follow AFTER ReplacePolylines (which would have cleared it).
+      mapBloc.add(ToggleFollowUser(true));
     });
   }
 
   @override
   void dispose() {
+    _puckController.dispose();
     try {
       final mapBloc = context.read<MapBloc>();
       final mapState = mapBloc.state;
@@ -125,7 +164,33 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
       value: _navBloc,
       child: MultiBlocListener(
         listeners: [
+          // Reroute: update map polyline whenever progressPolyline changes.
           BlocListener<NavBloc, NavState>(
+            listenWhen: (prev, curr) =>
+                prev.progressPolyline != curr.progressPolyline &&
+                !curr.isRerouting,
+            listener: (context, state) {
+              if (!context.mounted || state.progressPolyline.isEmpty) return;
+              try {
+                final mapBloc = context.read<MapBloc>();
+                mapBloc.add(
+                  ReplacePolylines([
+                    PolylineModel(
+                      id: state.routeId ?? 'rerouted',
+                      points: state.progressPolyline,
+                      colorArgb:
+                          mapBloc.state.defaultPolylineColorArgb ?? 0xFF375AF9,
+                      strokeWidth: mapBloc.state.defaultPolylineWidth ?? 4.0,
+                    ),
+                  ], fit: false),
+                );
+              } catch (_) {}
+            },
+          ),
+          BlocListener<NavBloc, NavState>(
+            listenWhen: (prev, curr) =>
+                (prev.active && !curr.active) ||
+                (curr.active && prev.progressPolyline != curr.progressPolyline),
             listener: (context, state) {
               if (!state.active) {
                 if (state.completedWithSummary &&
@@ -176,21 +241,49 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
             },
           ),
           BlocListener<LocationBloc, LocationState>(
-            listenWhen: (prev, curr) => prev.heading != curr.heading,
+            listenWhen: (prev, curr) =>
+                curr.position != null && prev.position != curr.position,
+            listener: (context, locState) {
+              context.read<NavBloc>().add(PositionUpdate(locState.position!));
+            },
+          ),
+          BlocListener<LocationBloc, LocationState>(
+            listenWhen: (prev, curr) =>
+                prev.heading != curr.heading || prev.position != curr.position,
             listener: (context, locState) {
               if (!context.mounted) return;
-              final heading = locState.heading;
-              if (heading == null) return;
+              // Update puck interpolation target.
+              final rawPos =
+                  context.read<NavBloc>().state.snappedPosition ??
+                  locState.position;
+              if (rawPos != null) {
+                if (_puckCurrent == null) {
+                  setState(() => _puckCurrent = rawPos);
+                }
+                _puckFrom = _puckCurrent;
+                _puckTo = rawPos;
+                _puckController
+                  ..stop()
+                  ..value = 0.0
+                  ..forward();
+              }
               final mapBloc = context.read<MapBloc>();
               final mapState = mapBloc.state;
               if (!mapState.followUser) return;
-              final center = locState.position ?? mapState.center;
+              final heading = locState.heading ?? mapState.bearing;
+              final rawCenter =
+                  context.read<NavBloc>().state.snappedPosition ??
+                  locState.position ??
+                  mapState.center;
+              // Offset the camera 150 m ahead so the user appears in the
+              // lower third of the screen (Google Maps–style look-ahead).
+              final center = _lookaheadPosition(rawCenter, heading, 150.0);
               mapBloc.add(
                 MapMoved(
                   center,
                   mapState.zoom,
                   force: true,
-                  tilt: mapState.tilt,
+                  tilt: 45.0,
                   bearing: heading,
                 ),
               );
@@ -199,11 +292,12 @@ class _ActiveNavScreenState extends State<ActiveNavScreen> {
         ],
         child: BlocBuilder<LocationBloc, LocationState>(
           builder: (context, locState) {
+            final markerPos = _puckCurrent;
             final markers = <MarkerModel>[
-              if (locState.position != null)
+              if (markerPos != null)
                 MarkerModel(
                   id: 'user_location',
-                  position: locState.position!,
+                  position: markerPos,
                   icon: UserLocationMarker(heading: locState.heading),
                 ),
             ];
@@ -250,73 +344,219 @@ class _TopTurnBar extends StatelessWidget {
         final nextCue = state.nextCue ?? _cueFromFeed(state, 0);
         final followingCue = _cueFromFeed(state, 1);
 
-        final primaryText = nextCue?.instruction ?? 'Proceed';
-        final secondaryText = followingCue?.instruction ?? '—';
+        final instruction = nextCue?.instruction ?? 'Proceed';
+        final distanceText = nextCue != null
+            ? (nextCue.distanceToCueText.isNotEmpty
+                  ? nextCue.distanceToCueText
+                  : nextCue.distanceToCueM > 0
+                  ? '${nextCue.distanceToCueM.toStringAsFixed(0)} m'
+                  : null)
+            : null;
+        final followingInstruction = followingCue?.instruction;
 
         final colorScheme = Theme.of(context).colorScheme;
         final textTheme = Theme.of(context).textTheme;
+        final onPrimaryFaded = colorScheme.onPrimary.withValues(alpha: 0.75);
 
-        return SafeArea(
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: colorScheme.primary,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: colorScheme.shadow.withValues(alpha: 0.3),
-                  blurRadius: 8,
+        // Extract speed limit from constraint alerts if present.
+        final speedLimitAlert = state.constraintAlerts
+            .where((a) => a.startsWith('speed_limit:'))
+            .firstOrNull;
+        final speedLimitKmh = speedLimitAlert != null
+            ? int.tryParse(speedLimitAlert.split(':').last)
+            : null;
+
+        final turnCard = Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: colorScheme.primary,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: colorScheme.shadow.withValues(alpha: 0.3),
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Maneuver icon
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: colorScheme.onPrimary.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      _iconForCue(nextCue?.maneuver),
-                      color: colorScheme.onPrimary,
-                      size: 28,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        primaryText,
-                        style: textTheme.titleLarge?.copyWith(
-                          color: colorScheme.onPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                child: Icon(
+                  _iconForCue(nextCue?.maneuver),
+                  color: colorScheme.onPrimary,
+                  size: 30,
                 ),
-                const SizedBox(height: 8),
-                Row(
+              ),
+              const SizedBox(width: 12),
+              // Distance + instruction + following
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.subdirectory_arrow_left,
-                      color: colorScheme.onPrimary.withValues(alpha: 0.8),
-                      size: 18,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        secondaryText,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                    if (distanceText != null) ...[
+                      Text(
+                        'In $distanceText',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: onPrimaryFaded,
                           fontWeight: FontWeight.w600,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                       ),
+                      const SizedBox(height: 2),
+                    ],
+                    Text(
+                      instruction,
+                      style: textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    if (followingInstruction != null) ...[
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.subdirectory_arrow_left,
+                            color: onPrimaryFaded,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'Then: $followingInstruction',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: onPrimaryFaded,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
+        );
+
+        return SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (state.isRerouting)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Recalculating…',
+                        style: textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else if (state.isOffRoute)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade700,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.warning_amber,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Off route',
+                        style: textTheme.labelMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  turnCard,
+                  if (speedLimitKmh != null)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.red, width: 3),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.2),
+                              blurRadius: 4,
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$speedLimitKmh',
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ),
         );
       },
@@ -342,19 +582,23 @@ class _BottomNavBar extends StatelessWidget {
         final remainingKm = _formatDistance(state.remainingDistanceM);
         final eta = _formatArrivalTime(context, state.remainingSeconds);
 
-        final colorScheme = Theme.of(context).colorScheme;
         final textTheme = Theme.of(context).textTheme;
+
+        const bg = AppPalette.capeCodDark02;
+        const onBg = AppPalette.white;
+        const accent = AppPalette.blueRibbon;
+        const subtle = AppPalette.capeCodLight02;
 
         return SafeArea(
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: colorScheme.surface,
+              color: bg,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: colorScheme.shadow.withValues(alpha: 0.3),
-                  blurRadius: 8,
+                  color: Colors.black.withValues(alpha: 0.4),
+                  blurRadius: 12,
                 ),
               ],
             ),
@@ -367,7 +611,7 @@ class _BottomNavBar extends StatelessWidget {
                     );
                     _showTurnFeedSheet(context);
                   },
-                  icon: const Icon(Icons.list_alt),
+                  icon: const Icon(Icons.list_alt, color: onBg),
                 ),
                 const SizedBox(width: 4),
                 Expanded(
@@ -378,14 +622,14 @@ class _BottomNavBar extends StatelessWidget {
                         remainingTime,
                         style: textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: colorScheme.primary,
+                          color: accent,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '$remainingKm · $eta',
                         style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                          color: subtle,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -394,17 +638,27 @@ class _BottomNavBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 IconButton(
+                  icon: Icon(
+                    state.isPaused ? Icons.play_arrow : Icons.pause,
+                    color: onBg,
+                  ),
+                  tooltip: state.isPaused ? 'Resume' : 'Pause',
+                  onPressed: () => context.read<NavBloc>().add(
+                    state.isPaused ? const NavResume() : const NavPause(),
+                  ),
+                ),
+                IconButton(
                   onPressed: () => context.read<NavBloc>().add(
                     const NavStop(completed: true),
                   ),
-                  icon: const Icon(Icons.check_circle),
+                  icon: const Icon(Icons.check_circle, color: accent),
                   tooltip: 'Finish route',
                 ),
                 IconButton(
                   onPressed: () => context.read<NavBloc>().add(
                     const NavStop(completed: false),
                   ),
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close, color: subtle),
                   tooltip: 'Cancel',
                 ),
               ],
@@ -505,6 +759,40 @@ class _TurnFeedSheet extends StatelessWidget {
       },
     );
   }
+}
+
+/// Returns a point [distanceM] metres ahead of [from] along [bearingDeg].
+/// Used to offset the camera so the user appears in the lower third of the
+/// screen (Google Maps–style look-ahead).
+LatLng _lookaheadPosition(LatLng from, double bearingDeg, double distanceM) {
+  const earthR = 6371000.0;
+  final angDist = distanceM / earthR;
+  final bearing = bearingDeg * math.pi / 180;
+  final lat1 = from.latitude * math.pi / 180;
+  final lon1 = from.longitude * math.pi / 180;
+  final lat2 = math.asin(
+    math.sin(lat1) * math.cos(angDist) +
+        math.cos(lat1) * math.sin(angDist) * math.cos(bearing),
+  );
+  final lon2 =
+      lon1 +
+      math.atan2(
+        math.sin(bearing) * math.sin(angDist) * math.cos(lat1),
+        math.cos(angDist) - math.sin(lat1) * math.sin(lat2),
+      );
+  return LatLng(lat2 * 180 / math.pi, lon2 * 180 / math.pi);
+}
+
+/// Returns the compass bearing (0–360°) from [a] to [b].
+double _bearingBetween(LatLng a, LatLng b) {
+  final lat1 = a.latitude * math.pi / 180;
+  final lat2 = b.latitude * math.pi / 180;
+  final dLon = (b.longitude - a.longitude) * math.pi / 180;
+  final y = math.sin(dLon) * math.cos(lat2);
+  final x =
+      math.cos(lat1) * math.sin(lat2) -
+      math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
+  return (math.atan2(y, x) * 180 / math.pi + 360) % 360;
 }
 
 IconData _iconForCue(String? maneuver) {

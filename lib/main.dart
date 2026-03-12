@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -36,6 +38,7 @@ import 'package:nav_e/features/offline_maps/cubit/offline_maps_cubit.dart';
 import 'package:nav_e/features/offline_maps/data/offline_map_style_resolver.dart';
 import 'package:nav_e/features/offline_maps/data/offline_regions_repository_rust.dart';
 
+import 'package:nav_e/core/notifications/nav_notification_service.dart';
 import 'package:nav_e/core/theme/app_theme.dart';
 import 'package:nav_e/core/theme/theme_cubit.dart';
 import 'package:nav_e/bridge/frb_generated.dart';
@@ -80,6 +83,8 @@ class _AppLoaderState extends State<_AppLoader> {
   bool _initComplete = false;
   Object? _initError;
 
+  Map<String, dynamic>? _activeSessionObj;
+
   Future<void> _doInit() async {
     debugPrint('[main] Initializing Rust bridge...');
     // forceSameCodegenVersion: false avoids "content hash different" when the loaded
@@ -94,6 +99,19 @@ class _AppLoaderState extends State<_AppLoader> {
     debugPrint('[main] Initializing database at $dbPath...');
     await rust_api.initializeDatabase(dbPath: dbPath);
     debugPrint('[main] Database ready.');
+
+    await NavNotificationService.instance.init();
+    debugPrint('[main] Notification service ready.');
+
+    // Check for an active navigation session from a previous run.
+    try {
+      final sessionJson = await rust_api.getActiveSession();
+      if (sessionJson != null) {
+        final obj = jsonDecode(sessionJson) as Map<String, dynamic>;
+        _activeSessionObj = obj;
+        debugPrint('[main] Found active session: ${obj['id']}');
+      }
+    } catch (_) {}
   }
 
   @override
@@ -125,10 +143,10 @@ class _AppLoaderState extends State<_AppLoader> {
         home: const Scaffold(body: Center(child: CircularProgressIndicator())),
       );
     }
-    return _buildMainApp();
+    return _buildMainApp(_activeSessionObj);
   }
 
-  Widget _buildMainApp() {
+  Widget _buildMainApp(Map<String, dynamic>? activeSessionObj) {
     final geocodingRepo = GeocodingRepositoryFrbTypedImpl();
     final mapSourceRepo = MapSourceRepositoryImpl();
     final savedPlacesRepo = SavedPlacesRepositoryRust();
@@ -212,6 +230,7 @@ class _AppLoaderState extends State<_AppLoader> {
             );
 
             return _PendingImportWrapper(
+              activeSessionObj: activeSessionObj,
               child: MaterialApp.router(
                 debugShowCheckedModeBanner: false,
                 routerConfig: router,
@@ -227,11 +246,13 @@ class _AppLoaderState extends State<_AppLoader> {
   }
 }
 
-/// Runs once after first frame: if app was opened with a shared GPX URI, imports it and navigates to saved routes.
+///// Runs once after first frame: if app was opened with a shared GPX URI, imports it and
+/// navigates to saved routes. Also shows a restore banner when an active session is detected.
 class _PendingImportWrapper extends StatefulWidget {
-  const _PendingImportWrapper({required this.child});
+  const _PendingImportWrapper({required this.child, this.activeSessionObj});
 
   final Widget child;
+  final Map<String, dynamic>? activeSessionObj;
 
   @override
   State<_PendingImportWrapper> createState() => _PendingImportWrapperState();
@@ -244,7 +265,10 @@ class _PendingImportWrapperState extends State<_PendingImportWrapper> {
   void initState() {
     super.initState();
     if (_checked) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPendingImport());
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _checkPendingImport();
+      _showActiveSessionBanner();
+    });
   }
 
   Future<void> _checkPendingImport() async {
@@ -267,6 +291,39 @@ class _PendingImportWrapperState extends State<_PendingImportWrapper> {
         ctx,
       ).showSnackBar(SnackBar(content: Text('Import failed: $e')));
     }
+  }
+
+  void _showActiveSessionBanner() {
+    final session = widget.activeSessionObj;
+    if (session == null) return;
+    final ctx = rootNavigatorKey.currentContext;
+    if (ctx == null || !ctx.mounted) return;
+
+    final routeMap = session['route'] as Map<String, dynamic>?;
+    final waypoints = routeMap?['waypoints'] as List<dynamic>?;
+    final destLabel = waypoints != null && waypoints.isNotEmpty
+        ? (waypoints.last as Map<String, dynamic>)['name'] as String?
+        : null;
+    final label = destLabel != null && destLabel.isNotEmpty
+        ? 'Resume navigation to $destLabel'
+        : 'Resume your previous navigation';
+
+    debugPrint('[main] Showing active session restore banner: $label');
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(
+        content: Text(label),
+        duration: const Duration(seconds: 10),
+        action: SnackBarAction(
+          label: 'Resume',
+          onPressed: () {
+            final resumeCtx = rootNavigatorKey.currentContext;
+            if (resumeCtx != null && resumeCtx.mounted) {
+              GoRouter.of(resumeCtx).pushNamed('activeNav', extra: session);
+            }
+          },
+        ),
+      ),
+    );
   }
 
   @override

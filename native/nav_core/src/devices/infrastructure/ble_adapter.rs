@@ -13,6 +13,7 @@ use async_trait::async_trait;
 use device_comm::{create_header, nav_ir_route_to_route_blob, proto};
 use nav_ir::Route as NavIrRoute;
 use prost::Message as ProstMessage;
+use std::sync::Mutex;
 use tokio::sync::broadcast;
 
 /// An outgoing device message: the target device identifier plus serialized protobuf bytes.
@@ -32,12 +33,17 @@ pub struct DeviceMessage {
 /// their `DeviceCommunicationPort`; the device API uses it to send explicit route bytes.
 pub struct ProtobufDeviceAdapter {
     tx: broadcast::Sender<DeviceMessage>,
+    /// Last known position + timestamp for bearing and speed calculation.
+    last_pos: Mutex<Option<(nav_ir::Coordinate, chrono::DateTime<chrono::Utc>)>>,
 }
 
 impl ProtobufDeviceAdapter {
     pub fn new() -> Self {
         let (tx, _) = broadcast::channel(64);
-        Self { tx }
+        Self {
+            tx,
+            last_pos: Mutex::new(None),
+        }
     }
 
     /// Subscribe to outgoing device messages. Each subscriber receives a full copy of every
@@ -89,6 +95,13 @@ impl DeviceCommunicationPort for ProtobufDeviceAdapter {
             .unwrap_or(0);
         let eta_unix_ms = (chrono::Utc::now().timestamp() + duration_s as i64) as u64 * 1000;
 
+        let bounding_box = compute_route_bounding_box(route).map(|bb| proto::BoundingBox {
+            min_lat: bb.min_lat,
+            max_lat: bb.max_lat,
+            min_lon: bb.min_lon,
+            max_lon: bb.max_lon,
+        });
+
         let summary = proto::RouteSummary {
             header: Some(create_header(1)),
             route_id: route.id.0.as_bytes().to_vec(),
@@ -98,7 +111,7 @@ impl DeviceCommunicationPort for ProtobufDeviceAdapter {
             next_turn_bearing_deg: 0,
             remaining_distance_m: distance_m,
             estimated_duration_s: duration_s,
-            bounding_box: None,
+            bounding_box,
         };
         let bytes = Self::serialize(&summary)?;
         self.emit(device_id, bytes);
@@ -113,13 +126,36 @@ impl DeviceCommunicationPort for ProtobufDeviceAdapter {
     }
 
     async fn send_position_update(&self, device_id: String, position: Position) -> Result<()> {
+        let now = chrono::Utc::now();
+        let current_coord = nav_ir::Coordinate::new(position.latitude, position.longitude);
+
+        let (bearing_deg, speed_m_s) = {
+            let mut last = self.last_pos.lock().unwrap();
+            let result = if let Some((prev_coord, prev_time)) = last.as_ref() {
+                let bearing = compute_bearing(*prev_coord, current_coord) as u32;
+                let elapsed_s = (now - *prev_time).num_milliseconds() as f64 / 1000.0;
+                let dist_m =
+                    nav_engine::derive_instructions::haversine_distance(*prev_coord, current_coord);
+                let speed = if elapsed_s > 0.0 {
+                    dist_m / elapsed_s
+                } else {
+                    0.0
+                };
+                (bearing, speed as f32)
+            } else {
+                (0u32, 0.0f32)
+            };
+            *last = Some((current_coord, now));
+            result
+        };
+
         let update = proto::PositionUpdate {
             header: Some(create_header(1)),
             lat: position.latitude,
             lon: position.longitude,
-            bearing_deg: 0,
-            speed_m_s: 0.0,
-            timestamp_ms: chrono::Utc::now().timestamp_millis() as u64,
+            bearing_deg,
+            speed_m_s,
+            timestamp_ms: now.timestamp_millis() as u64,
             accuracy_m: 10.0,
             altitude_m: 0.0,
         };
@@ -172,6 +208,31 @@ impl DeviceCommunicationPort for ProtobufDeviceAdapter {
         self.emit(device_id, bytes);
         Ok(())
     }
+}
+
+/// Merge all segment bounding boxes to produce the route's overall bounding box.
+fn compute_route_bounding_box(route: &NavIrRoute) -> Option<nav_ir::BoundingBox> {
+    let mut iter = route
+        .segments
+        .iter()
+        .map(|s| s.geometry.bounding_box.clone());
+    let first = iter.next()?;
+    Some(iter.fold(first, |acc, bb| nav_ir::BoundingBox {
+        min_lat: acc.min_lat.min(bb.min_lat),
+        max_lat: acc.max_lat.max(bb.max_lat),
+        min_lon: acc.min_lon.min(bb.min_lon),
+        max_lon: acc.max_lon.max(bb.max_lon),
+    }))
+}
+
+/// Forward bearing in degrees (0–360) from `from` to `to`.
+fn compute_bearing(from: nav_ir::Coordinate, to: nav_ir::Coordinate) -> f64 {
+    let lat1 = from.latitude.to_radians();
+    let lat2 = to.latitude.to_radians();
+    let dlon = (to.longitude - from.longitude).to_radians();
+    let y = dlon.sin() * lat2.cos();
+    let x = lat1.cos() * lat2.sin() - lat1.sin() * lat2.cos() * dlon.cos();
+    (y.atan2(x).to_degrees() + 360.0) % 360.0
 }
 
 #[cfg(test)]

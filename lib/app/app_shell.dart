@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nav_e/core/theme/palette.dart';
 
 /// Shell scaffold with bottom app bar (Home, Explore, Plan, Profile).
 /// [navigationShell] is the [StatefulNavigationShell] from [StatefulShellRoute].
@@ -17,24 +18,20 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(
-            top: BorderSide(
-              color: colorScheme.outline.withValues(alpha: 0.2),
-              width: 1,
-            ),
-          ),
+        decoration: const BoxDecoration(
+          color: AppPalette.capeCodDark02,
+          border: Border(top: BorderSide(color: Colors.white10, width: 1)),
         ),
         child: BottomNavigationBar(
           currentIndex: navigationShell.currentIndex,
           onTap: _onTap,
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: colorScheme.primary,
-          unselectedItemColor: colorScheme.onSurfaceVariant,
+          backgroundColor: AppPalette.capeCodDark02,
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white54,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),

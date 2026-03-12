@@ -77,18 +77,62 @@ class _DeviceManagementScreenState extends State<DeviceManagementScreen> {
                 );
               }
 
+              final colorScheme = Theme.of(context).colorScheme;
+
               return Column(
                 children: [
                   Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: state.devices.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         final device = state.devices[index];
-                        return DeviceCard(device: device);
+                        return Dismissible(
+                          key: ValueKey(device.id ?? device.remoteId),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            color: colorScheme.error,
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: Icon(
+                              Icons.delete,
+                              color: colorScheme.onError,
+                            ),
+                          ),
+                          confirmDismiss: (_) async {
+                            return await showDialog<bool>(
+                                  context: context,
+                                  builder: (_) => AlertDialog(
+                                    title: const Text('Delete device'),
+                                    content: Text(
+                                      'Remove "${device.name}" from your devices?',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      ElevatedButton(
+                                        onPressed: () =>
+                                            Navigator.pop(context, true),
+                                        child: const Text('Delete'),
+                                      ),
+                                    ],
+                                  ),
+                                ) ??
+                                false;
+                          },
+                          onDismissed: (_) {
+                            if (device.id != null) {
+                              context.read<DevicesBloc>().add(
+                                DeleteDevice(device.id!),
+                              );
+                            }
+                          },
+                          child: DeviceCard(device: device),
+                        );
                       },
                     ),
                   ),
