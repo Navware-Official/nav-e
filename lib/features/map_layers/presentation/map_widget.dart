@@ -167,7 +167,7 @@ class _MapWidgetState extends State<MapWidget> {
               if (centerMatch && zoomMatch && tiltMatch && bearingMatch) {
                 return;
               }
-              _adapter!.moveCamera(
+              _adapter!.animateCamera(
                 state.center,
                 state.zoom,
                 tilt: state.tilt,

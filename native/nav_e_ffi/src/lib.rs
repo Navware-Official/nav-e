@@ -49,10 +49,21 @@ pub fn start_navigation_session(
     nav_core::api::start_navigation_session(waypoints, current_position)
 }
 
-/// Update current position during navigation
+/// Update current position during navigation. Returns `NavigationStateDto` as JSON.
 #[frb]
-pub fn update_navigation_position(session_id: String, latitude: f64, longitude: f64) -> Result<()> {
+pub fn update_navigation_position(
+    session_id: String,
+    latitude: f64,
+    longitude: f64,
+) -> Result<String> {
     nav_core::api::update_navigation_position(session_id, latitude, longitude)
+}
+
+/// Get the latest navigation state for an active session without moving.
+/// Returns `NavigationStateDto` JSON or null if session not found.
+#[frb]
+pub fn get_navigation_state(session_id: String) -> Result<Option<String>> {
+    nav_core::api::get_navigation_state(session_id)
 }
 
 /// Get the currently active navigation session
@@ -77,6 +88,18 @@ pub fn resume_navigation(session_id: String) -> Result<()> {
 #[frb]
 pub fn stop_navigation(session_id: String) -> Result<()> {
     nav_core::api::stop_navigation(session_id)
+}
+
+/// Get aggregated stats (distance, duration, count) from all non-cancelled sessions
+#[frb]
+pub fn get_session_stats() -> Result<String> {
+    nav_core::api::get_session_stats()
+}
+
+/// Get all route steps (turn-by-turn instructions) for a session as JSON array
+#[frb]
+pub fn get_route_steps(session_id: String) -> Result<String> {
+    nav_core::api::get_route_steps(session_id)
 }
 
 // ============================================================================

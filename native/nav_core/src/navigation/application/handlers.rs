@@ -14,6 +14,7 @@ use tokio::sync::broadcast;
 /// functions dispatch through this struct — no per-call handler construction.
 pub struct NavigationHandlers {
     route_service: Arc<dyn RouteService>,
+    navigation_repo: Arc<dyn NavigationRepository>,
     start_handler: StartNavigationHandler,
     update_position_handler: UpdatePositionHandler,
     pause_handler: PauseNavigationHandler,
@@ -47,7 +48,8 @@ impl NavigationHandlers {
                 Arc::clone(&navigation_repo),
                 event_bus.clone(),
             ),
-            get_active_handler: GetActiveSessionHandler::new(navigation_repo),
+            get_active_handler: GetActiveSessionHandler::new(Arc::clone(&navigation_repo)),
+            navigation_repo,
             route_service,
             event_bus,
         }
@@ -61,7 +63,10 @@ impl NavigationHandlers {
         self.start_handler.handle(cmd).await
     }
 
-    pub async fn update_position(&self, cmd: UpdatePositionCommand) -> Result<()> {
+    pub async fn update_position(
+        &self,
+        cmd: UpdatePositionCommand,
+    ) -> Result<nav_engine::NavigationState> {
         self.update_position_handler.handle(cmd).await
     }
 
@@ -79,6 +84,16 @@ impl NavigationHandlers {
 
     pub async fn get_active(&self, q: GetActiveSessionQuery) -> Result<Option<NavigationSession>> {
         self.get_active_handler.handle(q).await
+    }
+
+    pub async fn load_session(&self, id: uuid::Uuid) -> Result<Option<NavigationSession>> {
+        self.navigation_repo.load_session(id).await
+    }
+
+    pub async fn get_session_stats(
+        &self,
+    ) -> Result<crate::navigation::domain::session::SessionStats> {
+        self.navigation_repo.get_session_stats().await
     }
 
     pub fn subscribe(&self) -> broadcast::Receiver<NavigationEvent> {
@@ -189,7 +204,10 @@ impl UpdatePositionHandler {
 }
 
 impl UpdatePositionHandler {
-    pub async fn handle(&self, command: UpdatePositionCommand) -> Result<()> {
+    pub async fn handle(
+        &self,
+        command: UpdatePositionCommand,
+    ) -> Result<nav_engine::NavigationState> {
         // Load session
         let mut session = self
             .navigation_repo
@@ -200,32 +218,36 @@ impl UpdatePositionHandler {
         // Update position
         session.update_position(command.position);
 
-        // Save updated session
+        // Run nav_engine to produce full navigation state
+        let coord = nav_ir::Coordinate::new(command.position.latitude, command.position.longitude);
+        let mut engine = nav_engine::NavigationEngine::new_with_state(
+            session.route.clone(),
+            session.current_step_index,
+            session.distance_traveled_m,
+        );
+        let nav_state = engine.update_position(coord, None);
+
+        // Persist updated step/distance back to session
+        session.current_step_index = engine.current_step();
+        session.distance_traveled_m = engine.distance_traveled_m();
+
         self.navigation_repo.save_session(&session).await?;
 
-        // Check for waypoint proximity (simplified - 50m threshold)
-        let mut waypoint_index = 0usize;
-        'outer: for segment in session.route.segments.iter() {
-            for wp in segment.waypoints.iter() {
-                let pos = Position::new(wp.coordinate.latitude, wp.coordinate.longitude)
-                    .unwrap_or_else(|_| command.position);
-                if command.position.distance_to(&pos) < 50.0 {
-                    let _ = self.event_bus.send(NavigationEvent::WaypointReached {
-                        session_id: session.id,
-                        index: waypoint_index,
-                    });
-                    break 'outer;
-                }
-                waypoint_index += 1;
-            }
-        }
-
+        // Emit domain events
         let _ = self.event_bus.send(NavigationEvent::PositionUpdated {
             session_id: session.id,
             position: command.position,
         });
 
-        Ok(())
+        if nav_state.off_route.is_off_route {
+            if let nav_ir::OffRouteBehavior::Recalculate = nav_state.off_route.behavior {
+                let _ = self.event_bus.send(NavigationEvent::OffRoute {
+                    session_id: session.id,
+                });
+            }
+        }
+
+        Ok(nav_state)
     }
 }
 

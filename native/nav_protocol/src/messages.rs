@@ -48,7 +48,7 @@ pub fn nav_ir_route_to_route_blob(
         .segments
         .first()
         .map(|seg| seg.geometry.polyline.0.clone())
-        .unwrap_or_else(String::new);
+        .unwrap_or_default();
 
     let mut hasher = Sha256::new();
     hasher.update(encoded_polyline.as_bytes());

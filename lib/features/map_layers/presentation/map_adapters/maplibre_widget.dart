@@ -361,8 +361,9 @@ class _MapLibreWidgetState extends State<MapLibreWidget> {
   Future<void> _syncPolylines() async {
     if (_nativeController == null || !_styleLoaded) return;
 
-    // Remove existing polylines
-    for (final line in _polylineObjects.values) {
+    // Remove existing polylines — snapshot before iterating to avoid
+    // concurrent modification if another _syncPolylines call fires mid-await.
+    for (final line in List.of(_polylineObjects.values)) {
       await _nativeController!.removeLine(line);
     }
     _polylineObjects.clear();

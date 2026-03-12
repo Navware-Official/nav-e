@@ -18,3 +18,9 @@ pub struct GeocodeQuery {
 pub struct ReverseGeocodeQuery {
     pub position: Position,
 }
+
+/// Get all route steps (instructions) for a navigation session
+#[derive(Debug, Clone)]
+pub struct GetRouteStepsQuery {
+    pub session_id: uuid::Uuid,
+}

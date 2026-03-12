@@ -27,4 +27,7 @@ pub enum NavigationEvent {
     Cancelled {
         session_id: Uuid,
     },
+    OffRoute {
+        session_id: Uuid,
+    },
 }

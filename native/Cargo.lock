@@ -1070,6 +1070,7 @@ dependencies = [
  "chrono",
  "crc32fast",
  "geo-types",
+ "nav_engine",
  "nav_ir",
  "nav_protocol",
  "polyline",
@@ -1094,6 +1095,16 @@ dependencies = [
  "nav_core",
  "nav_route",
  "tempfile",
+]
+
+[[package]]
+name = "nav_engine"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "geo-types",
+ "nav_ir",
+ "polyline",
 ]
 
 [[package]]

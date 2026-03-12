@@ -1,5 +1,5 @@
 /// Navigation session APIs
-use anyhow::Result;
+use anyhow::{Context, Result};
 
 use crate::api::{dto::*, helpers::*};
 use crate::app::container::get_container;
@@ -31,9 +31,13 @@ pub fn start_navigation_session(
     })
 }
 
-/// Update current position during navigation
-pub fn update_navigation_position(session_id: String, latitude: f64, longitude: f64) -> Result<()> {
-    command_async(|| async {
+/// Update current position during navigation. Returns navigation state as JSON.
+pub fn update_navigation_position(
+    session_id: String,
+    latitude: f64,
+    longitude: f64,
+) -> Result<String> {
+    query_json_async(|| async {
         let position = Position::new(latitude, longitude).map_err(|e| anyhow::anyhow!(e))?;
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
 
@@ -42,7 +46,37 @@ pub fn update_navigation_position(session_id: String, latitude: f64, longitude: 
             position,
         };
 
-        get_container().navigation.update_position(command).await
+        let nav_state = get_container().navigation.update_position(command).await?;
+        Ok(navigation_state_to_dto(nav_state))
+    })
+}
+
+/// Get the latest navigation state for a session without updating position.
+pub fn get_navigation_state(session_id: String) -> Result<Option<String>> {
+    block_on(async {
+        let session_uuid = uuid::Uuid::parse_str(&session_id)?;
+        let session = get_container()
+            .navigation
+            .get_active(crate::navigation::application::queries::GetActiveSessionQuery {})
+            .await?;
+        match session {
+            Some(s) if s.id == session_uuid => {
+                let coord = nav_ir::Coordinate::new(
+                    s.current_position.latitude,
+                    s.current_position.longitude,
+                );
+                let mut engine = nav_engine::NavigationEngine::new_with_state(
+                    s.route,
+                    s.current_step_index,
+                    s.distance_traveled_m,
+                );
+                let nav_state = engine.update_position(coord, None);
+                Ok(Some(serde_json::to_string(&navigation_state_to_dto(
+                    nav_state,
+                ))?))
+            }
+            _ => Ok(None),
+        }
     })
 }
 
@@ -82,6 +116,44 @@ pub fn resume_navigation(session_id: String) -> Result<()> {
                 session_id: session_uuid,
             })
             .await
+    })
+}
+
+/// Get all route steps (turn-by-turn instructions) for a session as JSON array.
+pub fn get_route_steps(session_id: String) -> Result<String> {
+    block_on(async {
+        let session_uuid = uuid::Uuid::parse_str(&session_id)?;
+        let session = get_container()
+            .navigation
+            .load_session(session_uuid)
+            .await?
+            .context("Session not found")?;
+        let engine = nav_engine::NavigationEngine::new_with_state(
+            session.route,
+            session.current_step_index,
+            session.distance_traveled_m,
+        );
+        let steps: Vec<DerivedInstructionDto> = engine
+            .instructions()
+            .iter()
+            .cloned()
+            .map(instruction_to_dto)
+            .collect();
+        Ok(serde_json::to_string(&steps)?)
+    })
+}
+
+/// Get aggregated stats across all non-cancelled navigation sessions.
+/// Returns `SessionStatsDto` JSON.
+pub fn get_session_stats() -> Result<String> {
+    block_on(async {
+        let stats = get_container().navigation.get_session_stats().await?;
+        let dto = SessionStatsDto {
+            total_distance_m: stats.total_distance_m,
+            total_duration_seconds: stats.total_duration_seconds,
+            session_count: stats.session_count,
+        };
+        Ok(serde_json::to_string(&dto)?)
     })
 }
 

@@ -14,6 +14,10 @@ class NavStart extends NavEvent {
   final double? durationS;
   final String? destinationLabel;
 
+  /// Rust navigation session ID. When set, position updates are forwarded to
+  /// `api.updateNavigationPosition()` and turn state comes from Rust.
+  final String? sessionId;
+
   NavStart(
     this.routeId,
     this.routePoints, {
@@ -21,6 +25,7 @@ class NavStart extends NavEvent {
     this.distanceM,
     this.durationS,
     this.destinationLabel,
+    this.sessionId,
   });
 }
 
@@ -54,4 +59,16 @@ class SetTurnFeed extends NavEvent {
   final List<NavCue> feed;
 
   SetTurnFeed(this.feed);
+}
+
+class NavPause extends NavEvent {
+  const NavPause();
+}
+
+class NavResume extends NavEvent {
+  const NavResume();
+}
+
+class NavReroute extends NavEvent {
+  const NavReroute();
 }

@@ -18,255 +18,247 @@ class DeviceCard extends StatelessWidget {
     final textTheme = theme.textTheme;
     final colorScheme = theme.colorScheme;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  flex: 15,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
-                        builder: (context, state) {
-                          if (state is BluetoothConnetionStatusAquired) {
-                            return Icon(
-                              _getDeviceIcon(),
-                              size: 35,
-                              color: _getConnectionColor(
-                                context,
-                                state.status.toString(),
-                              ),
-                            );
-                          }
+    return Container(
+      color: colorScheme.secondaryContainer,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                flex: 15,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
+                      builder: (context, state) {
+                        if (state is BluetoothConnetionStatusAquired) {
                           return Icon(
                             _getDeviceIcon(),
                             size: 35,
-                            color: colorScheme.onSurfaceVariant,
+                            color: _getConnectionColor(
+                              context,
+                              state.status.toString(),
+                            ),
                           );
-                        },
-                      ),
-                    ],
-                  ),
+                        }
+                        return Icon(
+                          _getDeviceIcon(),
+                          size: 35,
+                          color: colorScheme.onSecondaryContainer.withValues(
+                            alpha: 0.7,
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-                Expanded(
-                  flex: 70,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              device.name,
-                              style: textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
+              ),
+              Expanded(
+                flex: 70,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            device.name,
+                            style: textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSecondaryContainer,
                             ),
                           ),
-                          BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
-                            builder: (context, state) {
-                              if (state is BluetoothConnetionStatusAquired) {
-                                final status = state.status.toString();
-                                final color = _getConnectionColor(
-                                  context,
-                                  status,
-                                );
-                                final icon = status == 'Connected'
-                                    ? Icons.check_circle
-                                    : Icons.radio_button_unchecked;
+                        ),
+                        BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
+                          builder: (context, state) {
+                            if (state is BluetoothConnetionStatusAquired) {
+                              final status = state.status.toString();
+                              final color = _getConnectionColor(
+                                context,
+                                status,
+                              );
+                              final icon = status == 'Connected'
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked;
 
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: color.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.zero,
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(icon, size: 14, color: color),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        status,
-                                        style: textTheme.labelSmall?.copyWith(
-                                          color: color,
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.zero,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(icon, size: 14, color: color),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      status,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: color,
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                    ],
-                                  ),
-                                );
-                              }
-                              return const SizedBox.shrink();
-                            },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      ],
+                    ),
+                    if (device.model != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        device.model!,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSecondaryContainer.withValues(
+                            alpha: 0.7,
                           ),
-                        ],
+                        ),
                       ),
-                      if (device.model != null) ...[
-                        const SizedBox(height: 4),
+                    ],
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          _getDeviceTypeIcon(),
+                          size: 14,
+                          color: colorScheme.onSecondaryContainer.withValues(
+                            alpha: 0.7,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
                         Text(
-                          device.model!,
+                          _getDeviceTypeLabel(),
                           style: textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
+                            color: colorScheme.onSecondaryContainer.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                         ),
                       ],
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            _getDeviceTypeIcon(),
-                            size: 14,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            _getDeviceTypeLabel(),
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        device.remoteId,
-                        style: textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontSize: 12,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      device.remoteId,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSecondaryContainer.withValues(
+                          alpha: 0.7,
                         ),
+                        fontSize: 12,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Expanded(
-                  flex: 15,
-                  child: PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_vert),
-                    onSelected: (value) => _handleMenuAction(context, value),
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 18),
-                            SizedBox(width: 8),
-                            Text('Edit'),
-                          ],
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.delete,
-                              size: 18,
-                              color: colorScheme.error,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Delete',
-                              style: textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.error,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
-              builder: (context, state) {
-                if (state is AquiringBluetoothConnetionStatus) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+              ),
+              Expanded(
+                flex: 15,
+                child: PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (value) => _handleMenuAction(context, value),
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'edit',
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Checking...',
-                            style: textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
+                          Icon(Icons.edit, size: 18),
+                          SizedBox(width: 8),
+                          Text('Edit'),
                         ],
                       ),
                     ),
-                  );
-                }
-
-                if (state is BluetoothConnetionStatusAquired) {
-                  final connectionStatus = state.status.toString();
-                  final isConnected = connectionStatus == 'Connected';
-
-                  return SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        BlocProvider.of<BluetoothBloc>(
-                          context,
-                        ).add(ToggleConnection(device));
-                      },
-                      icon: Icon(
-                        isConnected ? Icons.link_off : Icons.link,
-                        size: 18,
-                      ),
-                      label: Text(
-                        isConnected ? 'Disconnect' : 'Connect',
-                        style: textTheme.labelLarge?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isConnected
-                            ? colorScheme.errorContainer
-                            : colorScheme.primaryContainer,
-                        foregroundColor: isConnected
-                            ? colorScheme.onErrorContainer
-                            : colorScheme.onPrimaryContainer,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.zero,
-                          side: BorderSide(
-                            color: isConnected
-                                ? colorScheme.error
-                                : colorScheme.primary,
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          BlocBuilder<BluetoothBloc, ApplicationBluetoothState>(
+            builder: (context, state) {
+              if (state is AquiringBluetoothConnetionStatus) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.primary,
                           ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Checking...',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSecondaryContainer.withValues(
+                              alpha: 0.7,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              if (state is BluetoothConnetionStatusAquired) {
+                final connectionStatus = state.status.toString();
+                final isConnected = connectionStatus == 'Connected';
+
+                return SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      BlocProvider.of<BluetoothBloc>(
+                        context,
+                      ).add(ToggleConnection(device));
+                    },
+                    icon: Icon(
+                      isConnected ? Icons.link_off : Icons.link,
+                      size: 18,
+                    ),
+                    label: Text(
+                      isConnected ? 'Disconnect' : 'Connect',
+                      style: textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isConnected
+                          ? colorScheme.errorContainer
+                          : colorScheme.primaryContainer,
+                      foregroundColor: isConnected
+                          ? colorScheme.onErrorContainer
+                          : colorScheme.onPrimaryContainer,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
+                        side: BorderSide(
+                          color: isConnected
+                              ? colorScheme.error
+                              : colorScheme.primary,
                         ),
                       ),
                     ),
-                  );
-                }
+                  ),
+                );
+              }
 
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
-        ),
+              return const SizedBox.shrink();
+            },
+          ),
+        ],
       ),
     );
   }
@@ -334,13 +326,8 @@ class DeviceCard extends StatelessWidget {
   }
 
   void _handleMenuAction(BuildContext context, String action) {
-    switch (action) {
-      case 'edit':
-        _showEditDialog(context);
-        break;
-      case 'delete':
-        _showDeleteDialog(context);
-        break;
+    if (action == 'edit') {
+      _showEditDialog(context);
     }
   }
 
@@ -369,32 +356,6 @@ class DeviceCard extends StatelessWidget {
               Navigator.pop(dialogContext);
             },
             child: const Text('Rename'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete Device'),
-        content: Text('Are you sure you want to delete "${device.name}"?'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('CANCEL'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final id = device.id;
-              if (id != null) {
-                BlocProvider.of<DevicesBloc>(context).add(DeleteDevice(id));
-              }
-              Navigator.pop(dialogContext);
-            },
-            child: const Text('Delete'),
           ),
         ],
       ),

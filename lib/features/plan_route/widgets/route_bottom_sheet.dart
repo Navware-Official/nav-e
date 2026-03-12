@@ -20,7 +20,6 @@ import 'package:nav_e/core/domain/entities/geocoding_result.dart';
 import 'package:nav_e/core/domain/repositories/saved_routes_repository.dart';
 import 'package:nav_e/features/nav/models/nav_models.dart';
 import 'package:nav_e/features/nav/ui/active_nav_screen.dart';
-import 'package:nav_e/features/nav/utils/turn_feed.dart';
 
 typedef ComputeRouteCallback = Future<void> Function();
 
@@ -835,10 +834,8 @@ class _RouteTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool useTurnFeed = routePoints.length >= 3;
-    final List<NavCue> cues = useTurnFeed
-        ? buildTurnFeed(routePoints)
-        : const [];
+    // Turn cues will come from Rust once the nav engine exposes them.
+    const List<NavCue> cues = [];
 
     final List<_TimelineItem> items = [];
     items.add(

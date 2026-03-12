@@ -7,6 +7,72 @@ use nav_ir::Route as NavIrRoute;
 use serde::{Deserialize, Serialize};
 
 // ============================================================================
+// Navigation State DTOs (nav_engine output)
+// ============================================================================
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NavigationStateDto {
+    pub current_step: u32,
+    pub current_instruction: DerivedInstructionDto,
+    pub next_instruction: Option<DerivedInstructionDto>,
+    pub distance_to_next_m: f64,
+    pub distance_remaining_m: f64,
+    pub eta_seconds: u64,
+    pub is_off_route: bool,
+    pub distance_from_route_m: f64,
+    pub snapped_lat: f64,
+    pub snapped_lon: f64,
+    pub constraint_alerts: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DerivedInstructionDto {
+    /// Maneuver kind: "depart", "turn_left", "turn_right", "slight_left", "slight_right",
+    /// "sharp_left", "sharp_right", "continue", "arrive".
+    pub kind: String,
+    pub distance_to_next_m: f64,
+    pub street_name: Option<String>,
+}
+
+pub(crate) fn navigation_state_to_dto(state: nav_engine::NavigationState) -> NavigationStateDto {
+    NavigationStateDto {
+        current_step: state.current_step as u32,
+        current_instruction: instruction_to_dto(state.current_instruction),
+        next_instruction: state.next_instruction.map(instruction_to_dto),
+        distance_to_next_m: state.distance_to_next_m,
+        distance_remaining_m: state.distance_remaining_m,
+        eta_seconds: state.eta_seconds,
+        is_off_route: state.off_route.is_off_route,
+        distance_from_route_m: state.off_route.distance_from_route_m,
+        snapped_lat: state.snapped_position.latitude,
+        snapped_lon: state.snapped_position.longitude,
+        constraint_alerts: state
+            .constraint_alerts
+            .iter()
+            .map(alert_to_string)
+            .collect(),
+    }
+}
+
+pub(crate) fn instruction_to_dto(inst: nav_engine::DerivedInstruction) -> DerivedInstructionDto {
+    DerivedInstructionDto {
+        kind: inst.kind.as_str().to_string(),
+        distance_to_next_m: inst.distance_to_next_m,
+        street_name: inst.street_name,
+    }
+}
+
+fn alert_to_string(alert: &nav_engine::ConstraintAlert) -> String {
+    match alert {
+        nav_engine::ConstraintAlert::SpeedLimit { max_kmh } => {
+            format!("speed_limit:{}", max_kmh)
+        }
+        nav_engine::ConstraintAlert::AvoidHighway => "avoid_highway".to_string(),
+        nav_engine::ConstraintAlert::AvoidToll => "avoid_toll".to_string(),
+    }
+}
+
+// ============================================================================
 // Route DTOs
 // ============================================================================
 
@@ -37,6 +103,13 @@ pub struct NavigationSessionDto {
     pub current_latitude: f64,
     pub current_longitude: f64,
     pub status: String, // "Active", "Paused", "Completed", "Cancelled"
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionStatsDto {
+    pub total_distance_m: f64,
+    pub total_duration_seconds: i64,
+    pub session_count: i64,
 }
 
 // ============================================================================
@@ -252,6 +325,8 @@ mod tests {
             status: NavigationStatus::Active,
             started_at: Utc::now(),
             updated_at: Utc::now(),
+            current_step_index: 0,
+            distance_traveled_m: 0.0,
         };
 
         let dto = navigation_session_to_dto(&session);
