@@ -4,6 +4,7 @@ import 'package:nav_e/features/settings/widgets/about_section.dart';
 import 'package:nav_e/features/settings/widgets/map_styling_section.dart';
 import 'package:nav_e/features/settings/widgets/offline_maps_section.dart';
 import 'package:nav_e/features/settings/widgets/theme_settings_section.dart';
+import 'package:nav_e/features/settings/widgets/navigation_settings_section.dart';
 import 'package:nav_e/features/settings/widgets/trip_history_settings_section.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -22,6 +23,7 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         children: [
           ThemeSettingsSection(),
+          NavigationSettingsSection(),
           OfflineMapsSection(),
           MapStylingSection(),
           TripHistorySettingsSection(),

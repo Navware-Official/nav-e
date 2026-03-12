@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nav_e/bridge/lib.dart' as api;
 import 'package:nav_e/core/domain/entities/saved_place.dart';
 import 'package:nav_e/core/domain/entities/trip.dart';
 import 'package:nav_e/features/location_preview/cubit/preview_cubit.dart';
@@ -18,6 +21,7 @@ class HomeDashboardScreen extends StatefulWidget {
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   bool _loaded = false;
+  Map<String, dynamic>? _activeSession;
 
   @override
   void didChangeDependencies() {
@@ -28,23 +32,126 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) context.read<SavedPlacesCubit>().loadPlaces();
       });
+      _loadActiveSession();
+    }
+  }
+
+  Future<void> _loadActiveSession() async {
+    try {
+      final sessionJson = await api.getActiveSession();
+      if (!mounted) return;
+      if (sessionJson != null && sessionJson.isNotEmpty) {
+        final session = jsonDecode(sessionJson) as Map<String, dynamic>;
+        setState(() => _activeSession = session);
+      } else {
+        setState(() => _activeSession = null);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _activeSession = null);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final listChildren = <Widget>[_HeroCard(onTap: () => context.go('/'))];
+    if (_activeSession != null) {
+      listChildren.add(
+        _RecentIncompleteSessionCard(
+          session: _activeSession!,
+          onTap: () {
+            context.pushNamed('activeNav', extra: _activeSession).then((_) {
+              if (mounted) _loadActiveSession();
+            });
+          },
+        ),
+      );
+    }
+    listChildren.addAll([
+      _PlacesCarousel(),
+      const SizedBox(height: 28),
+      _RecentTripsCarousel(),
+      const SizedBox(height: 16),
+    ]);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Home')),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-        children: [
-          _HeroCard(onTap: () => context.go('/')),
-          const SizedBox(height: 28),
-          _PlacesCarousel(),
-          const SizedBox(height: 28),
-          _RecentTripsCarousel(),
-          const SizedBox(height: 16),
-        ],
+        children: listChildren,
+      ),
+    );
+  }
+}
+
+// ── Recent incomplete session (under Start a ride) ────────────────────────────
+
+class _RecentIncompleteSessionCard extends StatelessWidget {
+  const _RecentIncompleteSessionCard({
+    required this.session,
+    required this.onTap,
+  });
+
+  final Map<String, dynamic> session;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    final route = session['route'] as Map<String, dynamic>?;
+    final distanceM = (route?['distance_meters'] as num?)?.toDouble();
+    final waypoints = route?['waypoints'] as List<dynamic>?;
+    final destinationLabel = waypoints != null && waypoints.isNotEmpty
+        ? (waypoints.last as Map<String, dynamic>)['name'] as String?
+        : null;
+
+    return Card(
+      elevation: 0,
+      color: colorScheme.primaryContainer,
+      shape: const RoundedRectangleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Icon(
+                Icons.route,
+                size: 32,
+                color: colorScheme.onPrimaryContainer,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Continue your ride',
+                      style: textTheme.titleMedium?.copyWith(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      destinationLabel?.isNotEmpty == true
+                          ? destinationLabel!
+                          : (distanceM != null
+                                ? '${(distanceM / 1000).toStringAsFixed(1)} km remaining'
+                                : 'Resume navigation'),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onPrimaryContainer.withValues(
+                          alpha: 0.8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: colorScheme.onPrimaryContainer),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -64,10 +171,9 @@ class _HeroCard extends StatelessWidget {
 
     return Card(
       elevation: 0,
-      color: colorScheme.primaryContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: colorScheme.primary,
+      shape: const RoundedRectangleBorder(),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -80,16 +186,14 @@ class _HeroCard extends StatelessWidget {
                     Text(
                       'Start a ride',
                       style: textTheme.headlineMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer,
+                        color: colorScheme.onPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
                       'Search a destination and navigate',
                       style: textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onPrimaryContainer.withValues(
-                          alpha: 0.8,
-                        ),
+                        color: colorScheme.onPrimary.withValues(alpha: 0.8),
                       ),
                     ),
                     const SizedBox(height: 18),
@@ -203,15 +307,11 @@ class _PlaceChipCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 10),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Container(
           width: 130,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: colorScheme.tertiaryContainer,
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: colorScheme.tertiaryContainer),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -337,15 +437,11 @@ class _TripCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 12),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
         onTap: onTap,
         child: Container(
           width: 200,
           padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: colorScheme.secondaryContainer,
-            borderRadius: BorderRadius.circular(14),
-          ),
+          decoration: BoxDecoration(color: colorScheme.secondaryContainer),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -6,6 +6,14 @@ use nav_ir::Route as NavIrRoute;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+/// Aggregated stats across all non-cancelled navigation sessions.
+#[derive(Debug, Clone, Default)]
+pub struct SessionStats {
+    pub total_distance_m: f64,
+    pub total_duration_seconds: i64,
+    pub session_count: i64,
+}
+
 /// Represents an active navigation session. Route is Nav-IR (canonical format).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NavigationSession {
@@ -15,6 +23,12 @@ pub struct NavigationSession {
     pub status: NavigationStatus,
     pub started_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    /// Current instruction index (step) tracked by `nav_engine`.
+    #[serde(default)]
+    pub current_step_index: usize,
+    /// Cumulative distance traveled in meters, updated by `nav_engine`.
+    #[serde(default)]
+    pub distance_traveled_m: f64,
 }
 
 impl NavigationSession {
@@ -27,6 +41,8 @@ impl NavigationSession {
             status: NavigationStatus::Active,
             started_at: now,
             updated_at: now,
+            current_step_index: 0,
+            distance_traveled_m: 0.0,
         }
     }
 

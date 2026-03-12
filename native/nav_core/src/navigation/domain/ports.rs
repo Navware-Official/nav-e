@@ -97,6 +97,7 @@ pub trait NavigationRepository: Send + Sync {
     async fn load_session(&self, id: uuid::Uuid) -> Result<Option<NavigationSession>>;
     async fn load_active_session(&self) -> Result<Option<NavigationSession>>;
     async fn delete_session(&self, id: uuid::Uuid) -> Result<()>;
+    async fn get_session_stats(&self) -> Result<crate::navigation::domain::session::SessionStats>;
 }
 
 /// Port for traffic information

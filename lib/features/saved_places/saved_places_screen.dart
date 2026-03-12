@@ -126,40 +126,9 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
                         }
                       }
                     },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border(
-                          left: BorderSide(
-                            color: Theme.of(context).colorScheme.outline,
-                            width: 1,
-                          ),
-                          right: BorderSide(
-                            color: Theme.of(context).colorScheme.outline,
-                            width: 1,
-                          ),
-                        ),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.place),
-                        title: Text(place.name),
-                        subtitle: Text(
-                          [
-                            if (place.address != null &&
-                                place.address!.isNotEmpty)
-                              place.address!,
-                            '${place.lat.toStringAsFixed(5)}, ${place.lon.toStringAsFixed(5)}',
-                          ].join('\n'),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.visibility),
-                          tooltip: 'Preview',
-                          onPressed: () => _showPreview(context, place),
-                        ),
-                        onTap: () => _showPreview(context, place),
-                      ),
+                    child: _SavedPlaceListTile(
+                      place: place,
+                      onPreview: () => _showPreview(context, place),
                     ),
                   );
                 },
@@ -179,6 +148,75 @@ class _SavedPlacesScreenState extends State<SavedPlacesScreen> {
       label: place.name,
       placeId: place.id?.toString(),
       zoom: 14,
+    );
+  }
+}
+
+class _SavedPlaceListTile extends StatelessWidget {
+  const _SavedPlaceListTile({required this.place, required this.onPreview});
+
+  final SavedPlace place;
+  final VoidCallback onPreview;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return InkWell(
+      onTap: onPreview,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        color: colorScheme.secondaryContainer,
+        child: Row(
+          children: [
+            Icon(
+              Icons.place,
+              size: 20,
+              color: colorScheme.onSecondaryContainer,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    place.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textTheme.labelMedium?.copyWith(
+                      color: colorScheme.onSecondaryContainer,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  if (place.address != null && place.address!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      place.address!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSecondaryContainer.withValues(
+                          alpha: 0.7,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: Icon(
+                Icons.visibility,
+                color: colorScheme.onSecondaryContainer,
+              ),
+              tooltip: 'Preview',
+              onPressed: onPreview,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

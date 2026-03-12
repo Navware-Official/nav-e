@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +22,7 @@ import 'package:nav_e/features/search/search_screen.dart';
 import 'package:nav_e/features/settings/settings_screen.dart';
 import 'package:nav_e/features/settings/licenses_screen.dart';
 import 'package:nav_e/features/offline_maps/presentation/offline_maps_screen.dart';
+import 'package:nav_e/features/nav/ui/active_nav_screen.dart';
 import 'package:nav_e/features/nav/ui/route_finish_screen.dart';
 import 'package:nav_e/core/domain/entities/trip.dart';
 import 'package:nav_e/features/trip_history/trip_history_screen.dart';
@@ -63,6 +66,7 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
       if (state.uri.path == '/device-comm-debug' && state.extra == null) {
         return '/';
       }
+      if (state.uri.path == '/nav/active' && state.extra == null) return '/';
       if (state.error != null) return '/';
       return null;
     },
@@ -225,6 +229,15 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         },
       ),
       GoRoute(
+        path: '/nav/active',
+        name: 'activeNav',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (ctx, state) {
+          final session = state.extra! as Map<String, dynamic>;
+          return _ActiveNavFromSession(session: session);
+        },
+      ),
+      GoRoute(
         path: '/device-comm-debug',
         name: 'deviceCommDebug',
         parentNavigatorKey: rootNavigatorKey,
@@ -242,6 +255,63 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
     ],
     errorBuilder: (_, state) => HomeScreen(),
   );
+}
+
+/// Builds [ActiveNavScreen] from a restored session map (from [getActiveSession]).
+class _ActiveNavFromSession extends StatelessWidget {
+  const _ActiveNavFromSession({required this.session});
+
+  final Map<String, dynamic> session;
+
+  static List<LatLng> _parsePolyline(String? polylineJson) {
+    if (polylineJson == null || polylineJson.isEmpty) return [];
+    try {
+      final coords = jsonDecode(polylineJson) as List<dynamic>;
+      return coords.map((e) {
+        final list = e as List<dynamic>;
+        return LatLng((list[0] as num).toDouble(), (list[1] as num).toDouble());
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sessionId = session['id'] as String? ?? '';
+    final routeMap = session['route'] as Map<String, dynamic>?;
+    final polylineJson = routeMap?['polyline_json'] as String?;
+    var routePoints = _parsePolyline(polylineJson);
+    final waypoints = routeMap?['waypoints'] as List<dynamic>?;
+    if (routePoints.isEmpty && waypoints != null && waypoints.length >= 2) {
+      final first = waypoints.first as Map<String, dynamic>;
+      final last = waypoints.last as Map<String, dynamic>;
+      routePoints = [
+        LatLng(
+          (first['latitude'] as num).toDouble(),
+          (first['longitude'] as num).toDouble(),
+        ),
+        LatLng(
+          (last['latitude'] as num).toDouble(),
+          (last['longitude'] as num).toDouble(),
+        ),
+      ];
+    }
+    final distanceM = (routeMap?['distance_meters'] as num?)?.toDouble();
+    final durationS = (routeMap?['duration_seconds'] as num?)?.toDouble();
+    final destinationLabel = waypoints != null && waypoints.isNotEmpty
+        ? (waypoints.last as Map<String, dynamic>)['name'] as String?
+        : null;
+
+    return ActiveNavScreen(
+      routeId: sessionId,
+      routePoints: routePoints,
+      distanceM: distanceM,
+      durationS: durationS?.toDouble(),
+      destinationLabel: destinationLabel,
+      sessionId: sessionId,
+    );
+  }
 }
 
 /// One-time redirect to shell (Explore). Used when a route has invalid/missing data.

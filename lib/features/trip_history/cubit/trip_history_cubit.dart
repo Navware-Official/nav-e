@@ -17,4 +17,11 @@ class TripHistoryCubit extends Cubit<TripHistoryState> {
       emit(TripHistoryError(e.toString()));
     }
   }
+
+  Future<void> deleteTrip(int id) async {
+    if (state is! TripHistoryLoaded) return;
+    final current = (state as TripHistoryLoaded).trips;
+    await _repository.delete(id);
+    emit(TripHistoryLoaded(current.where((t) => t.id != id).toList()));
+  }
 }

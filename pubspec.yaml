@@ -54,6 +54,7 @@ dependencies:
 
   collection: any
   uuid: any
+  flutter_local_notifications: ^18.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
