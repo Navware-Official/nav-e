@@ -8,6 +8,9 @@ description = "HTTP routing and geocoding service implementations for nav_core p
 default = ["osrm", "nominatim"]
 osrm = ["dep:reqwest"]
 nominatim = ["dep:reqwest", "dep:urlencoding"]
+google_routes = ["dep:reqwest"]
+valhalla = ["dep:reqwest"]
+multi = []
 
 [dependencies]
 nav_core = { path = "../nav_core" }
