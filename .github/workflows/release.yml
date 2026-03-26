@@ -1,5 +1,8 @@
 name: Create Release
 on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
     inputs:
       version:
@@ -21,56 +24,76 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with: 
+        with:
           fetch-depth: 0
-          
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+            echo "from_tag=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${{ github.event.inputs.version }}" >> "$GITHUB_OUTPUT"
+            echo "prerelease=${{ github.event.inputs.prerelease }}" >> "$GITHUB_OUTPUT"
+            echo "from_tag=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Validate release conditions
         run: |
-          # Ensure we're on main and clean
           git fetch origin main --tags
-          [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || (echo "❌ Not on main branch" && exit 1)
-          test -z "$(git status --porcelain)" || (echo "❌ Workspace not clean" && exit 1)
-          
+
+          # Branch/clean-workspace checks only apply to manual dispatch
+          if [ "${{ steps.version.outputs.from_tag }}" = "false" ]; then
+            [[ "$(git rev-parse --abbrev-ref HEAD)" == "main" ]] || (echo "❌ Not on main branch" && exit 1)
+            test -z "$(git status --porcelain)" || (echo "❌ Workspace not clean" && exit 1)
+          fi
+
           # Validate version format
-          if ! [[ "${{ github.event.inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if ! [[ "${{ steps.version.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "❌ Invalid version format. Use semantic versioning (e.g., 1.2.3)"
             exit 1
           fi
-          
-          # Check if tag already exists
-          if git tag | grep -q "^v${{ github.event.inputs.version }}$"; then
-            echo "❌ Tag v${{ github.event.inputs.version }} already exists"
-            exit 1
+
+          # Tag existence check only for manual dispatch (tag already exists on push trigger)
+          if [ "${{ steps.version.outputs.from_tag }}" = "false" ]; then
+            if git tag | grep -q "^v${{ steps.version.outputs.version }}$"; then
+              echo "❌ Tag v${{ steps.version.outputs.version }} already exists"
+              exit 1
+            fi
           fi
-          
-          # Validate pubspec version matches input
+
+          # Validate pubspec version matches
           PUBSPEC_VERSION=$(grep -E '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1)
-          if [ "$PUBSPEC_VERSION" != "${{ github.event.inputs.version }}" ]; then
-            echo "❌ pubspec.yaml version ($PUBSPEC_VERSION) doesn't match input (${{ github.event.inputs.version }})"
+          if [ "$PUBSPEC_VERSION" != "${{ steps.version.outputs.version }}" ]; then
+            echo "❌ pubspec.yaml version ($PUBSPEC_VERSION) doesn't match (${{ steps.version.outputs.version }})"
             echo "💡 Please update pubspec.yaml first"
             exit 1
           fi
-          
+
           echo "✅ All validation checks passed"
-      
+
       - name: Install apt packages
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libssl-dev build-essential clang
-      
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: gradle
-          
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
-        with: 
+        with:
           channel: stable
           cache: true
-      
+
       - name: Accept Android SDK Licenses
         env:
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
@@ -87,20 +110,20 @@ jobs:
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
           set -euo pipefail
-          
+
           # Locate sdkmanager
           if [ -x "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" ]; then
             SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
           else
             SDKMANAGER="$(command -v sdkmanager)"
           fi
-          
+
           echo "Using sdkmanager: $SDKMANAGER"
-          
+
           # Extract NDK version from Gradle config (if set)
           NDK_VERSION=$(grep -oP 'ndkVersion\s*=\s*"\K[^"]+' android/app/build.gradle.kts || echo "29.0.13846066")
           echo "Detected NDK version: $NDK_VERSION"
-          
+
           # Install required components (licenses already accepted on runner)
           "$SDKMANAGER" --sdk_root="$ANDROID_SDK_ROOT" \
             "ndk;${NDK_VERSION}" \
@@ -114,27 +137,27 @@ jobs:
           dart format --output=none --set-exit-if-changed .
           dart analyze --fatal-infos
           flutter test --coverage
-          
+
       - name: Inject version information
         run: |
-          VERSION="${{ github.event.inputs.version }}"
+          VERSION="${{ steps.version.outputs.version }}"
           TAG="v$VERSION"
-          
+
           # Create directory if it doesn't exist
           mkdir -p lib/core/constants
-          
+
           # Create version constants file
           cat > lib/core/constants/app_version.dart << EOF
           // This file is auto-generated. Do not edit manually.
           // Generated at: $(date -Iseconds)
           // GitHub Release: $TAG
-          
+
           class AppVersion {
             static const String version = '$VERSION';
             static const String tag = '$TAG';
             static const String buildDate = '$(date -Iseconds)';
             static const String githubSha = '$GITHUB_SHA';
-            static const bool isPrerelease = ${{ github.event.inputs.prerelease }};
+            static const bool isPrerelease = ${{ steps.version.outputs.prerelease }};
           }
           EOF
 
@@ -164,56 +187,57 @@ jobs:
         run: |
           # Build APK
           flutter build apk --release
-          
-          # Build App Bundle  
+
+          # Build App Bundle
           flutter build appbundle --release
-          
+
       - name: Create and push tag
+        if: steps.version.outputs.from_tag == 'false'
         run: |
-          TAG="v${{ github.event.inputs.version }}"
+          TAG="v${{ steps.version.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
-          
+
       - name: Generate release notes
         id: release_notes
         run: |
-          TAG="v${{ github.event.inputs.version }}"
-          
+          TAG="v${{ steps.version.outputs.version }}"
+
           # Get previous tag for changelog (latest tag that is an ancestor of HEAD)
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD 2>/dev/null || echo "")
-          
+
           if [ -n "$PREV_TAG" ]; then
             echo "## What's Changed" > release_notes.md
             echo "" >> release_notes.md
             git log --pretty=format:"- %s (%h)" "$PREV_TAG..HEAD" >> release_notes.md
             echo "" >> release_notes.md
           fi
-          
+
           # Add download information
           cat >> release_notes.md << EOF
-          
+
           ## 📱 Download & Install
-          
+
           1. Download the APK file below for your device architecture
           2. Enable "Install from unknown sources" in Android settings
           3. Install the downloaded APK
-          
+
           ## 📋 Build Information
           - **Version:** $TAG
           - **Built from:** $GITHUB_SHA
           - **Build date:** $(date -Iseconds)
           - **Flutter version:** $(flutter --version | head -n1)
           EOF
-          
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.event.inputs.version }}
-          name: Release v${{ github.event.inputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Release v${{ steps.version.outputs.version }}
           body_path: release_notes.md
-          prerelease: ${{ github.event.inputs.prerelease }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
           generate_release_notes: false
           files: |
             build/app/outputs/flutter-apk/app-release.apk
