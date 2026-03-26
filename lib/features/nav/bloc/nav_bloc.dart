@@ -1,20 +1,19 @@
-import 'dart:convert';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'nav_event.dart';
 import 'nav_state.dart';
-import '../models/nav_models.dart';
+import 'off_route_detector.dart';
+import 'nav_session_manager.dart';
 import 'package:nav_e/bridge/lib.dart' as api;
 import 'package:nav_e/core/nav/nav_settings_service.dart';
 import 'package:nav_e/core/notifications/nav_notification_service.dart';
 
 class NavBloc extends Bloc<NavEvent, NavState> {
-  int _offRouteCount = 0;
-  bool _offRouteNotified = false;
-  DateTime? _lastRerouteAt;
-  double _offRouteThresholdM = NavSettingsService.defaultOffRouteThresholdM;
+  final _detector = OffRouteDetector(
+    thresholdM: NavSettingsService.defaultOffRouteThresholdM,
+  );
+  final _session = NavSessionManager();
 
   NavBloc() : super(const NavState()) {
     on<NavStart>(_onStart);
@@ -29,7 +28,7 @@ class NavBloc extends Bloc<NavEvent, NavState> {
   }
 
   Future<void> _onStart(NavStart event, Emitter<NavState> emit) async {
-    _offRouteThresholdM = await NavSettingsService.getOffRouteThreshold();
+    _detector.threshold = await NavSettingsService.getOffRouteThreshold();
     final dist = _computeTotalDistance(event.routePoints);
     emit(
       state.copyWith(
@@ -45,61 +44,21 @@ class NavBloc extends Bloc<NavEvent, NavState> {
     );
 
     // If a session ID was provided (e.g. restore on cold start), skip creating a new session.
-    String? sid = event.sessionId;
-
-    if (sid == null && event.routePoints.length >= 2) {
-      try {
-        final start = event.routePoints.first;
-        final end = event.routePoints.last;
-        final session = await api.startNavigationSession(
-          waypoints: [
-            (start.latitude, start.longitude),
-            (end.latitude, end.longitude),
-          ],
-          currentPosition: (start.latitude, start.longitude),
-        );
-        sid = session.id;
-      } catch (_) {
-        // Non-fatal — nav continues client-side without Rust session state.
-      }
-    }
+    final sid =
+        event.sessionId ?? await _session.startSession(event.routePoints);
 
     if (sid != null && state.active) {
       emit(state.copyWith(sessionId: sid));
-
-      // Populate turn feed from route steps.
-      try {
-        final steps = (await api.getRouteSteps(sessionId: sid))
-            .asMap()
-            .entries
-            .map((entry) {
-          final s = entry.value;
-          return NavCue(
-            id: 'step_${entry.key}',
-            instruction: _instructionFor(s.kind, s.streetName),
-            distanceToCueM: s.distanceToNextM,
-            distanceToCueText: _formatDistanceText(s.distanceToNextM),
-            location: state.lastPosition ?? const LatLng(0, 0),
-            maneuver: s.kind,
-            streetName: s.streetName,
-          );
-        }).toList();
-        if (state.active) {
-          add(SetTurnFeed(steps));
-        }
-      } catch (_) {
-        // Non-fatal — turn feed remains empty.
+      final steps = await _session.loadTurnFeed(sid, state.lastPosition);
+      if (steps.isNotEmpty && state.active) {
+        add(SetTurnFeed(steps));
       }
     }
   }
 
   Future<void> _onStop(NavStop event, Emitter<NavState> emit) async {
     final sid = state.sessionId;
-    if (sid != null) {
-      try {
-        await api.stopNavigation(sessionId: sid);
-      } catch (_) {}
-    }
+    if (sid != null) await _session.stop(sid);
 
     if (event.completed && state.startedAt != null) {
       final now = DateTime.now();
@@ -138,53 +97,31 @@ class NavBloc extends Bloc<NavEvent, NavState> {
         latitude: event.position.latitude,
         longitude: event.position.longitude,
       );
-      final isOffRoute = ns.distanceFromRouteM > _offRouteThresholdM;
+      final isOffRoute = _detector.isOffRoute(ns.distanceFromRouteM);
       final snappedPosition = LatLng(ns.snappedLat, ns.snappedLon);
+      final loc = state.lastPosition ?? const LatLng(0, 0);
 
+      // Build next cue from typed DTO fields (type inferred — avoids importing ffi_models.dart).
       final nextInst = ns.nextInstruction;
       final currentInst = ns.currentInstruction;
-      NavCue? nextCue;
-      if (nextInst != null) {
-        nextCue = NavCue(
-          id: 'next_${nextInst.kind}_${nextInst.distanceToNextM.toInt()}',
-          instruction: _instructionFor(nextInst.kind, nextInst.streetName),
-          distanceToCueM: nextInst.distanceToNextM,
-          distanceToCueText: _formatDistanceText(nextInst.distanceToNextM),
-          location: state.lastPosition ?? const LatLng(0, 0),
-          maneuver: nextInst.kind,
-          streetName: nextInst.streetName,
-        );
-      } else {
-        nextCue = NavCue(
-          id: 'curr_${currentInst.kind}',
-          instruction:
-              _instructionFor(currentInst.kind, currentInst.streetName),
-          distanceToCueM: 0.0,
-          distanceToCueText: '',
-          location: state.lastPosition ?? const LatLng(0, 0),
-          maneuver: currentInst.kind,
-          streetName: currentInst.streetName,
-        );
-      }
+      final nextCue = nextInst != null
+          ? NavSessionManager.buildCue(
+              id: 'next_${nextInst.kind}_${nextInst.distanceToNextM.toInt()}',
+              kind: nextInst.kind,
+              streetName: nextInst.streetName,
+              distanceToNextM: nextInst.distanceToNextM,
+              location: loc,
+            )
+          : NavSessionManager.buildCue(
+              id: 'curr_${currentInst.kind}',
+              kind: currentInst.kind,
+              streetName: currentInst.streetName,
+              distanceToNextM: 0.0,
+              location: loc,
+            );
 
-      // Off-route debounce → notification + auto-reroute
-      if (isOffRoute) {
-        _offRouteCount++;
-        if (!_offRouteNotified) {
-          _offRouteNotified = true;
-          NavNotificationService.instance.showOffRoute();
-        }
-        final lastReroute = _lastRerouteAt;
-        final cooldownOk =
-            lastReroute == null ||
-            DateTime.now().difference(lastReroute).inSeconds > 30;
-        if (_offRouteCount >= 3 && cooldownOk) {
-          add(const NavReroute());
-          _offRouteCount = 0;
-        }
-      } else {
-        _offRouteCount = 0;
-        _offRouteNotified = false;
+      if (_detector.update(ns.distanceFromRouteM)) {
+        add(const NavReroute());
       }
 
       emit(
@@ -204,21 +141,13 @@ class NavBloc extends Bloc<NavEvent, NavState> {
 
   Future<void> _onPause(NavPause _, Emitter<NavState> emit) async {
     final sid = state.sessionId;
-    if (sid != null) {
-      try {
-        await api.pauseNavigation(sessionId: sid);
-      } catch (_) {}
-    }
+    if (sid != null) await _session.pause(sid);
     emit(state.copyWith(isPaused: true));
   }
 
   Future<void> _onResume(NavResume _, Emitter<NavState> emit) async {
     final sid = state.sessionId;
-    if (sid != null) {
-      try {
-        await api.resumeNavigation(sessionId: sid);
-      } catch (_) {}
-    }
+    if (sid != null) await _session.resume(sid);
     emit(state.copyWith(isPaused: false));
   }
 
@@ -229,36 +158,16 @@ class NavBloc extends Bloc<NavEvent, NavState> {
         : null;
     if (origin == null || dest == null) return;
 
-    _lastRerouteAt = DateTime.now();
+    _detector.markRerouting();
     emit(state.copyWith(isRerouting: true));
 
     try {
-      final route = await api.calculateRoute(
-        waypoints: [
-          (origin.latitude, origin.longitude),
-          (dest.latitude, dest.longitude),
-        ],
-      );
-      final rawPoints = (jsonDecode(route.polylineJson) as List)
-          .map(
-            (p) => LatLng((p[0] as num).toDouble(), (p[1] as num).toDouble()),
-          )
-          .toList();
-
-      final newSession = await api.startNavigationSession(
-        waypoints: [
-          (origin.latitude, origin.longitude),
-          (dest.latitude, dest.longitude),
-        ],
-        currentPosition: (origin.latitude, origin.longitude),
-      );
-      final newSid = newSession.id;
-
+      final result = await _session.reroute(origin: origin, destination: dest);
       NavNotificationService.instance.showRerouted();
       emit(
         state.copyWith(
-          sessionId: newSid,
-          progressPolyline: rawPoints,
+          sessionId: result.sessionId,
+          progressPolyline: result.points,
           isRerouting: false,
           isOffRoute: false,
         ),
@@ -288,30 +197,5 @@ class NavBloc extends Bloc<NavEvent, NavState> {
       acc += d.as(LengthUnit.Meter, pts[i], pts[i + 1]);
     }
     return acc;
-  }
-
-  static String _instructionFor(String kind, String? streetName) {
-    final base = switch (kind) {
-      'turn_left' => 'Turn left',
-      'turn_right' => 'Turn right',
-      'slight_left' => 'Slight left',
-      'slight_right' => 'Slight right',
-      'sharp_left' => 'Turn sharp left',
-      'sharp_right' => 'Turn sharp right',
-      'depart' => 'Depart',
-      'arrive' => 'You have arrived',
-      _ => 'Continue',
-    };
-    if (streetName != null && streetName.isNotEmpty) {
-      return '$base onto $streetName';
-    }
-    return base;
-  }
-
-  static String _formatDistanceText(double meters) {
-    if (meters >= 1000) {
-      return '${(meters / 1000).toStringAsFixed(1)} km';
-    }
-    return '${meters.toStringAsFixed(0)} m';
   }
 }
