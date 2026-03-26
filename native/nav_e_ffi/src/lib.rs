@@ -8,6 +8,10 @@ use anyhow::Result;
 use flutter_rust_bridge::frb;
 use std::sync::Arc;
 
+// Re-export DTOs so FRB generates typed Dart classes for them.
+pub use nav_core::api::dto::DerivedInstructionDto;
+pub use nav_core::api::dto::NavigationStateDto;
+
 // ============================================================================
 // Initialization API
 // ============================================================================
@@ -49,20 +53,20 @@ pub fn start_navigation_session(
     nav_core::api::start_navigation_session(waypoints, current_position)
 }
 
-/// Update current position during navigation. Returns `NavigationStateDto` as JSON.
+/// Update current position during navigation. Returns typed navigation state.
 #[frb]
 pub fn update_navigation_position(
     session_id: String,
     latitude: f64,
     longitude: f64,
-) -> Result<String> {
+) -> Result<NavigationStateDto> {
     nav_core::api::update_navigation_position(session_id, latitude, longitude)
 }
 
 /// Get the latest navigation state for an active session without moving.
-/// Returns `NavigationStateDto` JSON or null if session not found.
+/// Returns typed navigation state or null if session not found.
 #[frb]
-pub fn get_navigation_state(session_id: String) -> Result<Option<String>> {
+pub fn get_navigation_state(session_id: String) -> Result<Option<NavigationStateDto>> {
     nav_core::api::get_navigation_state(session_id)
 }
 

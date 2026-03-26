@@ -136,64 +136,50 @@ class NavBloc extends Bloc<NavEvent, NavState> {
     if (sid == null || !state.active) return;
 
     try {
-      final json = await api.updateNavigationPosition(
+      final navState = await api.updateNavigationPosition(
         sessionId: sid,
         latitude: event.position.latitude,
         longitude: event.position.longitude,
       );
-      final Map<String, dynamic> obj = jsonDecode(json) as Map<String, dynamic>;
-      _applyNavState(obj, emit);
+      _applyNavState(navState, emit);
     } catch (_) {
       // FFI not ready or session ended — continue with position-only state
     }
   }
 
-  void _applyNavState(Map<String, dynamic> obj, Emitter<NavState> emit) {
-    final remainingM = (obj['distance_remaining_m'] as num?)?.toDouble();
-    final etaSecs = (obj['eta_seconds'] as num?)?.toInt();
-    final currentInst = obj['current_instruction'] as Map<String, dynamic>?;
-    final nextInst = obj['next_instruction'] as Map<String, dynamic>?;
-    final distFromRoute =
-        (obj['distance_from_route_m'] as num?)?.toDouble() ?? 0.0;
+  void _applyNavState(api.NavigationStateDto navState, Emitter<NavState> emit) {
+    final remainingM = navState.distanceRemainingM;
+    final etaSecs = navState.etaSeconds.toInt();
+    final distFromRoute = navState.distanceFromRouteM;
     final isOffRoute = distFromRoute > _offRouteThresholdM;
-    final snappedLat = (obj['snapped_lat'] as num?)?.toDouble();
-    final snappedLon = (obj['snapped_lon'] as num?)?.toDouble();
-    final snappedPosition = (snappedLat != null && snappedLon != null)
-        ? LatLng(snappedLat, snappedLon)
-        : null;
-    final constraintAlerts =
-        (obj['constraint_alerts'] as List?)
-            ?.map((e) => e.toString())
-            .toList() ??
-        const <String>[];
+    final snappedPosition = LatLng(navState.snappedLat, navState.snappedLon);
+    final constraintAlerts = navState.constraintAlerts;
 
     NavCue? nextCue;
+    final nextInst = navState.nextInstruction;
     if (nextInst != null) {
-      final kind = nextInst['kind']?.toString() ?? 'continue';
-      final distToNext =
-          (nextInst['distance_to_next_m'] as num?)?.toDouble() ?? 0.0;
+      final kind = nextInst.kind;
+      final distToNext = nextInst.distanceToNextM;
       nextCue = NavCue(
         id: 'next_${kind}_${distToNext.toInt()}',
-        instruction: _instructionFor(kind, nextInst['street_name']?.toString()),
+        instruction: _instructionFor(kind, nextInst.streetName),
         distanceToCueM: distToNext,
         distanceToCueText: _formatDistanceText(distToNext),
         location: state.lastPosition ?? const LatLng(0, 0),
         maneuver: kind,
-        streetName: nextInst['street_name']?.toString(),
+        streetName: nextInst.streetName,
       );
-    } else if (currentInst != null) {
-      final kind = currentInst['kind']?.toString() ?? 'continue';
+    } else {
+      final currentInst = navState.currentInstruction;
+      final kind = currentInst.kind;
       nextCue = NavCue(
         id: 'curr_$kind',
-        instruction: _instructionFor(
-          kind,
-          currentInst['street_name']?.toString(),
-        ),
+        instruction: _instructionFor(kind, currentInst.streetName),
         distanceToCueM: 0.0,
         distanceToCueText: '',
         location: state.lastPosition ?? const LatLng(0, 0),
         maneuver: kind,
-        streetName: currentInst['street_name']?.toString(),
+        streetName: currentInst.streetName,
       );
     }
 
