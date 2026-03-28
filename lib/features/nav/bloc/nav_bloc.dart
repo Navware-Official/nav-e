@@ -136,10 +136,13 @@ class NavBloc extends Bloc<NavEvent, NavState> {
     if (sid == null || !state.active) return;
 
     try {
-      final navState = await api.updateNavigationPosition(
+      final navJson = await api.updateNavigationPosition(
         sessionId: sid,
         latitude: event.position.latitude,
         longitude: event.position.longitude,
+      );
+      final navState = NavigationStateDto.fromJson(
+        jsonDecode(navJson) as Map<String, dynamic>,
       );
       _applyNavState(navState, emit);
     } catch (_) {
@@ -147,9 +150,9 @@ class NavBloc extends Bloc<NavEvent, NavState> {
     }
   }
 
-  void _applyNavState(api.NavigationStateDto navState, Emitter<NavState> emit) {
+  void _applyNavState(NavigationStateDto navState, Emitter<NavState> emit) {
     final remainingM = navState.distanceRemainingM;
-    final etaSecs = navState.etaSeconds.toInt();
+    final etaSecs = navState.etaSeconds;
     final distFromRoute = navState.distanceFromRouteM;
     final isOffRoute = distFromRoute > _offRouteThresholdM;
     final snappedPosition = LatLng(navState.snappedLat, navState.snappedLon);
