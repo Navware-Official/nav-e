@@ -6,11 +6,25 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-/// Initialize the database with the platform-specific path.
-/// Constructs OSRM routing and Nominatim geocoding services and injects them into nav_core.
-/// Must be called before any database operations.
-Future<void> initializeDatabase({required String dbPath}) =>
-    RustBridge.instance.api.crateInitializeDatabase(dbPath: dbPath);
+/// Initialize the database and routing engines.
+///
+/// Always registers OSRM (public) and Valhalla (public openstreetmap.de instance).
+/// Pass `google_routes_api_key` to also enable Google Routes — obtain a key via
+/// `--dart-define=GOOGLE_ROUTES_KEY=...` at build time.
+///
+/// Must be called before any other API functions.
+Future<void> initializeDatabase({
+  required String dbPath,
+  String? googleRoutesApiKey,
+}) => RustBridge.instance.api.crateInitializeDatabase(
+  dbPath: dbPath,
+  googleRoutesApiKey: googleRoutesApiKey,
+);
+
+/// Switch the active routing engine. Valid names: `"osrm"`, `"valhalla"`, `"googleRoutes"`.
+/// Google Routes is only available if an API key was provided to `initialize_database`.
+Future<void> setRoutingEngine({required String engine}) =>
+    RustBridge.instance.api.crateSetRoutingEngine(engine: engine);
 
 /// Calculate a route between waypoints
 Future<String> calculateRoute({required List<(double, double)> waypoints}) =>
