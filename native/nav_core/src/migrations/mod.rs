@@ -248,6 +248,18 @@ impl MigrationManager {
     }
 }
 
+/// Registry of all migrations - ADD NEW MIGRATIONS HERE
+pub fn get_all_migrations() -> Vec<Box<dyn Migration>> {
+    vec![
+        Box::new(InitialSchema {}),
+        Box::new(m20250212000000_offline_regions::OfflineRegionsSchema {}),
+        Box::new(m20250224000000_trips::TripsSchema {}),
+        Box::new(m20250225000000_saved_routes::SavedRoutesSchema {}),
+        Box::new(m20260307000000_navigation_sessions::NavigationSessionsSchema {}),
+        Box::new(m20260309000000_nav_engine_state::NavEngineStateSchema {}),
+    ]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -401,16 +413,4 @@ mod tests {
         mgr.initialize().unwrap(); // re-init since migrate failed before it
         assert!(!mgr.is_applied(99).unwrap());
     }
-}
-
-/// Registry of all migrations - ADD NEW MIGRATIONS HERE
-pub fn get_all_migrations() -> Vec<Box<dyn Migration>> {
-    vec![
-        Box::new(InitialSchema {}),
-        Box::new(m20250212000000_offline_regions::OfflineRegionsSchema {}),
-        Box::new(m20250224000000_trips::TripsSchema {}),
-        Box::new(m20250225000000_saved_routes::SavedRoutesSchema {}),
-        Box::new(m20260307000000_navigation_sessions::NavigationSessionsSchema {}),
-        Box::new(m20260309000000_nav_engine_state::NavEngineStateSchema {}),
-    ]
 }

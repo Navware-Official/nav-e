@@ -3,6 +3,7 @@
 
 // ignore_for_file: invalid_use_of_internal_member, unused_import, unnecessary_import
 
+import 'ffi_models.dart';
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
@@ -27,11 +28,11 @@ Future<void> setRoutingEngine({required String engine}) =>
     RustBridge.instance.api.crateSetRoutingEngine(engine: engine);
 
 /// Calculate a route between waypoints
-Future<String> calculateRoute({required List<(double, double)> waypoints}) =>
+Future<RouteDto> calculateRoute({required List<(double, double)> waypoints}) =>
     RustBridge.instance.api.crateCalculateRoute(waypoints: waypoints);
 
 /// Start a new navigation session
-Future<String> startNavigationSession({
+Future<NavigationSessionDto> startNavigationSession({
   required List<(double, double)> waypoints,
   required (double, double) currentPosition,
 }) => RustBridge.instance.api.crateStartNavigationSession(
@@ -39,8 +40,8 @@ Future<String> startNavigationSession({
   currentPosition: currentPosition,
 );
 
-/// Update current position during navigation. Returns `NavigationStateDto` as JSON.
-Future<String> updateNavigationPosition({
+/// Update current position during navigation. Returns `NavigationStateDto`.
+Future<NavigationStateDto> updateNavigationPosition({
   required String sessionId,
   required double latitude,
   required double longitude,
@@ -51,8 +52,8 @@ Future<String> updateNavigationPosition({
 );
 
 /// Get the latest navigation state for an active session without moving.
-/// Returns `NavigationStateDto` JSON or null if session not found.
-Future<String?> getNavigationState({required String sessionId}) =>
+/// Returns `NavigationStateDto` or null if session not found.
+Future<NavigationStateDto?> getNavigationState({required String sessionId}) =>
     RustBridge.instance.api.crateGetNavigationState(sessionId: sessionId);
 
 /// Get the currently active navigation session
@@ -72,16 +73,19 @@ Future<void> stopNavigation({required String sessionId}) =>
     RustBridge.instance.api.crateStopNavigation(sessionId: sessionId);
 
 /// Get aggregated stats (distance, duration, count) from all non-cancelled sessions
-Future<String> getSessionStats() =>
+Future<SessionStatsDto> getSessionStats() =>
     RustBridge.instance.api.crateGetSessionStats();
 
-/// Get all route steps (turn-by-turn instructions) for a session as JSON array
-Future<String> getRouteSteps({required String sessionId}) =>
-    RustBridge.instance.api.crateGetRouteSteps(sessionId: sessionId);
+/// Get all route steps (turn-by-turn instructions) for a session
+Future<List<DerivedInstructionDto>> getRouteSteps({
+  required String sessionId,
+}) => RustBridge.instance.api.crateGetRouteSteps(sessionId: sessionId);
 
 /// Search for locations by address/name
-Future<String> geocodeSearch({required String query, int? limit}) =>
-    RustBridge.instance.api.crateGeocodeSearch(query: query, limit: limit);
+Future<List<GeocodingResultDto>> geocodeSearch({
+  required String query,
+  int? limit,
+}) => RustBridge.instance.api.crateGeocodeSearch(query: query, limit: limit);
 
 /// Reverse geocode coordinates to address
 Future<String> reverseGeocode({

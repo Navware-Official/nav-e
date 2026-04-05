@@ -34,6 +34,7 @@ pub struct DeviceMessage {
 pub struct ProtobufDeviceAdapter {
     tx: broadcast::Sender<DeviceMessage>,
     /// Last known position + timestamp for bearing and speed calculation.
+    #[allow(dead_code)]
     last_pos: Mutex<Option<(nav_ir::Coordinate, chrono::DateTime<chrono::Utc>)>>,
 }
 
@@ -211,6 +212,7 @@ impl DeviceCommunicationPort for ProtobufDeviceAdapter {
 }
 
 /// Merge all segment bounding boxes to produce the route's overall bounding box.
+#[allow(dead_code)]
 fn compute_route_bounding_box(route: &NavIrRoute) -> Option<nav_ir::BoundingBox> {
     let mut iter = route
         .segments
@@ -226,6 +228,7 @@ fn compute_route_bounding_box(route: &NavIrRoute) -> Option<nav_ir::BoundingBox>
 }
 
 /// Forward bearing in degrees (0–360) from `from` to `to`.
+#[allow(dead_code)]
 fn compute_bearing(from: nav_ir::Coordinate, to: nav_ir::Coordinate) -> f64 {
     let lat1 = from.latitude.to_radians();
     let lat2 = to.latitude.to_radians();
@@ -234,6 +237,7 @@ fn compute_bearing(from: nav_ir::Coordinate, to: nav_ir::Coordinate) -> f64 {
     let x = lat1.cos() * lat2.sin() - lat1.sin() * lat2.cos() * dlon.cos();
     (y.atan2(x).to_degrees() + 360.0) % 360.0
 }
+
 
 #[cfg(test)]
 mod tests {

@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -53,11 +51,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       // Distance, duration, avg: from actual tracked session data
-      final statsJson = await api.getSessionStats();
-      final stats = jsonDecode(statsJson) as Map<String, dynamic>;
-      final totalDistM = (stats['total_distance_m'] as num).toDouble();
-      final totalSec = (stats['total_duration_seconds'] as num).toInt();
-      final sessionCount = (stats['session_count'] as num).toInt();
+      final stats = await api.getSessionStats();
+      final totalDistM = stats.totalDistanceM;
+      final totalSec = stats.totalDurationSeconds.toInt();
+      final sessionCount = stats.sessionCount.toInt();
 
       if (mounted) {
         setState(() {

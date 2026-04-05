@@ -72,3 +72,4 @@ native/nav_e_ffi/src/frb_generated.web.rs
 
 # Misc
 .github/copilot-instructions.md
+CLAUDE.md
