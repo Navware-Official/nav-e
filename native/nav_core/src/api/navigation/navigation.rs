@@ -31,13 +31,13 @@ pub fn start_navigation_session(
     })
 }
 
-/// Update current position during navigation. Returns navigation state as JSON.
+/// Update current position during navigation. Returns typed navigation state.
 pub fn update_navigation_position(
     session_id: String,
     latitude: f64,
     longitude: f64,
-) -> Result<String> {
-    query_json_async(|| async {
+) -> Result<NavigationStateDto> {
+    query_async(|| async {
         let position = Position::new(latitude, longitude).map_err(|e| anyhow::anyhow!(e))?;
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
 
@@ -52,7 +52,7 @@ pub fn update_navigation_position(
 }
 
 /// Get the latest navigation state for a session without updating position.
-pub fn get_navigation_state(session_id: String) -> Result<Option<String>> {
+pub fn get_navigation_state(session_id: String) -> Result<Option<NavigationStateDto>> {
     block_on(async {
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
         let session = get_container()
@@ -71,9 +71,7 @@ pub fn get_navigation_state(session_id: String) -> Result<Option<String>> {
                     s.distance_traveled_m,
                 );
                 let nav_state = engine.update_position(coord, None);
-                Ok(Some(serde_json::to_string(&navigation_state_to_dto(
-                    nav_state,
-                ))?))
+                Ok(Some(navigation_state_to_dto(nav_state)))
             }
             _ => Ok(None),
         }
