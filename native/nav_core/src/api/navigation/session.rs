@@ -10,8 +10,8 @@ use crate::shared::value_objects::*;
 pub fn start_navigation_session(
     waypoints: Vec<(f64, f64)>,
     current_position: (f64, f64),
-) -> Result<String> {
-    query_json_async(|| async {
+) -> Result<NavigationSessionDto> {
+    query_async(|| async {
         let waypoint_positions: Result<Vec<Position>> = waypoints
             .into_iter()
             .map(|(lat, lon)| Position::new(lat, lon).map_err(|e| anyhow::anyhow!(e)))
@@ -31,7 +31,7 @@ pub fn start_navigation_session(
     })
 }
 
-/// Update current position during navigation. Returns typed navigation state.
+/// Update current position during navigation. Returns navigation state.
 pub fn update_navigation_position(
     session_id: String,
     latitude: f64,
@@ -117,8 +117,8 @@ pub fn resume_navigation(session_id: String) -> Result<()> {
     })
 }
 
-/// Get all route steps (turn-by-turn instructions) for a session as JSON array.
-pub fn get_route_steps(session_id: String) -> Result<String> {
+/// Get all route steps (turn-by-turn instructions) for a session.
+pub fn get_route_steps(session_id: String) -> Result<Vec<DerivedInstructionDto>> {
     block_on(async {
         let session_uuid = uuid::Uuid::parse_str(&session_id)?;
         let session = get_container()
@@ -137,21 +137,19 @@ pub fn get_route_steps(session_id: String) -> Result<String> {
             .cloned()
             .map(instruction_to_dto)
             .collect();
-        Ok(serde_json::to_string(&steps)?)
+        Ok(steps)
     })
 }
 
 /// Get aggregated stats across all non-cancelled navigation sessions.
-/// Returns `SessionStatsDto` JSON.
-pub fn get_session_stats() -> Result<String> {
+pub fn get_session_stats() -> Result<SessionStatsDto> {
     block_on(async {
         let stats = get_container().navigation.get_session_stats().await?;
-        let dto = SessionStatsDto {
+        Ok(SessionStatsDto {
             total_distance_m: stats.total_distance_m,
             total_duration_seconds: stats.total_duration_seconds,
             session_count: stats.session_count,
-        };
-        Ok(serde_json::to_string(&dto)?)
+        })
     })
 }
 

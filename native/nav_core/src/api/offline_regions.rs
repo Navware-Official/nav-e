@@ -75,6 +75,7 @@ pub fn get_offline_regions_storage_path() -> Result<String> {
 }
 
 /// Download a region: fetch tiles, write to directory, insert into DB. Returns region JSON.
+#[allow(clippy::too_many_arguments)]
 pub fn download_offline_region(
     name: String,
     north: f64,

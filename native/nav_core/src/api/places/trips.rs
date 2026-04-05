@@ -21,6 +21,7 @@ pub fn get_trip_by_id(id: i64) -> Result<String> {
 }
 
 /// Save a new trip and return the assigned ID
+#[allow(clippy::too_many_arguments)]
 pub fn save_trip(
     distance_m: f64,
     duration_seconds: i64,

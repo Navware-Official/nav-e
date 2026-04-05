@@ -4,6 +4,9 @@ mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be
 // This crate provides a thin Flutter Rust Bridge wrapper around the nav_core crate.
 // All functions are simple pass-through wrappers that delegate to nav_core's API.
 
+mod ffi_models;
+pub use ffi_models::*;
+
 use anyhow::Result;
 use flutter_rust_bridge::frb;
 use std::collections::HashMap;
@@ -12,10 +15,6 @@ use std::sync::{Arc, OnceLock};
 /// Global handle to the MultiRouteService so `set_routing_engine` can switch
 /// engines without going through AppContainer.
 static MULTI_ROUTER: OnceLock<Arc<nav_route::MultiRouteService>> = OnceLock::new();
-
-// Re-export DTOs so FRB generates typed Dart classes for them.
-pub use nav_core::api::dto::DerivedInstructionDto;
-pub use nav_core::api::dto::NavigationStateDto;
 
 // ============================================================================
 // Initialization API
@@ -90,8 +89,8 @@ pub fn set_routing_engine(engine: String) -> Result<()> {
 
 /// Calculate a route between waypoints
 #[frb]
-pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
-    nav_core::api::calculate_route(waypoints)
+pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<RouteDto> {
+    Ok(nav_core::api::calculate_route(waypoints)?.into())
 }
 
 // ============================================================================
@@ -103,25 +102,25 @@ pub fn calculate_route(waypoints: Vec<(f64, f64)>) -> Result<String> {
 pub fn start_navigation_session(
     waypoints: Vec<(f64, f64)>,
     current_position: (f64, f64),
-) -> Result<String> {
-    nav_core::api::start_navigation_session(waypoints, current_position)
+) -> Result<NavigationSessionDto> {
+    Ok(nav_core::api::start_navigation_session(waypoints, current_position)?.into())
 }
 
-/// Update current position during navigation. Returns typed navigation state.
+/// Update current position during navigation. Returns `NavigationStateDto`.
 #[frb]
 pub fn update_navigation_position(
     session_id: String,
     latitude: f64,
     longitude: f64,
 ) -> Result<NavigationStateDto> {
-    nav_core::api::update_navigation_position(session_id, latitude, longitude)
+    Ok(nav_core::api::update_navigation_position(session_id, latitude, longitude)?.into())
 }
 
 /// Get the latest navigation state for an active session without moving.
-/// Returns typed navigation state or null if session not found.
+/// Returns `NavigationStateDto` or null if session not found.
 #[frb]
 pub fn get_navigation_state(session_id: String) -> Result<Option<NavigationStateDto>> {
-    nav_core::api::get_navigation_state(session_id)
+    Ok(nav_core::api::get_navigation_state(session_id)?.map(Into::into))
 }
 
 /// Get the currently active navigation session
@@ -150,14 +149,17 @@ pub fn stop_navigation(session_id: String) -> Result<()> {
 
 /// Get aggregated stats (distance, duration, count) from all non-cancelled sessions
 #[frb]
-pub fn get_session_stats() -> Result<String> {
-    nav_core::api::get_session_stats()
+pub fn get_session_stats() -> Result<SessionStatsDto> {
+    Ok(nav_core::api::get_session_stats()?.into())
 }
 
-/// Get all route steps (turn-by-turn instructions) for a session as JSON array
+/// Get all route steps (turn-by-turn instructions) for a session
 #[frb]
-pub fn get_route_steps(session_id: String) -> Result<String> {
-    nav_core::api::get_route_steps(session_id)
+pub fn get_route_steps(session_id: String) -> Result<Vec<DerivedInstructionDto>> {
+    Ok(nav_core::api::get_route_steps(session_id)?
+        .into_iter()
+        .map(Into::into)
+        .collect())
 }
 
 // ============================================================================
@@ -166,8 +168,11 @@ pub fn get_route_steps(session_id: String) -> Result<String> {
 
 /// Search for locations by address/name
 #[frb]
-pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
-    nav_core::api::geocode_search(query, limit)
+pub fn geocode_search(query: String, limit: Option<u32>) -> Result<Vec<GeocodingResultDto>> {
+    Ok(nav_core::api::geocode_search(query, limit)?
+        .into_iter()
+        .map(Into::into)
+        .collect())
 }
 
 /// Reverse geocode coordinates to address

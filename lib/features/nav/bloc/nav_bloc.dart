@@ -51,15 +51,14 @@ class NavBloc extends Bloc<NavEvent, NavState> {
       try {
         final start = event.routePoints.first;
         final end = event.routePoints.last;
-        final json = await api.startNavigationSession(
+        final session = await api.startNavigationSession(
           waypoints: [
             (start.latitude, start.longitude),
             (end.latitude, end.longitude),
           ],
           currentPosition: (start.latitude, start.longitude),
         );
-        final obj = jsonDecode(json) as Map<String, dynamic>;
-        sid = obj['id'] as String?;
+        sid = session.id;
       } catch (_) {
         // Non-fatal — nav continues client-side without Rust session state.
       }
@@ -70,21 +69,19 @@ class NavBloc extends Bloc<NavEvent, NavState> {
 
       // Populate turn feed from route steps.
       try {
-        final stepsJson = await api.getRouteSteps(sessionId: sid);
-        final stepsList = jsonDecode(stepsJson) as List;
-        final steps = stepsList.asMap().entries.map((entry) {
-          final s = entry.value as Map<String, dynamic>;
-          final kind = s['kind']?.toString() ?? 'continue';
-          final distToNext =
-              (s['distance_to_next_m'] as num?)?.toDouble() ?? 0.0;
+        final steps = (await api.getRouteSteps(sessionId: sid))
+            .asMap()
+            .entries
+            .map((entry) {
+          final s = entry.value;
           return NavCue(
             id: 'step_${entry.key}',
-            instruction: _instructionFor(kind, s['street_name']?.toString()),
-            distanceToCueM: distToNext,
-            distanceToCueText: _formatDistanceText(distToNext),
+            instruction: _instructionFor(s.kind, s.streetName),
+            distanceToCueM: s.distanceToNextM,
+            distanceToCueText: _formatDistanceText(s.distanceToNextM),
             location: state.lastPosition ?? const LatLng(0, 0),
-            maneuver: kind,
-            streetName: s['street_name']?.toString(),
+            maneuver: s.kind,
+            streetName: s.streetName,
           );
         }).toList();
         if (state.active) {
@@ -136,86 +133,73 @@ class NavBloc extends Bloc<NavEvent, NavState> {
     if (sid == null || !state.active) return;
 
     try {
-      final navJson = await api.updateNavigationPosition(
+      final ns = await api.updateNavigationPosition(
         sessionId: sid,
         latitude: event.position.latitude,
         longitude: event.position.longitude,
       );
-      final navState = NavigationStateDto.fromJson(
-        jsonDecode(navJson) as Map<String, dynamic>,
+      final isOffRoute = ns.distanceFromRouteM > _offRouteThresholdM;
+      final snappedPosition = LatLng(ns.snappedLat, ns.snappedLon);
+
+      final nextInst = ns.nextInstruction;
+      final currentInst = ns.currentInstruction;
+      NavCue? nextCue;
+      if (nextInst != null) {
+        nextCue = NavCue(
+          id: 'next_${nextInst.kind}_${nextInst.distanceToNextM.toInt()}',
+          instruction: _instructionFor(nextInst.kind, nextInst.streetName),
+          distanceToCueM: nextInst.distanceToNextM,
+          distanceToCueText: _formatDistanceText(nextInst.distanceToNextM),
+          location: state.lastPosition ?? const LatLng(0, 0),
+          maneuver: nextInst.kind,
+          streetName: nextInst.streetName,
+        );
+      } else {
+        nextCue = NavCue(
+          id: 'curr_${currentInst.kind}',
+          instruction:
+              _instructionFor(currentInst.kind, currentInst.streetName),
+          distanceToCueM: 0.0,
+          distanceToCueText: '',
+          location: state.lastPosition ?? const LatLng(0, 0),
+          maneuver: currentInst.kind,
+          streetName: currentInst.streetName,
+        );
+      }
+
+      // Off-route debounce → notification + auto-reroute
+      if (isOffRoute) {
+        _offRouteCount++;
+        if (!_offRouteNotified) {
+          _offRouteNotified = true;
+          NavNotificationService.instance.showOffRoute();
+        }
+        final lastReroute = _lastRerouteAt;
+        final cooldownOk =
+            lastReroute == null ||
+            DateTime.now().difference(lastReroute).inSeconds > 30;
+        if (_offRouteCount >= 3 && cooldownOk) {
+          add(const NavReroute());
+          _offRouteCount = 0;
+        }
+      } else {
+        _offRouteCount = 0;
+        _offRouteNotified = false;
+      }
+
+      emit(
+        state.copyWith(
+          remainingDistanceM: ns.distanceRemainingM,
+          remainingSeconds: ns.etaSeconds.toInt(),
+          nextCue: nextCue,
+          isOffRoute: isOffRoute,
+          constraintAlerts: ns.constraintAlerts,
+          snappedPosition: snappedPosition,
+        ),
       );
-      _applyNavState(navState, emit);
     } catch (_) {
       // FFI not ready or session ended — continue with position-only state
     }
-  }
-
-  void _applyNavState(NavigationStateDto navState, Emitter<NavState> emit) {
-    final remainingM = navState.distanceRemainingM;
-    final etaSecs = navState.etaSeconds;
-    final distFromRoute = navState.distanceFromRouteM;
-    final isOffRoute = distFromRoute > _offRouteThresholdM;
-    final snappedPosition = LatLng(navState.snappedLat, navState.snappedLon);
-    final constraintAlerts = navState.constraintAlerts;
-
-    NavCue? nextCue;
-    final nextInst = navState.nextInstruction;
-    if (nextInst != null) {
-      final kind = nextInst.kind;
-      final distToNext = nextInst.distanceToNextM;
-      nextCue = NavCue(
-        id: 'next_${kind}_${distToNext.toInt()}',
-        instruction: _instructionFor(kind, nextInst.streetName),
-        distanceToCueM: distToNext,
-        distanceToCueText: _formatDistanceText(distToNext),
-        location: state.lastPosition ?? const LatLng(0, 0),
-        maneuver: kind,
-        streetName: nextInst.streetName,
-      );
-    } else {
-      final currentInst = navState.currentInstruction;
-      final kind = currentInst.kind;
-      nextCue = NavCue(
-        id: 'curr_$kind',
-        instruction: _instructionFor(kind, currentInst.streetName),
-        distanceToCueM: 0.0,
-        distanceToCueText: '',
-        location: state.lastPosition ?? const LatLng(0, 0),
-        maneuver: kind,
-        streetName: currentInst.streetName,
-      );
-    }
-
-    // Off-route debounce → notification + auto-reroute
-    if (isOffRoute) {
-      _offRouteCount++;
-      if (!_offRouteNotified) {
-        _offRouteNotified = true;
-        NavNotificationService.instance.showOffRoute();
-      }
-      final lastReroute = _lastRerouteAt;
-      final cooldownOk =
-          lastReroute == null ||
-          DateTime.now().difference(lastReroute).inSeconds > 30;
-      if (_offRouteCount >= 3 && cooldownOk) {
-        add(const NavReroute());
-        _offRouteCount = 0;
-      }
-    } else {
-      _offRouteCount = 0;
-      _offRouteNotified = false;
-    }
-
-    emit(
-      state.copyWith(
-        remainingDistanceM: remainingM,
-        remainingSeconds: etaSecs,
-        nextCue: nextCue,
-        isOffRoute: isOffRoute,
-        constraintAlerts: constraintAlerts,
-        snappedPosition: snappedPosition,
-      ),
-    );
   }
 
   Future<void> _onPause(NavPause _, Emitter<NavState> emit) async {
@@ -249,29 +233,26 @@ class NavBloc extends Bloc<NavEvent, NavState> {
     emit(state.copyWith(isRerouting: true));
 
     try {
-      final routeJson = await api.calculateRoute(
+      final route = await api.calculateRoute(
         waypoints: [
           (origin.latitude, origin.longitude),
           (dest.latitude, dest.longitude),
         ],
       );
-      final routeObj = jsonDecode(routeJson) as Map<String, dynamic>;
-      final polylineJson = routeObj['polyline_json'] as String? ?? '[]';
-      final rawPoints = (jsonDecode(polylineJson) as List)
+      final rawPoints = (jsonDecode(route.polylineJson) as List)
           .map(
             (p) => LatLng((p[0] as num).toDouble(), (p[1] as num).toDouble()),
           )
           .toList();
 
-      final sessionJson = await api.startNavigationSession(
+      final newSession = await api.startNavigationSession(
         waypoints: [
           (origin.latitude, origin.longitude),
           (dest.latitude, dest.longitude),
         ],
         currentPosition: (origin.latitude, origin.longitude),
       );
-      final newSid =
-          (jsonDecode(sessionJson) as Map<String, dynamic>)['id'] as String?;
+      final newSid = newSession.id;
 
       NavNotificationService.instance.showRerouted();
       emit(
