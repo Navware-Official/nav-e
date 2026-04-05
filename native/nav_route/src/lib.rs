@@ -12,3 +12,18 @@ pub use osrm::OsrmRouteService;
 pub mod geocoding;
 #[cfg(feature = "nominatim")]
 pub use geocoding::{NominatimGeocodingService, PhotonGeocodingService};
+
+#[cfg(feature = "google_routes")]
+pub mod google_routes;
+#[cfg(feature = "google_routes")]
+pub use google_routes::GoogleRoutesService;
+
+#[cfg(feature = "valhalla")]
+pub mod valhalla;
+#[cfg(feature = "valhalla")]
+pub use valhalla::ValhallaRouteService;
+
+#[cfg(feature = "multi")]
+pub mod multi;
+#[cfg(feature = "multi")]
+pub use multi::MultiRouteService;

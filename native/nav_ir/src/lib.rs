@@ -7,7 +7,8 @@ mod adapters;
 mod types;
 
 pub use adapters::{
-    normalize_custom, normalize_gpx, normalize_graphhopper, normalize_osrm, OsrmResponse,
+    normalize_custom, normalize_google_routes, normalize_gpx, normalize_graphhopper,
+    normalize_osrm, normalize_valhalla, OsrmResponse,
 };
 pub use types::*;
 

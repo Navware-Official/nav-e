@@ -97,7 +97,11 @@ class _AppLoaderState extends State<_AppLoader> {
     final appDir = await getApplicationDocumentsDirectory();
     final dbPath = path.join(appDir.path, 'nav_e.db');
     debugPrint('[main] Initializing database at $dbPath...');
-    await rust_api.initializeDatabase(dbPath: dbPath);
+    const googleRoutesKey = String.fromEnvironment('GOOGLE_ROUTES_KEY');
+    await rust_api.initializeDatabase(
+      dbPath: dbPath,
+      googleRoutesApiKey: googleRoutesKey.isEmpty ? null : googleRoutesKey,
+    );
     debugPrint('[main] Database ready.');
 
     await NavNotificationService.instance.init();
