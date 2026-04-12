@@ -15,11 +15,11 @@ nav-e is a feature-rich navigation application built with Flutter that combines 
 
 ## Releases
 
-### 📦 Download & Installation
+### Download & Installation
 
 All stable releases are available through [GitHub Releases](https://github.com/Navware-Official/nav-e/releases) with pre-built APK files for Android devices.
 
-#### 🔽 **Latest Release**
+#### **Latest Release**
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/Navware-Official/nav-e)](https://github.com/Navware-Official/nav-e/releases/latest)
 [![GitHub all releases](https://img.shields.io/github/downloads/Navware-Official/nav-e/total)](https://github.com/Navware-Official/nav-e/releases)
 
@@ -33,12 +33,12 @@ All stable releases are available through [GitHub Releases](https://github.com/N
 ####  **Release Notes**
 
 Each release includes:
-- ✨ **New Features**: Latest functionality additions
-- 🐛 **Bug Fixes**: Resolved issues and improvements
-- 🔧 **Technical Updates**: Dependency updates and optimizations
-- ⚠️ **Breaking Changes**: Important migration notes (if any)
+-  **New Features**: Latest functionality additions
+-  **Bug Fixes**: Resolved issues and improvements
+-  **Technical Updates**: Dependency updates and optimizations
+-  **Breaking Changes**: Important migration notes (if any)
 
-#### 🚀 **Release Schedule**
+####  **Release Schedule**
 
 - **Stable Releases**: Monthly feature releases
 - **Patch Releases**: As needed for critical fixes
@@ -49,23 +49,23 @@ For the latest development builds and pre-release versions, check the [Actions](
 
 ## Key Features
 
-### 🗺️ **Advanced Mapping & Navigation**
+###  **Advanced Mapping & Navigation**
 - **Interactive Maps**: High-performance map rendering with multiple layer support
 - **Real-time GPS Tracking**: Precise location tracking with heading information
 - **Route Planning**: Intelligent pathfinding and navigation assistance
 - **Custom Map Controls**: Intuitive controls for zoom, rotation, and recentering
 
-### 📍 **Location Management**
+###  **Location Management**
 - **Saved Places**: Persistent storage and management of favorite locations
 - **Location Search**: Powerful geocoding-based search functionality
 - **Location Preview**: Detailed previews of destinations before navigation
 
-### 📱 **Device Integration**
+###  **Device Integration**
 - **Bluetooth Support**: Seamless connectivity with external navigation devices
 - **Device Management**: Add, configure, and manage connected devices
 - **Permission Handling**: Smart permission management for location and Bluetooth access
 
-### 🎨 **User Experience**
+###  **User Experience**
 - **Material Design**: Modern, intuitive interface following Material Design principles
 - **Custom Typography**: Beautiful NeueHaasUnica and BitcountGridSingle fonts
 - **Responsive Design**: Optimized for various screen sizes and orientations
