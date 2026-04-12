@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
 import '../palette.dart';
-import '../styles/corner_block_border.dart';
 
 class AppCardThemes {
   static final CardThemeData light = CardThemeData(
     color: AppPalette.white,
-    clipBehavior: Clip.none,
-    shape: const CornerBlockBorder(
-      side: BorderSide(width: 2, color: AppPalette.lightGray),
-      blockOvershoot: 2,
-      blockFillColor: AppPalette.lightGray,
+    clipBehavior: Clip.antiAlias,
+    shape: const RoundedRectangleBorder(
+      side: BorderSide(width: 1, color: AppPalette.lightGray),
     ),
   );
 
   static final CardThemeData dark = CardThemeData(
-    color: AppPalette.capeCodLight02,
-    clipBehavior: Clip.none,
-    shape: const CornerBlockBorder(
-      side: BorderSide(width: 2, color: AppPalette.capeCodDark01),
-      blockOvershoot: 2,
-      blockFillColor: AppPalette.capeCodDark01,
+    color: AppPalette.capeCodDark01,
+    clipBehavior: Clip.antiAlias,
+    shape: RoundedRectangleBorder(
+      side: BorderSide(
+        width: 1,
+        color: AppPalette.lightGray.withValues(alpha: 0.25),
+      ),
     ),
   );
 }

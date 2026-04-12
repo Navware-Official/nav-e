@@ -22,4 +22,27 @@ class NavSettingsService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_keyOffRouteThreshold, thresholdM);
   }
+
+  static const _keyRoutingEngine = 'nav_routing_engine';
+  static const defaultRoutingEngine = 'osrm';
+
+  /// Valid engine identifiers and their display labels.
+  static const routingEngines = {
+    'osrm': 'OSRM (default)',
+    'valhalla': 'Valhalla',
+    'googleRoutes': 'Google Routes',
+  };
+
+  static Future<String> getRoutingEngine() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(_keyRoutingEngine);
+    if (stored != null && routingEngines.containsKey(stored)) return stored;
+    return defaultRoutingEngine;
+  }
+
+  static Future<void> setRoutingEngine(String engine) async {
+    assert(routingEngines.containsKey(engine));
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyRoutingEngine, engine);
+  }
 }

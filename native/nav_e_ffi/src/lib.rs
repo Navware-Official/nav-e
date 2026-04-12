@@ -63,14 +63,30 @@ pub fn initialize_database(
         engines,
     ));
 
-    // Store a typed handle so set_routing_engine can switch the active engine.
     let _ = MULTI_ROUTER.set(Arc::clone(&multi));
 
-    let geocoding_service = Arc::new(nav_route::NominatimGeocodingService::new(
+    let nominatim = Arc::new(nav_route::NominatimGeocodingService::new(
         "https://nominatim.openstreetmap.org".to_string(),
+    ));
+    let navdsp_geo = Arc::new(nav_route::NavDspGeocodingService::new());
+    let geocoding_service = Arc::new(nav_route::FallbackGeocodingService::new(
+        navdsp_geo, nominatim,
     ));
 
     nav_core::api::initialize_database(db_path, multi, geocoding_service)
+}
+
+/// Configure the nav-dsp gateway base URL, optional JWT token, and per-service toggles.
+/// Call this after initialize_database, and again whenever the token changes.
+/// Setting geocoding_enabled to false falls back to Nominatim transparently.
+#[frb]
+pub fn set_navdsp_config(
+    base_url: String,
+    token: Option<String>,
+    geocoding_enabled: bool,
+) -> Result<()> {
+    nav_route::navdsp::config::set_config(base_url, token, geocoding_enabled);
+    Ok(())
 }
 
 /// Switch the active routing engine. Valid names: `"osrm"`, `"valhalla"`, `"googleRoutes"`.

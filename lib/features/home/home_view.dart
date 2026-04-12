@@ -18,6 +18,7 @@ import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.
 import 'package:nav_e/features/map_layers/presentation/widgets/map_section.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.dart';
+import 'package:nav_e/features/home/home_idle_panel.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/utils/saved_places_utils.dart';
 
@@ -136,23 +137,9 @@ class _HomeViewState extends State<HomeView> {
                   onDataLayerFeatureTap: _handleDataLayerFeatureTap,
                 ),
 
-                const RecenterFAB(),
-                const RotateNorthFAB(),
-                const MapControlsFAB(),
-
-                ExploreTopBar(
-                  onResultSelected: (r) {
-                    FocusScope.of(context).unfocus();
-                    AppNav.homeWithCoords(
-                      lat: r.lat,
-                      lon: r.lon,
-                      label: r.displayName,
-                      placeId: r.id,
-                      zoom: 14,
-                    );
-                  },
-                ),
-
+                // Idle panel or location preview — occupies the bottom area.
+                // Rendered before FABs so FABs remain tappable on top.
+                if (state is! LocationPreviewShowing) const HomeIdlePanel(),
                 if (state is LocationPreviewShowing)
                   LocationPreviewWidget(
                     route: state.result,
@@ -201,6 +188,25 @@ class _HomeViewState extends State<HomeView> {
                       }
                     },
                   ),
+
+                // FABs sit above the bottom panel so they stay tappable.
+                const RecenterFAB(),
+                const RotateNorthFAB(),
+                const MapControlsFAB(),
+
+                // Search bar — always on top.
+                ExploreTopBar(
+                  onResultSelected: (r) {
+                    FocusScope.of(context).unfocus();
+                    AppNav.homeWithCoords(
+                      lat: r.lat,
+                      lon: r.lon,
+                      label: r.displayName,
+                      placeId: r.id,
+                      zoom: 14,
+                    );
+                  },
+                ),
               ],
             );
           },

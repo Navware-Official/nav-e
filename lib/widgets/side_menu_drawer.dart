@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nav_e/core/theme/styles/corner_block_border.dart';
 
 class SideMenuDrawerWidget extends StatelessWidget {
   const SideMenuDrawerWidget({super.key, this.onOpenSavedPlaces});
@@ -9,12 +8,6 @@ class SideMenuDrawerWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      shape: const CornerBlockBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
       child: ListView(
         children: [
           Container(

@@ -168,6 +168,18 @@ android-dev: full-rebuild
 	@echo "Restarting Flutter app..."
 	@echo "Run 'R' in flutter terminal to hot restart"
 
+## Run against local nav-dsp on Android emulator (host localhost → 10.0.2.2)
+run-dev-android:
+	@flutter run --dart-define=NAV_DSP_URL=http://10.0.2.2:8000
+
+## Run against local nav-dsp on iOS simulator (host localhost)
+run-dev-ios:
+	@flutter run --dart-define=NAV_DSP_URL=http://localhost:8000
+
+## Run against production nav-dsp (data.navware.org)
+run-prod:
+	@flutter run --dart-define=NAV_DSP_URL=https://data.navware.org --release
+
 ## Create a new migration file with timestamp
 migrate-new:
 	@./scripts/create_migration.sh

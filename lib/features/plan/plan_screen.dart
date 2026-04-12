@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/domain/entities/saved_route.dart';
+import 'package:nav_e/core/theme/elevation.dart';
+import 'package:nav_e/core/theme/spacing.dart';
 import 'package:nav_e/features/saved_routes/cubit/saved_routes_cubit.dart';
 import 'package:nav_e/features/saved_routes/cubit/saved_routes_state.dart';
 import 'package:nav_e/features/saved_routes/route_enrichment.dart';
@@ -33,117 +35,186 @@ class _PlanScreenState extends State<PlanScreen> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Plan')),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        children: [
-          _ActionCardsRow(
-            onPlanOnMap: () => context.go('/'),
-            onImport: () => context.pushNamed('importPreview'),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.lg,
           ),
-          const SizedBox(height: 28),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Your routes', style: textTheme.headlineSmall),
-              TextButton(
-                onPressed: () => context.pushNamed('savedRoutes'),
-                child: const Text('See all'),
+          children: [
+            // ── Header ──────────────────────────────────────────
+            Text(
+              'Plan a ride',
+              style: textTheme.headlineMedium?.copyWith(
+                color: colorScheme.onSurface,
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          _SourceFilterChips(
-            selected: _sourceFilter,
-            onChanged: (v) => setState(() => _sourceFilter = v),
-          ),
-          const SizedBox(height: 10),
-          _RoutesBody(sourceFilter: _sourceFilter),
-        ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Set your destination, pick a route, and go.',
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+
+            // ── Search bar (tap to open search) ─────────────────
+            const SizedBox(height: AppSpacing.lg),
+            _SearchEntryBar(onTap: () => context.pushNamed('search')),
+
+            // ── Quick actions ───────────────────────────────────
+            const SizedBox(height: AppSpacing.lg),
+            Text('Quick actions', style: textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: _QuickActionTile(
+                    icon: Icons.map_outlined,
+                    label: 'Plan on map',
+                    onTap: () => context.go('/'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _QuickActionTile(
+                    icon: Icons.upload_file_outlined,
+                    label: 'Import GPX',
+                    onTap: () => context.pushNamed('importPreview'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: _QuickActionTile(
+                    icon: Icons.bookmark_outline,
+                    label: 'Saved places',
+                    onTap: () => context.pushNamed('savedPlaces'),
+                  ),
+                ),
+              ],
+            ),
+
+            // ── Your routes ─────────────────────────────────────
+            const SizedBox(height: AppSpacing.xl),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Your routes', style: textTheme.titleMedium),
+                TextButton(
+                  onPressed: () => context.pushNamed('savedRoutes'),
+                  child: const Text('See all'),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _SourceFilterChips(
+              selected: _sourceFilter,
+              onChanged: (v) => setState(() => _sourceFilter = v),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            _RoutesBody(sourceFilter: _sourceFilter),
+          ],
+        ),
       ),
     );
   }
 }
 
-// ── Action cards ────────────────────────────────────────────────────────────
+// ── Search entry bar ──────────────────────────────────────────────────────────
 
-class _ActionCardsRow extends StatelessWidget {
-  const _ActionCardsRow({required this.onPlanOnMap, required this.onImport});
+class _SearchEntryBar extends StatelessWidget {
+  const _SearchEntryBar({required this.onTap});
 
-  final VoidCallback onPlanOnMap;
-  final VoidCallback onImport;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _ActionCard(
-            icon: Icons.map_outlined,
-            label: 'Plan on map',
-            onTap: onPlanOnMap,
-            primary: true,
-          ),
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: 14, // off-grid
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _ActionCard(
-            icon: Icons.upload_file_outlined,
-            label: 'Import GPX',
-            onTap: onImport,
-            primary: false,
-          ),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(AppSpacing.sm),
+          boxShadow: AppElevation.level1(colorScheme.shadow),
         ),
-      ],
+        child: Row(
+          children: [
+            Icon(Icons.search, color: colorScheme.onSurfaceVariant),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              'Where are you heading?',
+              style: textTheme.bodyLarge?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _ActionCard extends StatelessWidget {
-  const _ActionCard({
+// ── Quick action tile ─────────────────────────────────────────────────────────
+
+class _QuickActionTile extends StatelessWidget {
+  const _QuickActionTile({
     required this.icon,
     required this.label,
     required this.onTap,
-    required this.primary,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final bool primary;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final bg = primary
-        ? colorScheme.primaryContainer
-        : colorScheme.secondaryContainer;
-    final fg = primary
-        ? colorScheme.onPrimaryContainer
-        : colorScheme.onSecondaryContainer;
+    final textTheme = Theme.of(context).textTheme;
 
     return Card(
-      color: bg,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
         onTap: onTap,
+        borderRadius: BorderRadius.circular(AppSpacing.sm),
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 12),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppSpacing.md,
+            horizontal: AppSpacing.sm,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 34, color: fg),
-              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  icon,
+                  size: AppSpacing.lg,
+                  color: colorScheme.onPrimaryContainer,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               Text(
                 label,
                 textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.labelLarge?.copyWith(color: fg),
+                style: textTheme.labelMedium?.copyWith(
+                  color: colorScheme.onSurface,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -153,7 +224,7 @@ class _ActionCard extends StatelessWidget {
   }
 }
 
-// ── Filter chips ────────────────────────────────────────────────────────────
+// ── Filter chips ──────────────────────────────────────────────────────────────
 
 class _SourceFilterChips extends StatelessWidget {
   const _SourceFilterChips({required this.selected, required this.onChanged});
@@ -170,7 +241,7 @@ class _SourceFilterChips extends StatelessWidget {
         children: [
           for (final (value, label) in filters)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: AppSpacing.sm),
               child: FilterChip(
                 label: Text(label),
                 selected: selected == value,
@@ -185,7 +256,7 @@ class _SourceFilterChips extends StatelessWidget {
   }
 }
 
-// ── Routes list ─────────────────────────────────────────────────────────────
+// ── Routes list ───────────────────────────────────────────────────────────────
 
 class _RoutesBody extends StatelessWidget {
   const _RoutesBody({required this.sourceFilter});
@@ -200,14 +271,14 @@ class _RoutesBody extends StatelessWidget {
       builder: (context, state) {
         if (state is SavedRoutesInitial || state is SavedRoutesLoading) {
           return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 40),
+            padding: EdgeInsets.symmetric(vertical: AppSpacing.xxl),
             child: Center(child: CircularProgressIndicator()),
           );
         }
 
         if (state is SavedRoutesError) {
           return Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Text(
               state.message,
               style: Theme.of(
@@ -218,7 +289,6 @@ class _RoutesBody extends StatelessWidget {
         }
 
         if (state is SavedRoutesLoaded) {
-          // Build aligned (route, enrichment) pairs then filter by source.
           final pairs = List.generate(
             state.routes.length,
             (i) => (
@@ -237,15 +307,7 @@ class _RoutesBody extends StatelessWidget {
                     .toList();
 
           if (filtered.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
-              child: Text(
-                _emptyMessage(sourceFilter),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            );
+            return _EmptyRoutesState(sourceFilter: sourceFilter);
           }
 
           return Column(
@@ -265,20 +327,74 @@ class _RoutesBody extends StatelessWidget {
       },
     );
   }
+}
 
-  String _emptyMessage(String filter) {
-    switch (filter) {
-      case 'gpx':
-        return 'No GPX routes yet. Import a GPX file to get started.';
-      case 'plan':
-        return 'No planned routes yet. Use "Plan on map" to create one.';
-      default:
-        return 'No saved routes yet. Import a GPX or plan a route on the map.';
-    }
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+class _EmptyRoutesState extends StatelessWidget {
+  const _EmptyRoutesState({required this.sourceFilter});
+
+  final String sourceFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final (icon, title, subtitle) = switch (sourceFilter) {
+      'gpx' => (
+        Icons.upload_file_outlined,
+        'No GPX routes yet',
+        'Import a GPX file to see it here.',
+      ),
+      'plan' => (
+        Icons.map_outlined,
+        'No planned routes yet',
+        'Use "Plan on map" to create your first route.',
+      ),
+      _ => (
+        Icons.route_outlined,
+        'No saved routes',
+        'Plan a route on the map or import a GPX file to get started.',
+      ),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerHighest,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: AppSpacing.xl,
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            title,
+            style: textTheme.titleSmall?.copyWith(color: colorScheme.onSurface),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
-// ── Route card ──────────────────────────────────────────────────────────────
+// ── Route card ────────────────────────────────────────────────────────────────
 
 class _RouteCard extends StatelessWidget {
   const _RouteCard({
@@ -308,79 +424,101 @@ class _RouteCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final isGpx = route.source == 'gpx';
-    final badgeBg = isGpx
-        ? colorScheme.tertiaryContainer
-        : colorScheme.primaryContainer;
-    final badgeFg = isGpx
-        ? colorScheme.onTertiaryContainer
-        : colorScheme.onPrimaryContainer;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: colorScheme.outlineVariant, width: 1),
-      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.all(AppSpacing.sm),
+          child: Row(
             children: [
-              Row(
-                children: [
-                  Icon(Icons.route, size: 20, color: colorScheme.primary),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      route.name,
-                      style: textTheme.titleSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: badgeBg,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      isGpx ? 'GPX' : 'Plan',
-                      style: textTheme.labelSmall?.copyWith(color: badgeFg),
-                    ),
-                  ),
-                ],
+              // Leading icon
+              Container(
+                width: AppSpacing.xxl,
+                height: AppSpacing.xxl,
+                decoration: BoxDecoration(
+                  color: isGpx
+                      ? colorScheme.tertiaryContainer
+                      : colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                ),
+                child: Icon(
+                  isGpx ? Icons.insert_drive_file_outlined : Icons.route,
+                  size: AppSpacing.lg,
+                  color: isGpx
+                      ? colorScheme.onTertiaryContainer
+                      : colorScheme.onPrimaryContainer,
+                ),
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  if (enrichment.distanceKm != null) ...[
-                    _StatPill(
-                      '${enrichment.distanceKm!.toStringAsFixed(1)} km',
+              const SizedBox(width: AppSpacing.sm),
+              // Content
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            route.name,
+                            style: textTheme.titleSmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        _SourceBadge(isGpx: isGpx),
+                      ],
                     ),
-                    const SizedBox(width: 6),
-                  ],
-                  if (enrichment.durationMinutes != null) ...[
-                    _StatPill(_formatDuration(enrichment.durationMinutes!)),
-                    const SizedBox(width: 6),
-                  ],
-                  const Spacer(),
-                  Text(
-                    _formatDate(route.createdAt),
-                    style: textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
+                    const SizedBox(height: AppSpacing.xs),
+                    Row(
+                      children: [
+                        if (enrichment.distanceKm != null) ...[
+                          Icon(
+                            Icons.straighten,
+                            size: 14, // off-grid
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          Text(
+                            '${enrichment.distanceKm!.toStringAsFixed(1)} km',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                        ],
+                        if (enrichment.durationMinutes != null) ...[
+                          Icon(
+                            Icons.schedule,
+                            size: 14, // off-grid
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: AppSpacing.xs),
+                          Text(
+                            _formatDuration(enrichment.durationMinutes!),
+                            style: textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                        ],
+                        const Spacer(),
+                        Text(
+                          _formatDate(route.createdAt),
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.outline,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -389,25 +527,35 @@ class _RouteCard extends StatelessWidget {
   }
 }
 
-class _StatPill extends StatelessWidget {
-  const _StatPill(this.label);
+// ── Source badge ───────────────────────────────────────────────────────────────
 
-  final String label;
+class _SourceBadge extends StatelessWidget {
+  const _SourceBadge({required this.isGpx});
+
+  final bool isGpx;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final bg = isGpx
+        ? colorScheme.tertiaryContainer
+        : colorScheme.primaryContainer;
+    final fg = isGpx
+        ? colorScheme.onTertiaryContainer
+        : colorScheme.onPrimaryContainer;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 2, // off-grid
+      ),
       decoration: BoxDecoration(
-        color: colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(10),
+        color: bg,
+        borderRadius: BorderRadius.circular(AppSpacing.xs),
       ),
       child: Text(
-        label,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: colorScheme.onSecondaryContainer,
-        ),
+        isGpx ? 'GPX' : 'Plan',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(color: fg),
       ),
     );
   }

@@ -152,6 +152,7 @@ class _AboutSectionState extends State<AboutSection> {
                   value: true,
                   onChanged: _onDeveloperModeChanged,
                 ),
+                const Divider(height: 1),
               ],
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
