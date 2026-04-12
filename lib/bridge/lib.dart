@@ -22,6 +22,19 @@ Future<void> initializeDatabase({
   googleRoutesApiKey: googleRoutesApiKey,
 );
 
+/// Configure the nav-dsp gateway base URL, optional JWT token, and per-service toggles.
+/// Call this after initialize_database, and again whenever the token changes.
+/// Setting geocoding_enabled to false falls back to Nominatim transparently.
+Future<void> setNavdspConfig({
+  required String baseUrl,
+  String? token,
+  required bool geocodingEnabled,
+}) => RustBridge.instance.api.crateSetNavdspConfig(
+  baseUrl: baseUrl,
+  token: token,
+  geocodingEnabled: geocodingEnabled,
+);
+
 /// Switch the active routing engine. Valid names: `"osrm"`, `"valhalla"`, `"googleRoutes"`.
 /// Google Routes is only available if an API key was provided to `initialize_database`.
 Future<void> setRoutingEngine({required String engine}) =>

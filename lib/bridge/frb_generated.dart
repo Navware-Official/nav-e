@@ -66,7 +66,7 @@ class RustBridge
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 47569698;
+  int get rustContentHash => 1980456439;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -250,6 +250,12 @@ abstract class RustBridgeApi extends BaseApi {
   Future<void> crateSendRouteToDevice({
     required PlatformInt64 deviceId,
     required String routeJson,
+  });
+
+  Future<void> crateSetNavdspConfig({
+    required String baseUrl,
+    String? token,
+    required bool geocodingEnabled,
   });
 
   Future<void> crateSetRoutingEngine({required String engine});
@@ -1647,6 +1653,42 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
+  Future<void> crateSetNavdspConfig({
+    required String baseUrl,
+    String? token,
+    required bool geocodingEnabled,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(baseUrl, serializer);
+          sse_encode_opt_String(token, serializer);
+          sse_encode_bool(geocodingEnabled, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 48,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateSetNavdspConfigConstMeta,
+        argValues: [baseUrl, token, geocodingEnabled],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSetNavdspConfigConstMeta => const TaskConstMeta(
+    debugName: "set_navdsp_config",
+    argNames: ["baseUrl", "token", "geocodingEnabled"],
+  );
+
+  @override
   Future<void> crateSetRoutingEngine({required String engine}) {
     return handler.executeNormal(
       NormalTask(
@@ -1656,7 +1698,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 48,
+            funcId: 49,
             port: port_,
           );
         },
@@ -1690,7 +1732,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 49,
+            funcId: 50,
             port: port_,
           );
         },
@@ -1721,7 +1763,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 50,
+            funcId: 51,
             port: port_,
           );
         },
@@ -1752,7 +1794,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_i_64(id, serializer);
           sse_encode_String(deviceJson, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 51)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 52)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -1786,7 +1828,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 52,
+            funcId: 53,
             port: port_,
           );
         },

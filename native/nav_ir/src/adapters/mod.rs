@@ -6,7 +6,6 @@
 mod custom_api;
 mod google_routes;
 mod gpx;
-mod google_routes;
 mod graphhopper;
 mod osrm;
 mod valhalla;
@@ -14,7 +13,6 @@ mod valhalla;
 pub use custom_api::normalize_custom;
 pub use google_routes::normalize_google_routes;
 pub use gpx::normalize_gpx;
-pub use google_routes::normalize_google_routes;
 pub use graphhopper::normalize_graphhopper;
 pub use osrm::{normalize_osrm, OsrmResponse};
 pub use valhalla::normalize_valhalla;
