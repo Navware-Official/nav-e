@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nav_e/core/theme/palette.dart';
 
-/// Shell scaffold with bottom app bar (Home, Explore, Plan, Profile).
+/// Shell scaffold with bottom app bar (Map, Routes, Log, More).
 /// [navigationShell] is the [StatefulNavigationShell] from [StatefulShellRoute].
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
@@ -18,40 +17,44 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppPalette.capeCodDark02,
-          border: Border(top: BorderSide(color: Colors.white10, width: 1)),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          border: Border(
+            top: BorderSide(color: colorScheme.outlineVariant, width: 1),
+          ),
         ),
         child: BottomNavigationBar(
           currentIndex: navigationShell.currentIndex,
           onTap: _onTap,
           type: BottomNavigationBarType.fixed,
-          backgroundColor: AppPalette.capeCodDark02,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white54,
+          backgroundColor: colorScheme.surface,
+          selectedItemColor: colorScheme.primary,
+          unselectedItemColor: colorScheme.onSurfaceVariant,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.explore_outlined),
-              activeIcon: Icon(Icons.explore),
-              label: 'Explore',
+              icon: Icon(Icons.map_outlined),
+              activeIcon: Icon(Icons.map),
+              label: 'Map',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.route_outlined),
               activeIcon: Icon(Icons.route),
-              label: 'Plan',
+              label: 'Routes',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
+              icon: Icon(Icons.history_outlined),
+              activeIcon: Icon(Icons.history),
+              label: 'Log',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.grid_view_outlined),
+              activeIcon: Icon(Icons.grid_view),
+              label: 'More',
             ),
           ],
         ),

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Production policy: HTTPS only.
+    In debug builds, AndroidManifest (src/debug/) sets usesCleartextTraffic="true"
+    which overrides this, allowing plain HTTP to local dev servers.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+</network-security-config>

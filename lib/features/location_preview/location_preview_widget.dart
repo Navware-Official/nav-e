@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:nav_e/core/domain/entities/geocoding_result.dart'
     show GeocodingResult;
+import 'package:nav_e/core/theme/spacing.dart';
 import 'package:nav_e/core/theme/typography.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_cubit.dart';
 import 'package:nav_e/features/saved_places/cubit/saved_places_state.dart';
-import 'package:go_router/go_router.dart';
 import 'package:nav_e/widgets/subtext.widget.dart';
 
 class LocationPreviewWidget extends StatefulWidget {
@@ -51,29 +52,32 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
       snap: true,
       snapSizes: const [0.32, 0.60, 0.90],
       builder: (context, scrollController) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-          child: Material(
-            color: scheme.surface,
-            elevation: 8,
-            child: Column(
+        return Material(
+          color: scheme.surface,
+          elevation: 0,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(width: 1, color: scheme.outlineVariant),
+          ),
+          child: Column(
               children: [
+                // ── Drag handle + actions ────────────────────────────
                 SizedBox(
-                  height: 52,
+                  height: 52, // off-grid – matches system sheet handle
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
                       Container(
                         width: 44,
-                        height: 5,
+                        height: 5, // off-grid
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.outlineVariant,
+                          color: scheme.outlineVariant,
                           borderRadius: BorderRadius.circular(99),
                         ),
                       ),
                       Row(
                         children: [
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           const Spacer(),
                           IconButton(
                             tooltip: 'Share',
@@ -100,10 +104,11 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                 ),
                 const Divider(height: 1),
 
+                // ── Action bar ───────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
+                    horizontal: 12, // off-grid
+                    vertical: AppSpacing.sm,
                   ),
                   child: BlocBuilder<SavedPlacesCubit, SavedPlacesState>(
                     builder: (context, spState) {
@@ -135,7 +140,7 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                                   : (_saving ? 'Saving…' : 'Save'),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: AppSpacing.sm),
                           OutlinedButton.icon(
                             onPressed: () {
                               final uri = Uri(
@@ -150,12 +155,14 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                           const Spacer(),
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
+                              horizontal: AppSpacing.sm,
+                              vertical: AppSpacing.xs,
                             ),
                             decoration: BoxDecoration(
                               color: scheme.secondaryContainer,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.sm,
+                              ),
                             ),
                             child: Text(
                               widget.route.type.toString(),
@@ -173,6 +180,7 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
 
                 const Divider(height: 1),
 
+                // ── Scrollable details ───────────────────────────────
                 Expanded(
                   child: CustomScrollView(
                     controller: scrollController,
@@ -218,7 +226,6 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                               },
                             ),
                             onTap: () {
-                              // Refocus map on location
                               context.goNamed(
                                 'home',
                                 queryParameters: {
@@ -240,9 +247,8 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                               title: 'Address',
                               subtitle: widget.route.displayName,
                               onTap: () {
-                                // Refocus map on location
                                 context.goNamed(
-                                  'home',
+                                  'map',
                                   queryParameters: {
                                     'lat': widget.route.position.latitude
                                         .toStringAsFixed(6),
@@ -258,16 +264,20 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                             ),
                         ],
                       ),
-                      const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: AppSpacing.sm),
+                      ),
                     ],
                   ),
                 ),
 
-                SafeArea(top: false, child: SizedBox(height: 8)),
+                SafeArea(
+                  top: false,
+                  child: SizedBox(height: AppSpacing.sm),
+                ),
               ],
             ),
-          ),
-        );
+          );
       },
     );
   }
@@ -297,7 +307,7 @@ class _InfoTile extends StatelessWidget {
       subtitle: SubText(subtitle),
       trailing: trailing,
       visualDensity: VisualDensity.compact,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12), // off-grid
       onTap: onTap,
     );
   }

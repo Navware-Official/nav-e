@@ -6,24 +6,91 @@ mod frb_generated; /* AUTO INJECTED BY flutter_rust_bridge. This line may not be
 
 use anyhow::Result;
 use flutter_rust_bridge::frb;
-use std::sync::Arc;
+use std::collections::HashMap;
+use std::sync::{Arc, OnceLock};
+
+/// Global handle to the MultiRouteService so `set_routing_engine` can switch
+/// engines without going through AppContainer.
+static MULTI_ROUTER: OnceLock<Arc<nav_route::MultiRouteService>> = OnceLock::new();
 
 // ============================================================================
 // Initialization API
 // ============================================================================
 
-/// Initialize the database with the platform-specific path.
-/// Constructs OSRM routing and Nominatim geocoding services and injects them into nav_core.
-/// Must be called before any database operations.
+/// Initialize the database and routing engines.
+///
+/// Always registers OSRM (public) and Valhalla (public openstreetmap.de instance).
+/// Pass `google_routes_api_key` to also enable Google Routes — obtain a key via
+/// `--dart-define=GOOGLE_ROUTES_KEY=...` at build time.
+///
+/// Must be called before any other API functions.
 #[frb]
-pub fn initialize_database(db_path: String) -> Result<()> {
-    let route_service = Arc::new(nav_route::OsrmRouteService::new(
-        "https://router.project-osrm.org".to_string(),
+pub fn initialize_database(db_path: String, google_routes_api_key: Option<String>) -> Result<()> {
+    let mut engines: HashMap<String, Arc<dyn nav_core::RouteService>> = HashMap::new();
+
+    engines.insert(
+        "osrm".to_string(),
+        Arc::new(nav_route::OsrmRouteService::new(
+            "https://router.project-osrm.org".to_string(),
+        )),
+    );
+
+    engines.insert(
+        "valhalla".to_string(),
+        Arc::new(nav_route::ValhallaRouteService::new(
+            "https://valhalla1.openstreetmap.de".to_string(),
+            None,
+        )),
+    );
+
+    if let Some(key) = google_routes_api_key {
+        if !key.is_empty() {
+            engines.insert(
+                "googleRoutes".to_string(),
+                Arc::new(nav_route::GoogleRoutesService::new(key)),
+            );
+        }
+    }
+
+    let multi = Arc::new(nav_route::MultiRouteService::new(
+        "osrm".to_string(),
+        engines,
     ));
-    let geocoding_service = Arc::new(nav_route::NominatimGeocodingService::new(
+
+    let _ = MULTI_ROUTER.set(Arc::clone(&multi));
+
+    let nominatim = Arc::new(nav_route::NominatimGeocodingService::new(
         "https://nominatim.openstreetmap.org".to_string(),
     ));
-    nav_core::api::initialize_database(db_path, route_service, geocoding_service)
+    let navdsp_geo = Arc::new(nav_route::NavDspGeocodingService::new());
+    let geocoding_service = Arc::new(nav_route::FallbackGeocodingService::new(
+        navdsp_geo, nominatim,
+    ));
+
+    nav_core::api::initialize_database(db_path, multi, geocoding_service)
+}
+
+/// Configure the nav-dsp gateway base URL, optional JWT token, and per-service toggles.
+/// Call this after initialize_database, and again whenever the token changes.
+/// Setting geocoding_enabled to false falls back to Nominatim transparently.
+#[frb]
+pub fn set_navdsp_config(
+    base_url: String,
+    token: Option<String>,
+    geocoding_enabled: bool,
+) -> Result<()> {
+    nav_route::navdsp::config::set_config(base_url, token, geocoding_enabled);
+    Ok(())
+}
+
+/// Switch the active routing engine. Valid names: `"osrm"`, `"valhalla"`, `"googleRoutes"`.
+/// Google Routes is only available if an API key was provided to `initialize_database`.
+#[frb]
+pub fn set_routing_engine(engine: String) -> Result<()> {
+    MULTI_ROUTER
+        .get()
+        .ok_or_else(|| anyhow::anyhow!("Router not initialized — call initialize_database first"))?
+        .set_engine(&engine)
 }
 
 // ============================================================================

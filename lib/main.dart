@@ -32,6 +32,9 @@ import 'package:nav_e/core/domain/repositories/geocoding_repository.dart';
 
 import 'package:nav_e/core/data/remote/map_source_repository_impl.dart';
 import 'package:nav_e/core/domain/repositories/map_source_repository.dart';
+import 'package:nav_e/core/nav/nav_settings_service.dart';
+import 'package:nav_e/core/nav/navdsp_settings_service.dart';
+import 'package:nav_e/core/nav/navware_auth_service.dart';
 import 'package:nav_e/core/data/remote/composite_map_source_repository.dart';
 import 'package:nav_e/core/domain/repositories/offline_regions_repository.dart';
 import 'package:nav_e/features/offline_maps/cubit/offline_maps_cubit.dart';
@@ -97,8 +100,32 @@ class _AppLoaderState extends State<_AppLoader> {
     final appDir = await getApplicationDocumentsDirectory();
     final dbPath = path.join(appDir.path, 'nav_e.db');
     debugPrint('[main] Initializing database at $dbPath...');
-    await rust_api.initializeDatabase(dbPath: dbPath);
+    const googleRoutesKey = String.fromEnvironment('GOOGLE_ROUTES_KEY');
+    await rust_api.initializeDatabase(
+      dbPath: dbPath,
+      googleRoutesApiKey: googleRoutesKey.isEmpty ? null : googleRoutesKey,
+    );
     debugPrint('[main] Database ready.');
+
+    const navDspUrl = String.fromEnvironment(
+      'NAV_DSP_URL',
+      defaultValue: 'https://data.navware.org',
+    );
+    await NavDspSettingsService.rehydrate(navDspUrl);
+    await NavwareAuthService.rehydrate();
+    debugPrint('[main] nav-dsp config applied.');
+
+    final savedEngine = await NavSettingsService.getRoutingEngine();
+    if (savedEngine != NavSettingsService.defaultRoutingEngine) {
+      try {
+        await rust_api.setRoutingEngine(engine: savedEngine);
+      } catch (e) {
+        // Engine not available (e.g. googleRoutes without an API key).
+        // Reset to default so the app starts cleanly.
+        debugPrint('[main] Routing engine "$savedEngine" unavailable, resetting to default: $e');
+        await NavSettingsService.setRoutingEngine(NavSettingsService.defaultRoutingEngine);
+      }
+    }
 
     await NavNotificationService.instance.init();
     debugPrint('[main] Notification service ready.');

@@ -20,16 +20,19 @@ import 'package:nav_e/features/saved_routes/saved_routes_screen.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/features/search/search_screen.dart';
 import 'package:nav_e/features/settings/settings_screen.dart';
+import 'package:nav_e/features/settings/settings_subpages.dart';
 import 'package:nav_e/features/settings/licenses_screen.dart';
+import 'package:nav_e/features/settings/developer_settings_screen.dart';
 import 'package:nav_e/features/offline_maps/presentation/offline_maps_screen.dart';
 import 'package:nav_e/features/nav/ui/active_nav_screen.dart';
 import 'package:nav_e/features/nav/ui/route_finish_screen.dart';
 import 'package:nav_e/core/domain/entities/trip.dart';
 import 'package:nav_e/features/trip_history/trip_history_screen.dart';
 import 'package:nav_e/features/trip_history/trip_detail_screen.dart';
-import 'package:nav_e/features/home/dashboard/home_dashboard_screen.dart';
+import 'package:nav_e/features/log/log_screen.dart';
 import 'package:nav_e/features/plan/plan_screen.dart';
 import 'package:nav_e/features/profile/profile_screen.dart';
+import 'package:nav_e/features/profile/navware_auth_screen.dart';
 import 'package:nav_e/app/app_shell.dart';
 
 class GoRouterRefreshStream extends ChangeNotifier {
@@ -52,6 +55,15 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
     initialLocation: '/',
     refreshListenable: refreshListenable,
     redirect: (BuildContext context, GoRouterState state) {
+      // Legacy path redirects — keep old paths working.
+      if (state.uri.path == '/home') {
+        final qp = state.uri.queryParameters;
+        if (qp.isEmpty) return '/';
+        return Uri(path: '/', queryParameters: qp).toString();
+      }
+      if (state.uri.path == '/plan') return '/routes';
+      if (state.uri.path == '/profile') return '/more';
+
       if (state.uri.path == '/plan-route') {
         final g = GeocodingResult.fromPathParams(state.uri.queryParameters);
         if (g == null) {
@@ -75,20 +87,12 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         builder: (context, state, navigationShell) =>
             AppShell(navigationShell: navigationShell),
         branches: [
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/home',
-                name: 'home',
-                builder: (_, state) => const HomeDashboardScreen(),
-              ),
-            ],
-          ),
+          // Branch 0 — Map (primary)
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/',
-                name: 'explore',
+                name: 'map',
                 builder: (ctx, state) => HomeScreen(
                   placeId: state.uri.queryParameters['placeId'],
                   latParam: state.uri.queryParameters['lat'],
@@ -99,20 +103,35 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
               ),
             ],
           ),
+          // Branch 1 — Routes
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/plan',
-                name: 'plan',
+                path: '/routes',
+                name: 'routes',
                 builder: (_, state) => const PlanScreen(),
               ),
             ],
           ),
+          // Branch 2 — Log
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/profile',
-                name: 'profile',
+                path: '/log',
+                name: 'log',
+                builder: (_, state) => LogScreen(
+                  initialSegment:
+                      state.uri.queryParameters['segment'] ?? 'trips',
+                ),
+              ),
+            ],
+          ),
+          // Branch 3 — More
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/more',
+                name: 'more',
                 builder: (_, state) => const ProfileScreen(),
               ),
             ],
@@ -172,6 +191,31 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         builder: (_, state) => const SettingsScreen(),
       ),
       GoRoute(
+        path: '/settings/appearance',
+        name: 'settingsAppearance',
+        builder: (_, _) => const AppearanceSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/navigation',
+        name: 'settingsNavigation',
+        builder: (_, _) => const NavigationPrefsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/services',
+        name: 'settingsServices',
+        builder: (_, _) => const ServicesSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/data',
+        name: 'settingsData',
+        builder: (_, _) => const TripDataSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/about',
+        name: 'settingsAbout',
+        builder: (_, _) => const AboutSettingsScreen(),
+      ),
+      GoRoute(
         path: '/offline-maps',
         name: 'offlineMaps',
         builder: (_, state) => const OfflineMapsScreen(),
@@ -180,6 +224,17 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         path: '/licenses',
         name: 'licenses',
         builder: (_, state) => const LicensesScreen(),
+      ),
+      GoRoute(
+        path: '/developer-settings',
+        name: 'developerSettings',
+        builder: (_, state) => const DeveloperSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/profile/navware-auth',
+        name: 'navwareAuth',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (_, _) => const NavwareAuthScreen(),
       ),
       GoRoute(
         path: '/navigate',
@@ -314,7 +369,7 @@ class _ActiveNavFromSession extends StatelessWidget {
   }
 }
 
-/// One-time redirect to shell (Explore). Used when a route has invalid/missing data.
+/// One-time redirect to shell (Map). Used when a route has invalid/missing data.
 class _RedirectToShell extends StatefulWidget {
   @override
   State<_RedirectToShell> createState() => _RedirectToShellState();

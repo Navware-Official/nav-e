@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nav_e/bridge/lib.dart' as api;
 import 'package:nav_e/core/nav/nav_settings_service.dart';
 import 'package:nav_e/core/theme/components/settings_panel.dart';
 
@@ -12,6 +13,7 @@ class NavigationSettingsSection extends StatefulWidget {
 
 class _NavigationSettingsSectionState extends State<NavigationSettingsSection> {
   double _threshold = NavSettingsService.defaultOffRouteThresholdM;
+  String _engine = NavSettingsService.defaultRoutingEngine;
 
   @override
   void initState() {
@@ -20,14 +22,31 @@ class _NavigationSettingsSectionState extends State<NavigationSettingsSection> {
   }
 
   Future<void> _load() async {
-    final value = await NavSettingsService.getOffRouteThreshold();
-    if (mounted) setState(() => _threshold = value);
+    final threshold = await NavSettingsService.getOffRouteThreshold();
+    final engine = await NavSettingsService.getRoutingEngine();
+    if (mounted) {
+      setState(() {
+        _threshold = threshold;
+        _engine = engine;
+      });
+    }
   }
 
   Future<void> _onChanged(double? value) async {
     if (value == null) return;
     await NavSettingsService.setOffRouteThreshold(value);
     if (mounted) setState(() => _threshold = value);
+  }
+
+  Future<void> _onEngineChanged(String? value) async {
+    if (value == null) return;
+    await NavSettingsService.setRoutingEngine(value);
+    try {
+      await api.setRoutingEngine(engine: value);
+    } catch (_) {
+      // Engine switch takes effect on next app launch if Rust isn't ready.
+    }
+    if (mounted) setState(() => _engine = value);
   }
 
   @override
@@ -95,6 +114,59 @@ class _NavigationSettingsSectionState extends State<NavigationSettingsSection> {
                     isDefault ? '$label (default)' : label,
                     style: theme.textTheme.bodyMedium,
                   ),
+                  dense: true,
+                );
+              }),
+              const SizedBox(height: 6),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          margin: const EdgeInsets.symmetric(
+            horizontal: SettingsPanelStyle.sectionHorizontalMargin,
+          ),
+          decoration: SettingsPanelStyle.panelDecoration(theme),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+                child: Row(
+                  children: [
+                    const Icon(Icons.alt_route, size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Routing engine',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            'Service used to calculate routes.',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ...NavSettingsService.routingEngines.entries.map((entry) {
+                // ignore: deprecated_member_use
+                return RadioListTile<String>(
+                  value: entry.key,
+                  // ignore: deprecated_member_use
+                  groupValue: _engine,
+                  // ignore: deprecated_member_use
+                  onChanged: _onEngineChanged,
+                  title: Text(entry.value, style: theme.textTheme.bodyMedium),
                   dense: true,
                 );
               }),

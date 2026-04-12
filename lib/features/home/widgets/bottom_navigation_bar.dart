@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nav_e/core/theme/palette.dart';
 
 class BottomNavigationBarWidget extends StatelessWidget {
   const BottomNavigationBarWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppPalette.lightGray, width: 3)),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: colorScheme.outlineVariant, width: 1),
+        ),
       ),
       child: BottomAppBar(
         height: 60,

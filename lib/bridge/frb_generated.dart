@@ -65,7 +65,7 @@ class RustBridge
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => -1818867158;
+  int get rustContentHash => 1980456439;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -168,7 +168,10 @@ abstract class RustBridgeApi extends BaseApi {
 
   String crateImportRouteFromGpx({required List<int> bytes});
 
-  Future<void> crateInitializeDatabase({required String dbPath});
+  Future<void> crateInitializeDatabase({
+    required String dbPath,
+    String? googleRoutesApiKey,
+  });
 
   String crateParseRouteFromGpx({required List<int> bytes});
 
@@ -240,6 +243,14 @@ abstract class RustBridgeApi extends BaseApi {
     required PlatformInt64 deviceId,
     required String routeJson,
   });
+
+  Future<void> crateSetNavdspConfig({
+    required String baseUrl,
+    String? token,
+    required bool geocodingEnabled,
+  });
+
+  Future<void> crateSetRoutingEngine({required String engine});
 
   Future<String> crateStartNavigationSession({
     required List<(double, double)> waypoints,
@@ -1107,12 +1118,16 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
-  Future<void> crateInitializeDatabase({required String dbPath}) {
+  Future<void> crateInitializeDatabase({
+    required String dbPath,
+    String? googleRoutesApiKey,
+  }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_String(dbPath, serializer);
+          sse_encode_opt_String(googleRoutesApiKey, serializer);
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
@@ -1125,7 +1140,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateInitializeDatabaseConstMeta,
-        argValues: [dbPath],
+        argValues: [dbPath, googleRoutesApiKey],
         apiImpl: this,
       ),
     );
@@ -1133,7 +1148,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
   TaskConstMeta get kCrateInitializeDatabaseConstMeta => const TaskConstMeta(
     debugName: "initialize_database",
-    argNames: ["dbPath"],
+    argNames: ["dbPath", "googleRoutesApiKey"],
   );
 
   @override
@@ -1623,6 +1638,72 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
+  Future<void> crateSetNavdspConfig({
+    required String baseUrl,
+    String? token,
+    required bool geocodingEnabled,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(baseUrl, serializer);
+          sse_encode_opt_String(token, serializer);
+          sse_encode_bool(geocodingEnabled, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 48,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateSetNavdspConfigConstMeta,
+        argValues: [baseUrl, token, geocodingEnabled],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSetNavdspConfigConstMeta => const TaskConstMeta(
+    debugName: "set_navdsp_config",
+    argNames: ["baseUrl", "token", "geocodingEnabled"],
+  );
+
+  @override
+  Future<void> crateSetRoutingEngine({required String engine}) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(engine, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 49,
+            port: port_,
+          );
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: sse_decode_AnyhowException,
+        ),
+        constMeta: kCrateSetRoutingEngineConstMeta,
+        argValues: [engine],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateSetRoutingEngineConstMeta => const TaskConstMeta(
+    debugName: "set_routing_engine",
+    argNames: ["engine"],
+  );
+
+  @override
   Future<String> crateStartNavigationSession({
     required List<(double, double)> waypoints,
     required (double, double) currentPosition,
@@ -1636,7 +1717,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 48,
+            funcId: 50,
             port: port_,
           );
         },
@@ -1667,7 +1748,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 49,
+            funcId: 51,
             port: port_,
           );
         },
@@ -1698,7 +1779,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_i_64(id, serializer);
           sse_encode_String(deviceJson, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 50)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 52)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -1732,7 +1813,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 51,
+            funcId: 53,
             port: port_,
           );
         },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nav_e/core/theme/spacing.dart';
 
 /// Theming for settings screen sections: bordered panels, sharp corners, no shadow.
 /// Use [panelDecoration] and [sectionTitleStyle] for consistency.
@@ -6,40 +7,37 @@ class SettingsPanelStyle {
   SettingsPanelStyle._();
 
   /// Horizontal margin around section panels.
-  static const double sectionHorizontalMargin = 16.0;
+  static const double sectionHorizontalMargin = AppSpacing.md;
 
   /// Padding for the section header label above each panel.
   static const EdgeInsets sectionHeaderPadding = EdgeInsets.fromLTRB(
-    16,
-    24,
-    16,
-    8,
+    AppSpacing.md,
+    AppSpacing.lg,
+    AppSpacing.md,
+    AppSpacing.sm,
   );
 
   /// Inner padding for panel content (e.g. first block of content).
   static const EdgeInsets panelContentPadding = EdgeInsets.fromLTRB(
-    16,
-    16,
-    16,
-    8,
+    AppSpacing.md,
+    AppSpacing.md,
+    AppSpacing.md,
+    AppSpacing.sm,
   );
 
   /// Box decoration for a settings section panel: theme surface background,
-  /// border, sharp corners, no shadow. Uses surface container for readability.
+  /// outlineVariant border, sharp corners, no shadow.
   static BoxDecoration panelDecoration(ThemeData theme) {
     return BoxDecoration(
       color: theme.colorScheme.surfaceContainerLow,
-      border: Border.all(
-        color: theme.colorScheme.outline.withValues(alpha: 0.3),
-      ),
-      borderRadius: BorderRadius.zero,
+      border: Border.all(color: theme.colorScheme.outlineVariant),
     );
   }
 
   /// Text style for the section title (e.g. "Theme", "Maps", "About").
   static TextStyle sectionTitleStyle(TextTheme textTheme) {
     return (textTheme.titleMedium ?? const TextStyle()).copyWith(
-      fontSize: 16,
+      fontSize: 16, // off-grid
       fontWeight: FontWeight.w600,
     );
   }

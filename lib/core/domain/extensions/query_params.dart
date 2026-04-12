@@ -43,7 +43,7 @@ extension GoNavX on BuildContext {
       return;
     }
 
-    goNamed('home', queryParameters: qp.cast<String, String>());
+    goNamed('map', queryParameters: qp.cast<String, String>());
   }
 
   Uri currentUri() {
