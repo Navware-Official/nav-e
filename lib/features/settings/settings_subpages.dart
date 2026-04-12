@@ -34,10 +34,8 @@ class ServicesSettingsScreen extends StatelessWidget {
   const ServicesSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => _SubPageScaffold(
-    title: 'Navware Services',
-    children: [NavDspSection()],
-  );
+  Widget build(BuildContext context) =>
+      _SubPageScaffold(title: 'Navware Services', children: [NavDspSection()]);
 }
 
 /// Data: Trip history preferences
@@ -56,10 +54,8 @@ class AboutSettingsScreen extends StatelessWidget {
   const AboutSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => _SubPageScaffold(
-    title: 'About',
-    children: [AboutSection()],
-  );
+  Widget build(BuildContext context) =>
+      _SubPageScaffold(title: 'About', children: [AboutSection()]);
 }
 
 class _SubPageScaffold extends StatelessWidget {
@@ -78,9 +74,7 @@ class _SubPageScaffold extends StatelessWidget {
         ),
         title: Text(title),
       ),
-      body: ListView(
-        children: [...children, const SizedBox(height: 32)],
-      ),
+      body: ListView(children: [...children, const SizedBox(height: 32)]),
     );
   }
 }

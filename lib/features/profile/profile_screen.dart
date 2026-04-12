@@ -218,7 +218,11 @@ class _NavwareAccountSummaryState extends State<_NavwareAccountSummary> {
 
   Future<void> _loadUser() async {
     final user = await NavwareAuthService.getStoredUser();
-    if (mounted) setState(() { _user = user; _loading = false; });
+    if (mounted)
+      setState(() {
+        _user = user;
+        _loading = false;
+      });
   }
 
   Future<void> _signOut() async {

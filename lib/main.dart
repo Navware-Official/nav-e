@@ -122,8 +122,12 @@ class _AppLoaderState extends State<_AppLoader> {
       } catch (e) {
         // Engine not available (e.g. googleRoutes without an API key).
         // Reset to default so the app starts cleanly.
-        debugPrint('[main] Routing engine "$savedEngine" unavailable, resetting to default: $e');
-        await NavSettingsService.setRoutingEngine(NavSettingsService.defaultRoutingEngine);
+        debugPrint(
+          '[main] Routing engine "$savedEngine" unavailable, resetting to default: $e',
+        );
+        await NavSettingsService.setRoutingEngine(
+          NavSettingsService.defaultRoutingEngine,
+        );
       }
     }
 

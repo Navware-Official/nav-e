@@ -44,8 +44,8 @@ class _HomeIdlePanelState extends State<HomeIdlePanel> {
       if (!mounted) return;
       if (sessionJson != null && sessionJson.isNotEmpty) {
         setState(
-          () => _activeSession =
-              jsonDecode(sessionJson) as Map<String, dynamic>,
+          () =>
+              _activeSession = jsonDecode(sessionJson) as Map<String, dynamic>,
         );
       }
     } catch (_) {
@@ -65,34 +65,34 @@ class _HomeIdlePanelState extends State<HomeIdlePanel> {
       snapSizes: const [0.15, 0.38, 0.75],
       builder: (sheetCtx, scrollController) {
         return Material(
-            color: colorScheme.surface,
-            clipBehavior: Clip.antiAlias,
-            shape: RoundedRectangleBorder(
-              side: BorderSide(width: 1, color: colorScheme.outlineVariant),
-            ),
-            child: ListView(
-              controller: scrollController,
-              padding: EdgeInsets.zero,
-              children: [
-                const _DragHandle(),
-                _HeroBlock(
-                  onSearch: () => context.pushNamed('search'),
-                  onRoutes: () => context.go('/routes'),
+          color: colorScheme.surface,
+          clipBehavior: Clip.antiAlias,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(width: 1, color: colorScheme.outlineVariant),
+          ),
+          child: ListView(
+            controller: scrollController,
+            padding: EdgeInsets.zero,
+            children: [
+              const _DragHandle(),
+              _HeroBlock(
+                onSearch: () => context.pushNamed('search'),
+                onRoutes: () => context.go('/routes'),
+              ),
+              if (_activeSession != null)
+                _ContinueRideBlock(
+                  session: _activeSession!,
+                  onTap: () => context
+                      .pushNamed('activeNav', extra: _activeSession)
+                      .then((_) {
+                        if (mounted) _loadActiveSession();
+                      }),
                 ),
-                if (_activeSession != null)
-                  _ContinueRideBlock(
-                    session: _activeSession!,
-                    onTap: () => context
-                        .pushNamed('activeNav', extra: _activeSession)
-                        .then((_) {
-                          if (mounted) _loadActiveSession();
-                        }),
-                  ),
-                _SavedPlacesRow(),
-                _RecentTripsRow(),
-                const SizedBox(height: AppSpacing.md),
-              ],
-            ),
+              _SavedPlacesRow(),
+              _RecentTripsRow(),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          ),
         );
       },
     );
@@ -242,8 +242,8 @@ class _ContinueRideBlock extends StatelessWidget {
                         destinationLabel?.isNotEmpty == true
                             ? destinationLabel!
                             : (distanceM != null
-                                ? '${(distanceM / 1000).toStringAsFixed(1)} km remaining'
-                                : 'Resume navigation'),
+                                  ? '${(distanceM / 1000).toStringAsFixed(1)} km remaining'
+                                  : 'Resume navigation'),
                         style: textTheme.bodySmall?.copyWith(
                           color: colorScheme.onPrimaryContainer.withValues(
                             alpha: 0.8,
@@ -298,8 +298,7 @@ class _SavedPlacesRow extends StatelessWidget {
                     ),
                   ),
                   TextButton(
-                    onPressed: () =>
-                        context.pushNamed('savedPlaces'),
+                    onPressed: () => context.pushNamed('savedPlaces'),
                     child: const Text('See all'),
                   ),
                 ],
@@ -309,9 +308,7 @@ class _SavedPlacesRow extends StatelessWidget {
               height: 80,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 itemCount: state.places.length,
                 itemBuilder: (context, index) {
                   final place = state.places[index];
@@ -427,9 +424,7 @@ class _RecentTripsRow extends StatelessWidget {
               height: 120,
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                 itemCount: state.trips.length,
                 itemBuilder: (context, index) {
                   final trip = state.trips[index];
@@ -437,8 +432,7 @@ class _RecentTripsRow extends StatelessWidget {
                     trip: trip,
                     date: _formatDate(trip.completedAt),
                     duration: _formatDuration(trip.durationSeconds),
-                    onTap: () =>
-                        context.pushNamed('tripDetail', extra: trip),
+                    onTap: () => context.pushNamed('tripDetail', extra: trip),
                   );
                 },
               ),

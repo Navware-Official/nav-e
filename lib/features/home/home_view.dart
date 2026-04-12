@@ -139,8 +139,7 @@ class _HomeViewState extends State<HomeView> {
 
                 // Idle panel or location preview — occupies the bottom area.
                 // Rendered before FABs so FABs remain tappable on top.
-                if (state is! LocationPreviewShowing)
-                  const HomeIdlePanel(),
+                if (state is! LocationPreviewShowing) const HomeIdlePanel(),
                 if (state is LocationPreviewShowing)
                   LocationPreviewWidget(
                     route: state.result,

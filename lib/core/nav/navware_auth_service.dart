@@ -61,7 +61,9 @@ class NavwareAuthService {
     }
     if (response.statusCode != 200) {
       final body = _tryDecodeError(response.body);
-      throw NavwareAuthException(body ?? 'Login failed (${response.statusCode})');
+      throw NavwareAuthException(
+        body ?? 'Login failed (${response.statusCode})',
+      );
     }
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
@@ -85,11 +87,15 @@ class NavwareAuthService {
         .timeout(const Duration(seconds: 10));
 
     if (response.statusCode == 409) {
-      throw const NavwareAuthException('An account with this email already exists.');
+      throw const NavwareAuthException(
+        'An account with this email already exists.',
+      );
     }
     if (response.statusCode != 201) {
       final body = _tryDecodeError(response.body);
-      throw NavwareAuthException(body ?? 'Registration failed (${response.statusCode})');
+      throw NavwareAuthException(
+        body ?? 'Registration failed (${response.statusCode})',
+      );
     }
 
     // Auto-login after registration.
@@ -115,7 +121,9 @@ class NavwareAuthService {
     if (startResponse.statusCode != 200) {
       final body = _tryDecodeError(startResponse.body);
       throw NavwareAuthException(
-          body ?? 'Could not start passkey registration (${startResponse.statusCode})');
+        body ??
+            'Could not start passkey registration (${startResponse.statusCode})',
+      );
     }
 
     // The server wraps the challenge in { "publicKey": { ... } }
@@ -131,10 +139,13 @@ class NavwareAuthService {
       throw const NavwareAuthException('Passkey registration cancelled.');
     } on DomainNotAssociatedException catch (e) {
       throw NavwareAuthException(
-          'Domain not associated (${e.message}). '
-          'Digital Asset Links must be configured for this device.');
+        'Domain not associated (${e.message}). '
+        'Digital Asset Links must be configured for this device.',
+      );
     } on DeviceNotSupportedException {
-      throw const NavwareAuthException('This device does not support passkeys.');
+      throw const NavwareAuthException(
+        'This device does not support passkeys.',
+      );
     } catch (e) {
       throw NavwareAuthException('Passkey error: $e');
     }
@@ -144,14 +155,18 @@ class NavwareAuthService {
         .post(
           Uri.parse('$base/v1/auth/passkey/register/finish'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'email': trimmed, 'credential': credential.toJson()}),
+          body: jsonEncode({
+            'email': trimmed,
+            'credential': credential.toJson(),
+          }),
         )
         .timeout(const Duration(seconds: 10));
 
     if (finishResponse.statusCode != 200) {
       final body = _tryDecodeError(finishResponse.body);
       throw NavwareAuthException(
-          body ?? 'Passkey registration failed (${finishResponse.statusCode})');
+        body ?? 'Passkey registration failed (${finishResponse.statusCode})',
+      );
     }
 
     final data = jsonDecode(finishResponse.body) as Map<String, dynamic>;
@@ -179,12 +194,16 @@ class NavwareAuthService {
 
     if (startResponse.statusCode == 400) {
       final body = _tryDecodeError(startResponse.body);
-      throw NavwareAuthException(body ?? 'No passkey registered for this account.');
+      throw NavwareAuthException(
+        body ?? 'No passkey registered for this account.',
+      );
     }
     if (startResponse.statusCode != 200) {
       final body = _tryDecodeError(startResponse.body);
       throw NavwareAuthException(
-          body ?? 'Could not start passkey authentication (${startResponse.statusCode})');
+        body ??
+            'Could not start passkey authentication (${startResponse.statusCode})',
+      );
     }
 
     final serverJson = jsonDecode(startResponse.body) as Map<String, dynamic>;
@@ -199,13 +218,17 @@ class NavwareAuthService {
       throw const NavwareAuthException('Passkey authentication cancelled.');
     } on NoCredentialsAvailableException {
       throw const NavwareAuthException(
-          'No passkey found on this device. Register a passkey first.');
+        'No passkey found on this device. Register a passkey first.',
+      );
     } on DomainNotAssociatedException catch (e) {
       throw NavwareAuthException(
-          'Domain not associated (${e.message}). '
-          'Digital Asset Links must be configured for this device.');
+        'Domain not associated (${e.message}). '
+        'Digital Asset Links must be configured for this device.',
+      );
     } on DeviceNotSupportedException {
-      throw const NavwareAuthException('This device does not support passkeys.');
+      throw const NavwareAuthException(
+        'This device does not support passkeys.',
+      );
     } catch (e) {
       throw NavwareAuthException('Passkey error: $e');
     }
@@ -215,7 +238,10 @@ class NavwareAuthService {
         .post(
           Uri.parse('$base/v1/auth/passkey/authenticate/finish'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'email': trimmed, 'credential': assertion.toJson()}),
+          body: jsonEncode({
+            'email': trimmed,
+            'credential': assertion.toJson(),
+          }),
         )
         .timeout(const Duration(seconds: 10));
 
@@ -225,7 +251,8 @@ class NavwareAuthService {
     if (finishResponse.statusCode != 200) {
       final body = _tryDecodeError(finishResponse.body);
       throw NavwareAuthException(
-          body ?? 'Passkey authentication failed (${finishResponse.statusCode})');
+        body ?? 'Passkey authentication failed (${finishResponse.statusCode})',
+      );
     }
 
     final data = jsonDecode(finishResponse.body) as Map<String, dynamic>;

@@ -80,9 +80,7 @@ class _LogScreenState extends State<LogScreen> {
             selected: _segment,
             onChanged: (v) => setState(() => _segment = v),
           ),
-          Expanded(
-            child: _segment == 'trips' ? _TripsView() : _PlacesView(),
-          ),
+          Expanded(child: _segment == 'trips' ? _TripsView() : _PlacesView()),
         ],
       ),
     );
@@ -425,7 +423,8 @@ class _PlacesView extends StatelessWidget {
             return const AppEmptyState(
               icon: Icons.bookmark_border,
               title: 'No saved places yet.',
-              subtitle: 'Long-press the map or search for a location and tap "Save".',
+              subtitle:
+                  'Long-press the map or search for a location and tap "Save".',
             );
           }
           return ListView.separated(
@@ -472,9 +471,9 @@ class _PlacesView extends StatelessWidget {
                 onDismissed: (_) async {
                   if (place.id != null) {
                     final messenger = ScaffoldMessenger.of(context);
-                    await context
-                        .read<SavedPlacesCubit>()
-                        .deletePlace(place.id!);
+                    await context.read<SavedPlacesCubit>().deletePlace(
+                      place.id!,
+                    );
                     if (context.mounted) {
                       messenger.showSnackBar(
                         SnackBar(content: Text('Deleted "${place.name}"')),
@@ -547,8 +546,7 @@ class _PlaceTile extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  if (place.address != null &&
-                      place.address!.isNotEmpty) ...[
+                  if (place.address != null && place.address!.isNotEmpty) ...[
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       place.address!,
@@ -564,10 +562,7 @@ class _PlaceTile extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: colorScheme.onSecondaryContainer,
-            ),
+            Icon(Icons.chevron_right, color: colorScheme.onSecondaryContainer),
           ],
         ),
       ),

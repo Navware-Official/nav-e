@@ -59,11 +59,10 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
 
   Future<void> _load() async {
     final overrideUrl = await NavDspSettingsService.getOverrideUrl();
-    final compiledUrl =
-        const String.fromEnvironment(
-          'NAV_DSP_URL',
-          defaultValue: 'https://data.navware.org',
-        );
+    final compiledUrl = const String.fromEnvironment(
+      'NAV_DSP_URL',
+      defaultValue: 'https://data.navware.org',
+    );
     final active = (overrideUrl != null && overrideUrl.isNotEmpty)
         ? overrideUrl
         : compiledUrl;
@@ -113,9 +112,9 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
           _connectivityMs = null;
           _connectivityError = null;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Server set to $url')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Server set to $url')));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -212,11 +211,7 @@ class _DeveloperSettingsScreenState extends State<DeveloperSettingsScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            Icons.info_outline,
-            size: 18,
-            color: theme.colorScheme.tertiary,
-          ),
+          Icon(Icons.info_outline, size: 18, color: theme.colorScheme.tertiary),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -461,10 +456,7 @@ class _ConnectivityIcon extends StatelessWidget {
         Icons.check_circle,
         color: colorScheme.primary,
       ),
-      _ConnectivityState.error => Icon(
-        Icons.cancel,
-        color: colorScheme.error,
-      ),
+      _ConnectivityState.error => Icon(Icons.cancel, color: colorScheme.error),
     };
   }
 }
@@ -530,7 +522,9 @@ class _PresetButton extends StatelessWidget {
                   Text(
                     preset.label,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight: selected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
                       color: selected
                           ? colorScheme.onPrimaryContainer
                           : colorScheme.onSurface,
@@ -541,7 +535,9 @@ class _PresetButton extends StatelessWidget {
                     style: theme.textTheme.bodySmall?.copyWith(
                       fontFamily: 'monospace',
                       color: selected
-                          ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8)
+                          ? colorScheme.onPrimaryContainer.withValues(
+                              alpha: 0.8,
+                            )
                           : colorScheme.onSurfaceVariant,
                     ),
                   ),

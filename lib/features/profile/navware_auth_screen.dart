@@ -36,7 +36,10 @@ class _NavwareAuthScreenState extends State<NavwareAuthScreen>
         title: const Text('Navware Account'),
         bottom: TabBar(
           controller: _tabs,
-          tabs: const [Tab(text: 'Sign in'), Tab(text: 'Create account')],
+          tabs: const [
+            Tab(text: 'Sign in'),
+            Tab(text: 'Create account'),
+          ],
         ),
       ),
       body: TabBarView(
@@ -103,7 +106,10 @@ class _AuthFormState extends State<_AuthForm> {
       setState(() => _error = 'Enter your email first');
       return;
     }
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final NavwareUser user;
       if (widget.mode == _AuthMode.login) {
@@ -116,8 +122,11 @@ class _AuthFormState extends State<_AuthForm> {
       if (mounted) setState(() => _error = e.message);
     } catch (e) {
       if (mounted) {
-        setState(() => _error = 'Could not reach Navware server. '
-            'Check your connection or server URL in Developer Settings.');
+        setState(
+          () => _error =
+              'Could not reach Navware server. '
+              'Check your connection or server URL in Developer Settings.',
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -128,7 +137,10 @@ class _AuthFormState extends State<_AuthForm> {
 
   Future<void> _submitPassword() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final NavwareUser user;
       if (widget.mode == _AuthMode.login) {
@@ -147,8 +159,11 @@ class _AuthFormState extends State<_AuthForm> {
       if (mounted) setState(() => _error = e.message);
     } catch (e) {
       if (mounted) {
-        setState(() => _error = 'Could not reach Navware server. '
-            'Check your connection or server URL in Developer Settings.');
+        setState(
+          () => _error =
+              'Could not reach Navware server. '
+              'Check your connection or server URL in Developer Settings.',
+        );
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -214,7 +229,11 @@ class _AuthFormState extends State<_AuthForm> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.error_outline, color: colorScheme.error, size: 18),
+                    Icon(
+                      Icons.error_outline,
+                      color: colorScheme.error,
+                      size: 18,
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(

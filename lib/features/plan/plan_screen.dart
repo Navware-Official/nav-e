@@ -62,9 +62,7 @@ class _PlanScreenState extends State<PlanScreen> {
 
             // ── Search bar (tap to open search) ─────────────────
             const SizedBox(height: AppSpacing.lg),
-            _SearchEntryBar(
-              onTap: () => context.pushNamed('search'),
-            ),
+            _SearchEntryBar(onTap: () => context.pushNamed('search')),
 
             // ── Quick actions ───────────────────────────────────
             const SizedBox(height: AppSpacing.lg),
@@ -283,9 +281,9 @@ class _RoutesBody extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Text(
               state.message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: colorScheme.error,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: colorScheme.error),
             ),
           );
         }
@@ -380,9 +378,7 @@ class _EmptyRoutesState extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           Text(
             title,
-            style: textTheme.titleSmall?.copyWith(
-              color: colorScheme.onSurface,
-            ),
+            style: textTheme.titleSmall?.copyWith(color: colorScheme.onSurface),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
@@ -522,10 +518,7 @@ class _RouteCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
-              Icon(
-                Icons.chevron_right,
-                color: colorScheme.onSurfaceVariant,
-              ),
+              Icon(Icons.chevron_right, color: colorScheme.onSurfaceVariant),
             ],
           ),
         ),

@@ -39,7 +39,10 @@ class _NavDspSectionState extends State<NavDspSection> {
     setState(() => _saving = true);
     try {
       await NavDspSettingsService.configure(
-        compiledBaseUrl: const String.fromEnvironment('NAV_DSP_URL', defaultValue: 'https://data.navware.org'),
+        compiledBaseUrl: const String.fromEnvironment(
+          'NAV_DSP_URL',
+          defaultValue: 'https://data.navware.org',
+        ),
         token: _tokenController.text.trim().isEmpty
             ? null
             : _tokenController.text.trim(),
@@ -59,7 +62,10 @@ class _NavDspSectionState extends State<NavDspSection> {
   Future<void> _onGeocodingToggled(bool value) async {
     setState(() => _geocodingEnabled = value);
     await NavDspSettingsService.configure(
-      compiledBaseUrl: const String.fromEnvironment('NAV_DSP_URL', defaultValue: 'https://data.navware.org'),
+      compiledBaseUrl: const String.fromEnvironment(
+        'NAV_DSP_URL',
+        defaultValue: 'https://data.navware.org',
+      ),
       token: _tokenController.text.trim().isEmpty
           ? null
           : _tokenController.text.trim(),

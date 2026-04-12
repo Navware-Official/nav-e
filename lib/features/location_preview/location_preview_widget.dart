@@ -60,174 +60,187 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
             side: BorderSide(width: 1, color: scheme.outlineVariant),
           ),
           child: Column(
-              children: [
-                // ── Drag handle + actions ────────────────────────────
-                SizedBox(
-                  height: 52, // off-grid – matches system sheet handle
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 5, // off-grid
-                        decoration: BoxDecoration(
-                          color: scheme.outlineVariant,
-                          borderRadius: BorderRadius.circular(99),
+            children: [
+              // ── Drag handle + actions ────────────────────────────
+              SizedBox(
+                height: 52, // off-grid – matches system sheet handle
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 5, // off-grid
+                      decoration: BoxDecoration(
+                        color: scheme.outlineVariant,
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        const SizedBox(width: AppSpacing.sm),
+                        const Spacer(),
+                        IconButton(
+                          tooltip: 'Share',
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Share feature not implemented yet',
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.share),
+                        ),
+                        IconButton(
+                          tooltip: 'Close',
+                          icon: const Icon(Icons.close),
+                          onPressed: widget.onClose,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1),
+
+              // ── Action bar ───────────────────────────────────────
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12, // off-grid
+                  vertical: AppSpacing.sm,
+                ),
+                child: BlocBuilder<SavedPlacesCubit, SavedPlacesState>(
+                  builder: (context, spState) {
+                    final isSaved = _alreadySaved(spState);
+                    return Row(
+                      children: [
+                        FilledButton.icon(
+                          onPressed:
+                              (_saving || isSaved || widget.onSave == null)
+                              ? null
+                              : () async {
+                                  setState(() => _saving = true);
+                                  try {
+                                    await widget.onSave!.call();
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => _saving = false);
+                                    }
+                                  }
+                                },
+                          icon: Icon(
+                            isSaved ? Icons.check : Icons.bookmark_add_outlined,
+                          ),
+                          label: Text(
+                            isSaved ? 'Saved' : (_saving ? 'Saving…' : 'Save'),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            final uri = Uri(
+                              path: '/plan-route',
+                              queryParameters: widget.route.toPathParams(),
+                            ).toString();
+                            context.push(uri);
+                          },
+                          icon: const Icon(Icons.navigation),
+                          label: const Text('Plan route'),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: AppSpacing.xs,
+                          ),
+                          decoration: BoxDecoration(
+                            color: scheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(AppSpacing.sm),
+                          ),
+                          child: Text(
+                            widget.route.type.toString(),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(color: scheme.onSecondaryContainer),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+
+              const Divider(height: 1),
+
+              // ── Scrollable details ───────────────────────────────
+              Expanded(
+                child: CustomScrollView(
+                  controller: scrollController,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: ListTile(
+                        dense: true,
+                        leading: const Icon(Icons.directions),
+                        title: Text(
+                          widget.route.displayName,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        subtitle: Text(
+                          widget.route.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(fontFamily: AppTypography.subFamily),
                         ),
                       ),
-                      Row(
-                        children: [
-                          const SizedBox(width: AppSpacing.sm),
-                          const Spacer(),
-                          IconButton(
-                            tooltip: 'Share',
+                    ),
+                    SliverList.list(
+                      children: [
+                        _InfoTile(
+                          icon: Icons.gps_fixed,
+                          title: 'Coordinates',
+                          subtitle:
+                              'Lat: ${widget.route.position.latitude.toStringAsFixed(6)} • '
+                              'Lon: ${widget.route.position.longitude.toStringAsFixed(6)}',
+                          trailing: IconButton(
+                            tooltip: 'Copy',
+                            icon: const Icon(Icons.copy_all_outlined),
                             onPressed: () {
+                              final txt =
+                                  '${widget.route.position.latitude.toStringAsFixed(6)}, '
+                                  '${widget.route.position.longitude.toStringAsFixed(6)}';
+                              Clipboard.setData(ClipboardData(text: txt));
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text(
-                                    'Share feature not implemented yet',
-                                  ),
+                                  content: Text('Copied coordinates'),
                                 ),
                               );
                             },
-                            icon: const Icon(Icons.share),
                           ),
-                          IconButton(
-                            tooltip: 'Close',
-                            icon: const Icon(Icons.close),
-                            onPressed: widget.onClose,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-
-                // ── Action bar ───────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12, // off-grid
-                    vertical: AppSpacing.sm,
-                  ),
-                  child: BlocBuilder<SavedPlacesCubit, SavedPlacesState>(
-                    builder: (context, spState) {
-                      final isSaved = _alreadySaved(spState);
-                      return Row(
-                        children: [
-                          FilledButton.icon(
-                            onPressed:
-                                (_saving || isSaved || widget.onSave == null)
-                                ? null
-                                : () async {
-                                    setState(() => _saving = true);
-                                    try {
-                                      await widget.onSave!.call();
-                                    } finally {
-                                      if (mounted) {
-                                        setState(() => _saving = false);
-                                      }
-                                    }
-                                  },
-                            icon: Icon(
-                              isSaved
-                                  ? Icons.check
-                                  : Icons.bookmark_add_outlined,
-                            ),
-                            label: Text(
-                              isSaved
-                                  ? 'Saved'
-                                  : (_saving ? 'Saving…' : 'Save'),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          OutlinedButton.icon(
-                            onPressed: () {
-                              final uri = Uri(
-                                path: '/plan-route',
-                                queryParameters: widget.route.toPathParams(),
-                              ).toString();
-                              context.push(uri);
-                            },
-                            icon: const Icon(Icons.navigation),
-                            label: const Text('Plan route'),
-                          ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.sm,
-                              vertical: AppSpacing.xs,
-                            ),
-                            decoration: BoxDecoration(
-                              color: scheme.secondaryContainer,
-                              borderRadius: BorderRadius.circular(
-                                AppSpacing.sm,
-                              ),
-                            ),
-                            child: Text(
-                              widget.route.type.toString(),
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: scheme.onSecondaryContainer,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ),
-
-                const Divider(height: 1),
-
-                // ── Scrollable details ───────────────────────────────
-                Expanded(
-                  child: CustomScrollView(
-                    controller: scrollController,
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.directions),
-                          title: Text(
-                            widget.route.displayName,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          subtitle: Text(
-                            widget.route.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(fontFamily: AppTypography.subFamily),
-                          ),
-                        ),
-                      ),
-                      SliverList.list(
-                        children: [
-                          _InfoTile(
-                            icon: Icons.gps_fixed,
-                            title: 'Coordinates',
-                            subtitle:
-                                'Lat: ${widget.route.position.latitude.toStringAsFixed(6)} • '
-                                'Lon: ${widget.route.position.longitude.toStringAsFixed(6)}',
-                            trailing: IconButton(
-                              tooltip: 'Copy',
-                              icon: const Icon(Icons.copy_all_outlined),
-                              onPressed: () {
-                                final txt =
-                                    '${widget.route.position.latitude.toStringAsFixed(6)}, '
-                                    '${widget.route.position.longitude.toStringAsFixed(6)}';
-                                Clipboard.setData(ClipboardData(text: txt));
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Copied coordinates'),
-                                  ),
-                                );
+                          onTap: () {
+                            context.goNamed(
+                              'home',
+                              queryParameters: {
+                                'lat': widget.route.position.latitude
+                                    .toStringAsFixed(6),
+                                'lon': widget.route.position.longitude
+                                    .toStringAsFixed(6),
+                                'label': widget.route.displayName,
+                                if (widget.route.id != null)
+                                  'placeId': widget.route.id!,
+                                'zoom': '14',
                               },
-                            ),
+                            );
+                          },
+                        ),
+                        if (widget.route.address != null)
+                          _InfoTile(
+                            icon: Icons.place_outlined,
+                            title: 'Address',
+                            subtitle: widget.route.displayName,
                             onTap: () {
                               context.goNamed(
-                                'home',
+                                'map',
                                 queryParameters: {
                                   'lat': widget.route.position.latitude
                                       .toStringAsFixed(6),
@@ -241,43 +254,19 @@ class _RoutePreviewWidgetState extends State<LocationPreviewWidget> {
                               );
                             },
                           ),
-                          if (widget.route.address != null)
-                            _InfoTile(
-                              icon: Icons.place_outlined,
-                              title: 'Address',
-                              subtitle: widget.route.displayName,
-                              onTap: () {
-                                context.goNamed(
-                                  'map',
-                                  queryParameters: {
-                                    'lat': widget.route.position.latitude
-                                        .toStringAsFixed(6),
-                                    'lon': widget.route.position.longitude
-                                        .toStringAsFixed(6),
-                                    'label': widget.route.displayName,
-                                    if (widget.route.id != null)
-                                      'placeId': widget.route.id!,
-                                    'zoom': '14',
-                                  },
-                                );
-                              },
-                            ),
-                        ],
-                      ),
-                      const SliverToBoxAdapter(
-                        child: SizedBox(height: AppSpacing.sm),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                    const SliverToBoxAdapter(
+                      child: SizedBox(height: AppSpacing.sm),
+                    ),
+                  ],
                 ),
+              ),
 
-                SafeArea(
-                  top: false,
-                  child: SizedBox(height: AppSpacing.sm),
-                ),
-              ],
-            ),
-          );
+              SafeArea(top: false, child: SizedBox(height: AppSpacing.sm)),
+            ],
+          ),
+        );
       },
     );
   }
