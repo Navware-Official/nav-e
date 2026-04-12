@@ -211,28 +211,22 @@ class _PlanRouteScreenState extends State<PlanRouteScreen> {
           (startPos.latitude, startPos.longitude),
           (dest.lat, dest.lon),
         ];
-        final json = await rust.calculateRoute(waypoints: waypoints);
-        // Log the raw JSON for debugging - this can be removed once we're confident in the API and data structure.
-        debugPrint('[PlanRouteScreen] Route JSON: $json');
-        final Map<String, dynamic> obj = jsonDecode(json);
-        final polylineJson = obj['polyline_json'] as String?;
-        if (polylineJson != null && polylineJson.isNotEmpty) {
-          final List<dynamic> poly = jsonDecode(polylineJson) as List<dynamic>;
+        final route = await rust.calculateRoute(waypoints: waypoints);
+        if (route.polylineJson.isNotEmpty) {
+          final List<dynamic> poly =
+              jsonDecode(route.polylineJson) as List<dynamic>;
           pts = poly.map<LatLng>((e) {
             final lat = (e[0] as num).toDouble();
             final lon = (e[1] as num).toDouble();
             return LatLng(lat, lon);
           }).toList();
         } else {
-          final List wp = obj['waypoints'] as List? ?? [];
-          pts = wp.map<LatLng>((e) {
-            final lat = (e['latitude'] as num).toDouble();
-            final lon = (e['longitude'] as num).toDouble();
-            return LatLng(lat, lon);
+          pts = route.waypoints.map<LatLng>((wp) {
+            return LatLng(wp.latitude, wp.longitude);
           }).toList();
         }
-        _distanceM = (obj['distance_meters'] as num?)?.toDouble();
-        _durationS = (obj['duration_seconds'] as num?)?.toDouble();
+        _distanceM = route.distanceMeters;
+        _durationS = route.durationSeconds.toDouble();
       }
 
       if (pts.length < 2) {

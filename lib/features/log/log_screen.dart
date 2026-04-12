@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -52,9 +50,8 @@ class _LogScreenState extends State<LogScreen> {
       for (final t in trips) {
         if (t.status == 'completed') count++;
       }
-      final statsJson = await api.getSessionStats();
-      final stats = jsonDecode(statsJson) as Map<String, dynamic>;
-      final totalDistM = (stats['total_distance_m'] as num).toDouble();
+      final stats = await api.getSessionStats();
+      final totalDistM = stats.totalDistanceM;
       if (mounted) {
         setState(() {
           _totalKm = totalDistM / 1000;

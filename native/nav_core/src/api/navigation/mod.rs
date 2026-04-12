@@ -1,6 +1,6 @@
 // Navigation APIs: session (start/update/pause/stop) and route calculation.
-pub mod navigation;
+pub mod session;
 pub mod routes;
 
-pub use navigation::*;
+pub use session::*;
 pub use routes::*;

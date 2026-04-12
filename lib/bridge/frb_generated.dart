@@ -5,6 +5,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'ffi_models.dart';
 import 'frb_generated.dart';
 import 'frb_generated.io.dart'
     if (dart.library.js_interop) 'frb_generated.web.dart';
@@ -65,7 +66,7 @@ class RustBridge
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 1980456439;
+  int get rustContentHash => 47569698;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -76,7 +77,7 @@ class RustBridge
 }
 
 abstract class RustBridgeApi extends BaseApi {
-  Future<String> crateCalculateRoute({
+  Future<RouteDto> crateCalculateRoute({
     required List<(double, double)> waypoints,
   });
 
@@ -116,7 +117,10 @@ abstract class RustBridgeApi extends BaseApi {
     String? tileUrlTemplate,
   });
 
-  Future<String> crateGeocodeSearch({required String query, int? limit});
+  Future<List<GeocodingResultDto>> crateGeocodeSearch({
+    required String query,
+    int? limit,
+  });
 
   Future<String?> crateGetActiveSession();
 
@@ -134,7 +138,9 @@ abstract class RustBridgeApi extends BaseApi {
 
   String crateGetDeviceByRemoteId({required String remoteId});
 
-  Future<String?> crateGetNavigationState({required String sessionId});
+  Future<NavigationStateDto?> crateGetNavigationState({
+    required String sessionId,
+  });
 
   String crateGetOfflineRegionById({required String id});
 
@@ -156,13 +162,15 @@ abstract class RustBridgeApi extends BaseApi {
 
   String crateGetOfflineRegionsStoragePath();
 
-  Future<String> crateGetRouteSteps({required String sessionId});
+  Future<List<DerivedInstructionDto>> crateGetRouteSteps({
+    required String sessionId,
+  });
 
   String crateGetSavedPlaceById({required PlatformInt64 id});
 
   String crateGetSavedRouteById({required PlatformInt64 id});
 
-  Future<String> crateGetSessionStats();
+  Future<SessionStatsDto> crateGetSessionStats();
 
   String crateGetTripById({required PlatformInt64 id});
 
@@ -244,15 +252,9 @@ abstract class RustBridgeApi extends BaseApi {
     required String routeJson,
   });
 
-  Future<void> crateSetNavdspConfig({
-    required String baseUrl,
-    String? token,
-    required bool geocodingEnabled,
-  });
-
   Future<void> crateSetRoutingEngine({required String engine});
 
-  Future<String> crateStartNavigationSession({
+  Future<NavigationSessionDto> crateStartNavigationSession({
     required List<(double, double)> waypoints,
     required (double, double) currentPosition,
   });
@@ -264,7 +266,7 @@ abstract class RustBridgeApi extends BaseApi {
     required String deviceJson,
   });
 
-  Future<String> crateUpdateNavigationPosition({
+  Future<NavigationStateDto> crateUpdateNavigationPosition({
     required String sessionId,
     required double latitude,
     required double longitude,
@@ -281,7 +283,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   });
 
   @override
-  Future<String> crateCalculateRoute({
+  Future<RouteDto> crateCalculateRoute({
     required List<(double, double)> waypoints,
   }) {
     return handler.executeNormal(
@@ -297,7 +299,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
+          decodeSuccessData: sse_decode_route_dto,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateCalculateRouteConstMeta,
@@ -577,7 +579,10 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
-  Future<String> crateGeocodeSearch({required String query, int? limit}) {
+  Future<List<GeocodingResultDto>> crateGeocodeSearch({
+    required String query,
+    int? limit,
+  }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -592,7 +597,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
+          decodeSuccessData: sse_decode_list_geocoding_result_dto,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateGeocodeSearchConstMeta,
@@ -793,7 +798,9 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
-  Future<String?> crateGetNavigationState({required String sessionId}) {
+  Future<NavigationStateDto?> crateGetNavigationState({
+    required String sessionId,
+  }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -807,7 +814,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_opt_String,
+          decodeSuccessData: sse_decode_opt_box_autoadd_navigation_state_dto,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateGetNavigationStateConstMeta,
@@ -967,7 +974,9 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       );
 
   @override
-  Future<String> crateGetRouteSteps({required String sessionId}) {
+  Future<List<DerivedInstructionDto>> crateGetRouteSteps({
+    required String sessionId,
+  }) {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -981,7 +990,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
+          decodeSuccessData: sse_decode_list_derived_instruction_dto,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateGetRouteStepsConstMeta,
@@ -1043,7 +1052,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       const TaskConstMeta(debugName: "get_saved_route_by_id", argNames: ["id"]);
 
   @override
-  Future<String> crateGetSessionStats() {
+  Future<SessionStatsDto> crateGetSessionStats() {
     return handler.executeNormal(
       NormalTask(
         callFfi: (port_) {
@@ -1056,7 +1065,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
+          decodeSuccessData: sse_decode_session_stats_dto,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateGetSessionStatsConstMeta,
@@ -1638,42 +1647,6 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
-  Future<void> crateSetNavdspConfig({
-    required String baseUrl,
-    String? token,
-    required bool geocodingEnabled,
-  }) {
-    return handler.executeNormal(
-      NormalTask(
-        callFfi: (port_) {
-          final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(baseUrl, serializer);
-          sse_encode_opt_String(token, serializer);
-          sse_encode_bool(geocodingEnabled, serializer);
-          pdeCallFfi(
-            generalizedFrbRustBinding,
-            serializer,
-            funcId: 48,
-            port: port_,
-          );
-        },
-        codec: SseCodec(
-          decodeSuccessData: sse_decode_unit,
-          decodeErrorData: sse_decode_AnyhowException,
-        ),
-        constMeta: kCrateSetNavdspConfigConstMeta,
-        argValues: [baseUrl, token, geocodingEnabled],
-        apiImpl: this,
-      ),
-    );
-  }
-
-  TaskConstMeta get kCrateSetNavdspConfigConstMeta => const TaskConstMeta(
-    debugName: "set_navdsp_config",
-    argNames: ["baseUrl", "token", "geocodingEnabled"],
-  );
-
-  @override
   Future<void> crateSetRoutingEngine({required String engine}) {
     return handler.executeNormal(
       NormalTask(
@@ -1683,7 +1656,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 49,
+            funcId: 48,
             port: port_,
           );
         },
@@ -1704,7 +1677,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
-  Future<String> crateStartNavigationSession({
+  Future<NavigationSessionDto> crateStartNavigationSession({
     required List<(double, double)> waypoints,
     required (double, double) currentPosition,
   }) {
@@ -1717,12 +1690,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 50,
+            funcId: 49,
             port: port_,
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
+          decodeSuccessData: sse_decode_navigation_session_dto,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateStartNavigationSessionConstMeta,
@@ -1748,7 +1721,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 51,
+            funcId: 50,
             port: port_,
           );
         },
@@ -1779,7 +1752,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_i_64(id, serializer);
           sse_encode_String(deviceJson, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 52)!;
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 51)!;
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -1798,7 +1771,7 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   );
 
   @override
-  Future<String> crateUpdateNavigationPosition({
+  Future<NavigationStateDto> crateUpdateNavigationPosition({
     required String sessionId,
     required double latitude,
     required double longitude,
@@ -1813,12 +1786,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
           pdeCallFfi(
             generalizedFrbRustBinding,
             serializer,
-            funcId: 53,
+            funcId: 52,
             port: port_,
           );
         },
         codec: SseCodec(
-          decodeSuccessData: sse_decode_String,
+          decodeSuccessData: sse_decode_navigation_state_dto,
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateUpdateNavigationPositionConstMeta,
@@ -1853,6 +1826,14 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  DerivedInstructionDto dco_decode_box_autoadd_derived_instruction_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_derived_instruction_dto(raw);
+  }
+
+  @protected
   double dco_decode_box_autoadd_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as double;
@@ -1862,6 +1843,12 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dco_decode_i_64(raw);
+  }
+
+  @protected
+  NavigationStateDto dco_decode_box_autoadd_navigation_state_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return dco_decode_navigation_state_dto(raw);
   }
 
   @protected
@@ -1883,9 +1870,40 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  DerivedInstructionDto dco_decode_derived_instruction_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return DerivedInstructionDto(
+      kind: dco_decode_String(arr[0]),
+      distanceToNextM: dco_decode_f_64(arr[1]),
+      streetName: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
   double dco_decode_f_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw as double;
+  }
+
+  @protected
+  GeocodingResultDto dco_decode_geocoding_result_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 8)
+      throw Exception('unexpected arr length: expect 8 but see ${arr.length}');
+    return GeocodingResultDto(
+      latitude: dco_decode_f_64(arr[0]),
+      longitude: dco_decode_f_64(arr[1]),
+      displayName: dco_decode_String(arr[2]),
+      name: dco_decode_opt_String(arr[3]),
+      city: dco_decode_opt_String(arr[4]),
+      country: dco_decode_opt_String(arr[5]),
+      osmType: dco_decode_opt_String(arr[6]),
+      osmId: dco_decode_opt_box_autoadd_i_64(arr[7]),
+    );
   }
 
   @protected
@@ -1898,6 +1916,28 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   PlatformInt64 dco_decode_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return dcoDecodeI64(raw);
+  }
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_String).toList();
+  }
+
+  @protected
+  List<DerivedInstructionDto> dco_decode_list_derived_instruction_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>)
+        .map(dco_decode_derived_instruction_dto)
+        .toList();
+  }
+
+  @protected
+  List<GeocodingResultDto> dco_decode_list_geocoding_result_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_geocoding_result_dto).toList();
   }
 
   @protected
@@ -1925,9 +1965,63 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  List<WaypointDto> dco_decode_list_waypoint_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return (raw as List<dynamic>).map(dco_decode_waypoint_dto).toList();
+  }
+
+  @protected
+  NavigationSessionDto dco_decode_navigation_session_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return NavigationSessionDto(
+      id: dco_decode_String(arr[0]),
+      route: dco_decode_route_dto(arr[1]),
+      currentLatitude: dco_decode_f_64(arr[2]),
+      currentLongitude: dco_decode_f_64(arr[3]),
+      status: dco_decode_String(arr[4]),
+    );
+  }
+
+  @protected
+  NavigationStateDto dco_decode_navigation_state_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 11)
+      throw Exception('unexpected arr length: expect 11 but see ${arr.length}');
+    return NavigationStateDto(
+      currentStep: dco_decode_u_32(arr[0]),
+      currentInstruction: dco_decode_derived_instruction_dto(arr[1]),
+      nextInstruction: dco_decode_opt_box_autoadd_derived_instruction_dto(
+        arr[2],
+      ),
+      distanceToNextM: dco_decode_f_64(arr[3]),
+      distanceRemainingM: dco_decode_f_64(arr[4]),
+      etaSeconds: dco_decode_u_64(arr[5]),
+      isOffRoute: dco_decode_bool(arr[6]),
+      distanceFromRouteM: dco_decode_f_64(arr[7]),
+      snappedLat: dco_decode_f_64(arr[8]),
+      snappedLon: dco_decode_f_64(arr[9]),
+      constraintAlerts: dco_decode_list_String(arr[10]),
+    );
+  }
+
+  @protected
   String? dco_decode_opt_String(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_String(raw);
+  }
+
+  @protected
+  DerivedInstructionDto? dco_decode_opt_box_autoadd_derived_instruction_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_derived_instruction_dto(raw);
   }
 
   @protected
@@ -1940,6 +2034,16 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     return raw == null ? null : dco_decode_box_autoadd_i_64(raw);
+  }
+
+  @protected
+  NavigationStateDto? dco_decode_opt_box_autoadd_navigation_state_dto(
+    dynamic raw,
+  ) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    return raw == null
+        ? null
+        : dco_decode_box_autoadd_navigation_state_dto(raw);
   }
 
   @protected
@@ -1962,6 +2066,34 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
       throw Exception('Expected 2 elements, got ${arr.length}');
     }
     return (dco_decode_f_64(arr[0]), dco_decode_f_64(arr[1]));
+  }
+
+  @protected
+  RouteDto dco_decode_route_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 5)
+      throw Exception('unexpected arr length: expect 5 but see ${arr.length}');
+    return RouteDto(
+      id: dco_decode_String(arr[0]),
+      waypoints: dco_decode_list_waypoint_dto(arr[1]),
+      distanceMeters: dco_decode_f_64(arr[2]),
+      durationSeconds: dco_decode_u_32(arr[3]),
+      polylineJson: dco_decode_String(arr[4]),
+    );
+  }
+
+  @protected
+  SessionStatsDto dco_decode_session_stats_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return SessionStatsDto(
+      totalDistanceM: dco_decode_f_64(arr[0]),
+      totalDurationSeconds: dco_decode_i_64(arr[1]),
+      sessionCount: dco_decode_i_64(arr[2]),
+    );
   }
 
   @protected
@@ -1989,6 +2121,19 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  WaypointDto dco_decode_waypoint_dto(dynamic raw) {
+    // Codec=Dco (DartCObject based), see doc to use other codecs
+    final arr = raw as List<dynamic>;
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
+    return WaypointDto(
+      latitude: dco_decode_f_64(arr[0]),
+      longitude: dco_decode_f_64(arr[1]),
+      name: dco_decode_opt_String(arr[2]),
+    );
+  }
+
+  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var inner = sse_decode_String(deserializer);
@@ -2009,6 +2154,14 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  DerivedInstructionDto sse_decode_box_autoadd_derived_instruction_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_derived_instruction_dto(deserializer));
+  }
+
+  @protected
   double sse_decode_box_autoadd_f_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_f_64(deserializer));
@@ -2018,6 +2171,14 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return (sse_decode_i_64(deserializer));
+  }
+
+  @protected
+  NavigationStateDto sse_decode_box_autoadd_navigation_state_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    return (sse_decode_navigation_state_dto(deserializer));
   }
 
   @protected
@@ -2041,9 +2202,49 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  DerivedInstructionDto sse_decode_derived_instruction_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_kind = sse_decode_String(deserializer);
+    var var_distanceToNextM = sse_decode_f_64(deserializer);
+    var var_streetName = sse_decode_opt_String(deserializer);
+    return DerivedInstructionDto(
+      kind: var_kind,
+      distanceToNextM: var_distanceToNextM,
+      streetName: var_streetName,
+    );
+  }
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getFloat64();
+  }
+
+  @protected
+  GeocodingResultDto sse_decode_geocoding_result_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_latitude = sse_decode_f_64(deserializer);
+    var var_longitude = sse_decode_f_64(deserializer);
+    var var_displayName = sse_decode_String(deserializer);
+    var var_name = sse_decode_opt_String(deserializer);
+    var var_city = sse_decode_opt_String(deserializer);
+    var var_country = sse_decode_opt_String(deserializer);
+    var var_osmType = sse_decode_opt_String(deserializer);
+    var var_osmId = sse_decode_opt_box_autoadd_i_64(deserializer);
+    return GeocodingResultDto(
+      latitude: var_latitude,
+      longitude: var_longitude,
+      displayName: var_displayName,
+      name: var_name,
+      city: var_city,
+      country: var_country,
+      osmType: var_osmType,
+      osmId: var_osmId,
+    );
   }
 
   @protected
@@ -2056,6 +2257,46 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getPlatformInt64();
+  }
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <String>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_String(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<DerivedInstructionDto> sse_decode_list_derived_instruction_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <DerivedInstructionDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_derived_instruction_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  List<GeocodingResultDto> sse_decode_list_geocoding_result_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <GeocodingResultDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_geocoding_result_dto(deserializer));
+    }
+    return ans_;
   }
 
   @protected
@@ -2101,11 +2342,89 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  List<WaypointDto> sse_decode_list_waypoint_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    var len_ = sse_decode_i_32(deserializer);
+    var ans_ = <WaypointDto>[];
+    for (var idx_ = 0; idx_ < len_; ++idx_) {
+      ans_.add(sse_decode_waypoint_dto(deserializer));
+    }
+    return ans_;
+  }
+
+  @protected
+  NavigationSessionDto sse_decode_navigation_session_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_route = sse_decode_route_dto(deserializer);
+    var var_currentLatitude = sse_decode_f_64(deserializer);
+    var var_currentLongitude = sse_decode_f_64(deserializer);
+    var var_status = sse_decode_String(deserializer);
+    return NavigationSessionDto(
+      id: var_id,
+      route: var_route,
+      currentLatitude: var_currentLatitude,
+      currentLongitude: var_currentLongitude,
+      status: var_status,
+    );
+  }
+
+  @protected
+  NavigationStateDto sse_decode_navigation_state_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_currentStep = sse_decode_u_32(deserializer);
+    var var_currentInstruction = sse_decode_derived_instruction_dto(
+      deserializer,
+    );
+    var var_nextInstruction =
+        sse_decode_opt_box_autoadd_derived_instruction_dto(deserializer);
+    var var_distanceToNextM = sse_decode_f_64(deserializer);
+    var var_distanceRemainingM = sse_decode_f_64(deserializer);
+    var var_etaSeconds = sse_decode_u_64(deserializer);
+    var var_isOffRoute = sse_decode_bool(deserializer);
+    var var_distanceFromRouteM = sse_decode_f_64(deserializer);
+    var var_snappedLat = sse_decode_f_64(deserializer);
+    var var_snappedLon = sse_decode_f_64(deserializer);
+    var var_constraintAlerts = sse_decode_list_String(deserializer);
+    return NavigationStateDto(
+      currentStep: var_currentStep,
+      currentInstruction: var_currentInstruction,
+      nextInstruction: var_nextInstruction,
+      distanceToNextM: var_distanceToNextM,
+      distanceRemainingM: var_distanceRemainingM,
+      etaSeconds: var_etaSeconds,
+      isOffRoute: var_isOffRoute,
+      distanceFromRouteM: var_distanceFromRouteM,
+      snappedLat: var_snappedLat,
+      snappedLon: var_snappedLon,
+      constraintAlerts: var_constraintAlerts,
+    );
+  }
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_String(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  DerivedInstructionDto? sse_decode_opt_box_autoadd_derived_instruction_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_derived_instruction_dto(deserializer));
     } else {
       return null;
     }
@@ -2128,6 +2447,19 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
 
     if (sse_decode_bool(deserializer)) {
       return (sse_decode_box_autoadd_i_64(deserializer));
+    } else {
+      return null;
+    }
+  }
+
+  @protected
+  NavigationStateDto? sse_decode_opt_box_autoadd_navigation_state_dto(
+    SseDeserializer deserializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    if (sse_decode_bool(deserializer)) {
+      return (sse_decode_box_autoadd_navigation_state_dto(deserializer));
     } else {
       return null;
     }
@@ -2164,6 +2496,36 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  RouteDto sse_decode_route_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_id = sse_decode_String(deserializer);
+    var var_waypoints = sse_decode_list_waypoint_dto(deserializer);
+    var var_distanceMeters = sse_decode_f_64(deserializer);
+    var var_durationSeconds = sse_decode_u_32(deserializer);
+    var var_polylineJson = sse_decode_String(deserializer);
+    return RouteDto(
+      id: var_id,
+      waypoints: var_waypoints,
+      distanceMeters: var_distanceMeters,
+      durationSeconds: var_durationSeconds,
+      polylineJson: var_polylineJson,
+    );
+  }
+
+  @protected
+  SessionStatsDto sse_decode_session_stats_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_totalDistanceM = sse_decode_f_64(deserializer);
+    var var_totalDurationSeconds = sse_decode_i_64(deserializer);
+    var var_sessionCount = sse_decode_i_64(deserializer);
+    return SessionStatsDto(
+      totalDistanceM: var_totalDistanceM,
+      totalDurationSeconds: var_totalDurationSeconds,
+      sessionCount: var_sessionCount,
+    );
+  }
+
+  @protected
   int sse_decode_u_32(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     return deserializer.buffer.getUint32();
@@ -2184,6 +2546,19 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   @protected
   void sse_decode_unit(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  WaypointDto sse_decode_waypoint_dto(SseDeserializer deserializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    var var_latitude = sse_decode_f_64(deserializer);
+    var var_longitude = sse_decode_f_64(deserializer);
+    var var_name = sse_decode_opt_String(deserializer);
+    return WaypointDto(
+      latitude: var_latitude,
+      longitude: var_longitude,
+      name: var_name,
+    );
   }
 
   @protected
@@ -2208,6 +2583,15 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  void sse_encode_box_autoadd_derived_instruction_dto(
+    DerivedInstructionDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_derived_instruction_dto(self, serializer);
+  }
+
+  @protected
   void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_f_64(self, serializer);
@@ -2220,6 +2604,15 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   ) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_i_64(self, serializer);
+  }
+
+  @protected
+  void sse_encode_box_autoadd_navigation_state_dto(
+    NavigationStateDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_navigation_state_dto(self, serializer);
   }
 
   @protected
@@ -2244,9 +2637,36 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  void sse_encode_derived_instruction_dto(
+    DerivedInstructionDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.kind, serializer);
+    sse_encode_f_64(self.distanceToNextM, serializer);
+    sse_encode_opt_String(self.streetName, serializer);
+  }
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putFloat64(self);
+  }
+
+  @protected
+  void sse_encode_geocoding_result_dto(
+    GeocodingResultDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.latitude, serializer);
+    sse_encode_f_64(self.longitude, serializer);
+    sse_encode_String(self.displayName, serializer);
+    sse_encode_opt_String(self.name, serializer);
+    sse_encode_opt_String(self.city, serializer);
+    sse_encode_opt_String(self.country, serializer);
+    sse_encode_opt_String(self.osmType, serializer);
+    sse_encode_opt_box_autoadd_i_64(self.osmId, serializer);
   }
 
   @protected
@@ -2259,6 +2679,39 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putPlatformInt64(self);
+  }
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_String(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_derived_instruction_dto(
+    List<DerivedInstructionDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_derived_instruction_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_list_geocoding_result_dto(
+    List<GeocodingResultDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_geocoding_result_dto(item, serializer);
+    }
   }
 
   @protected
@@ -2308,12 +2761,72 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  void sse_encode_list_waypoint_dto(
+    List<WaypointDto> self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_i_32(self.length, serializer);
+    for (final item in self) {
+      sse_encode_waypoint_dto(item, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_navigation_session_dto(
+    NavigationSessionDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_route_dto(self.route, serializer);
+    sse_encode_f_64(self.currentLatitude, serializer);
+    sse_encode_f_64(self.currentLongitude, serializer);
+    sse_encode_String(self.status, serializer);
+  }
+
+  @protected
+  void sse_encode_navigation_state_dto(
+    NavigationStateDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_u_32(self.currentStep, serializer);
+    sse_encode_derived_instruction_dto(self.currentInstruction, serializer);
+    sse_encode_opt_box_autoadd_derived_instruction_dto(
+      self.nextInstruction,
+      serializer,
+    );
+    sse_encode_f_64(self.distanceToNextM, serializer);
+    sse_encode_f_64(self.distanceRemainingM, serializer);
+    sse_encode_u_64(self.etaSeconds, serializer);
+    sse_encode_bool(self.isOffRoute, serializer);
+    sse_encode_f_64(self.distanceFromRouteM, serializer);
+    sse_encode_f_64(self.snappedLat, serializer);
+    sse_encode_f_64(self.snappedLon, serializer);
+    sse_encode_list_String(self.constraintAlerts, serializer);
+  }
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
 
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_String(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_derived_instruction_dto(
+    DerivedInstructionDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_derived_instruction_dto(self, serializer);
     }
   }
 
@@ -2337,6 +2850,19 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
     sse_encode_bool(self != null, serializer);
     if (self != null) {
       sse_encode_box_autoadd_i_64(self, serializer);
+    }
+  }
+
+  @protected
+  void sse_encode_opt_box_autoadd_navigation_state_dto(
+    NavigationStateDto? self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+
+    sse_encode_bool(self != null, serializer);
+    if (self != null) {
+      sse_encode_box_autoadd_navigation_state_dto(self, serializer);
     }
   }
 
@@ -2371,6 +2897,27 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   }
 
   @protected
+  void sse_encode_route_dto(RouteDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_String(self.id, serializer);
+    sse_encode_list_waypoint_dto(self.waypoints, serializer);
+    sse_encode_f_64(self.distanceMeters, serializer);
+    sse_encode_u_32(self.durationSeconds, serializer);
+    sse_encode_String(self.polylineJson, serializer);
+  }
+
+  @protected
+  void sse_encode_session_stats_dto(
+    SessionStatsDto self,
+    SseSerializer serializer,
+  ) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.totalDistanceM, serializer);
+    sse_encode_i_64(self.totalDurationSeconds, serializer);
+    sse_encode_i_64(self.sessionCount, serializer);
+  }
+
+  @protected
   void sse_encode_u_32(int self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     serializer.buffer.putUint32(self);
@@ -2391,5 +2938,13 @@ class RustBridgeApiImpl extends RustBridgeApiImplPlatform
   @protected
   void sse_encode_unit(void self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
+  }
+
+  @protected
+  void sse_encode_waypoint_dto(WaypointDto self, SseSerializer serializer) {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    sse_encode_f_64(self.latitude, serializer);
+    sse_encode_f_64(self.longitude, serializer);
+    sse_encode_opt_String(self.name, serializer);
   }
 }

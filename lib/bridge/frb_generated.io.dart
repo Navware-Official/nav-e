@@ -6,6 +6,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi' as ffi;
+import 'ffi_models.dart';
 import 'frb_generated.dart';
 import 'lib.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated_io.dart';
@@ -28,10 +29,18 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   bool dco_decode_bool(dynamic raw);
 
   @protected
+  DerivedInstructionDto dco_decode_box_autoadd_derived_instruction_dto(
+    dynamic raw,
+  );
+
+  @protected
   double dco_decode_box_autoadd_f_64(dynamic raw);
 
   @protected
   PlatformInt64 dco_decode_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  NavigationStateDto dco_decode_box_autoadd_navigation_state_dto(dynamic raw);
 
   @protected
   (double, double) dco_decode_box_autoadd_record_f_64_f_64(dynamic raw);
@@ -43,13 +52,30 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   BigInt dco_decode_box_autoadd_u_64(dynamic raw);
 
   @protected
+  DerivedInstructionDto dco_decode_derived_instruction_dto(dynamic raw);
+
+  @protected
   double dco_decode_f_64(dynamic raw);
+
+  @protected
+  GeocodingResultDto dco_decode_geocoding_result_dto(dynamic raw);
 
   @protected
   int dco_decode_i_32(dynamic raw);
 
   @protected
   PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
+  List<String> dco_decode_list_String(dynamic raw);
+
+  @protected
+  List<DerivedInstructionDto> dco_decode_list_derived_instruction_dto(
+    dynamic raw,
+  );
+
+  @protected
+  List<GeocodingResultDto> dco_decode_list_geocoding_result_dto(dynamic raw);
 
   @protected
   List<Uint8List> dco_decode_list_list_prim_u_8_strict(dynamic raw);
@@ -64,13 +90,32 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   List<(double, double)> dco_decode_list_record_f_64_f_64(dynamic raw);
 
   @protected
+  List<WaypointDto> dco_decode_list_waypoint_dto(dynamic raw);
+
+  @protected
+  NavigationSessionDto dco_decode_navigation_session_dto(dynamic raw);
+
+  @protected
+  NavigationStateDto dco_decode_navigation_state_dto(dynamic raw);
+
+  @protected
   String? dco_decode_opt_String(dynamic raw);
+
+  @protected
+  DerivedInstructionDto? dco_decode_opt_box_autoadd_derived_instruction_dto(
+    dynamic raw,
+  );
 
   @protected
   double? dco_decode_opt_box_autoadd_f_64(dynamic raw);
 
   @protected
   PlatformInt64? dco_decode_opt_box_autoadd_i_64(dynamic raw);
+
+  @protected
+  NavigationStateDto? dco_decode_opt_box_autoadd_navigation_state_dto(
+    dynamic raw,
+  );
 
   @protected
   int? dco_decode_opt_box_autoadd_u_32(dynamic raw);
@@ -80,6 +125,12 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
 
   @protected
   (double, double) dco_decode_record_f_64_f_64(dynamic raw);
+
+  @protected
+  RouteDto dco_decode_route_dto(dynamic raw);
+
+  @protected
+  SessionStatsDto dco_decode_session_stats_dto(dynamic raw);
 
   @protected
   int dco_decode_u_32(dynamic raw);
@@ -94,6 +145,9 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  WaypointDto dco_decode_waypoint_dto(dynamic raw);
+
+  @protected
   AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
 
   @protected
@@ -103,10 +157,20 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
+  DerivedInstructionDto sse_decode_box_autoadd_derived_instruction_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   double sse_decode_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
   PlatformInt64 sse_decode_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  NavigationStateDto sse_decode_box_autoadd_navigation_state_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   (double, double) sse_decode_box_autoadd_record_f_64_f_64(
@@ -120,13 +184,36 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   BigInt sse_decode_box_autoadd_u_64(SseDeserializer deserializer);
 
   @protected
+  DerivedInstructionDto sse_decode_derived_instruction_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   double sse_decode_f_64(SseDeserializer deserializer);
+
+  @protected
+  GeocodingResultDto sse_decode_geocoding_result_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   int sse_decode_i_32(SseDeserializer deserializer);
 
   @protected
   PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
+  List<String> sse_decode_list_String(SseDeserializer deserializer);
+
+  @protected
+  List<DerivedInstructionDto> sse_decode_list_derived_instruction_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  List<GeocodingResultDto> sse_decode_list_geocoding_result_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   List<Uint8List> sse_decode_list_list_prim_u_8_strict(
@@ -145,13 +232,36 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   );
 
   @protected
+  List<WaypointDto> sse_decode_list_waypoint_dto(SseDeserializer deserializer);
+
+  @protected
+  NavigationSessionDto sse_decode_navigation_session_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  NavigationStateDto sse_decode_navigation_state_dto(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String? sse_decode_opt_String(SseDeserializer deserializer);
+
+  @protected
+  DerivedInstructionDto? sse_decode_opt_box_autoadd_derived_instruction_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   double? sse_decode_opt_box_autoadd_f_64(SseDeserializer deserializer);
 
   @protected
   PlatformInt64? sse_decode_opt_box_autoadd_i_64(SseDeserializer deserializer);
+
+  @protected
+  NavigationStateDto? sse_decode_opt_box_autoadd_navigation_state_dto(
+    SseDeserializer deserializer,
+  );
 
   @protected
   int? sse_decode_opt_box_autoadd_u_32(SseDeserializer deserializer);
@@ -161,6 +271,12 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
 
   @protected
   (double, double) sse_decode_record_f_64_f_64(SseDeserializer deserializer);
+
+  @protected
+  RouteDto sse_decode_route_dto(SseDeserializer deserializer);
+
+  @protected
+  SessionStatsDto sse_decode_session_stats_dto(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_32(SseDeserializer deserializer);
@@ -175,6 +291,9 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   void sse_decode_unit(SseDeserializer deserializer);
 
   @protected
+  WaypointDto sse_decode_waypoint_dto(SseDeserializer deserializer);
+
+  @protected
   void sse_encode_AnyhowException(
     AnyhowException self,
     SseSerializer serializer,
@@ -187,11 +306,23 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   void sse_encode_bool(bool self, SseSerializer serializer);
 
   @protected
+  void sse_encode_box_autoadd_derived_instruction_dto(
+    DerivedInstructionDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_box_autoadd_f_64(double self, SseSerializer serializer);
 
   @protected
   void sse_encode_box_autoadd_i_64(
     PlatformInt64 self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_box_autoadd_navigation_state_dto(
+    NavigationStateDto self,
     SseSerializer serializer,
   );
 
@@ -208,13 +339,40 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   void sse_encode_box_autoadd_u_64(BigInt self, SseSerializer serializer);
 
   @protected
+  void sse_encode_derived_instruction_dto(
+    DerivedInstructionDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_f_64(double self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_geocoding_result_dto(
+    GeocodingResultDto self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_i_32(int self, SseSerializer serializer);
 
   @protected
   void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_String(List<String> self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_list_derived_instruction_dto(
+    List<DerivedInstructionDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_geocoding_result_dto(
+    List<GeocodingResultDto> self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_list_list_prim_u_8_strict(
@@ -238,7 +396,31 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   );
 
   @protected
+  void sse_encode_list_waypoint_dto(
+    List<WaypointDto> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_navigation_session_dto(
+    NavigationSessionDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_navigation_state_dto(
+    NavigationStateDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_opt_String(String? self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_opt_box_autoadd_derived_instruction_dto(
+    DerivedInstructionDto? self,
+    SseSerializer serializer,
+  );
 
   @protected
   void sse_encode_opt_box_autoadd_f_64(double? self, SseSerializer serializer);
@@ -246,6 +428,12 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   @protected
   void sse_encode_opt_box_autoadd_i_64(
     PlatformInt64? self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_opt_box_autoadd_navigation_state_dto(
+    NavigationStateDto? self,
     SseSerializer serializer,
   );
 
@@ -262,6 +450,15 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
   );
 
   @protected
+  void sse_encode_route_dto(RouteDto self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_session_stats_dto(
+    SessionStatsDto self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_u_32(int self, SseSerializer serializer);
 
   @protected
@@ -272,6 +469,9 @@ abstract class RustBridgeApiImplPlatform extends BaseApiImpl<RustBridgeWire> {
 
   @protected
   void sse_encode_unit(void self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_waypoint_dto(WaypointDto self, SseSerializer serializer);
 }
 
 // Section: wire_class

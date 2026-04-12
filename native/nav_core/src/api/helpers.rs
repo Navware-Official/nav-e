@@ -96,6 +96,15 @@ where
     Ok(serde_json::to_string(&result)?)
 }
 
+/// Helper for asynchronous operations that return a typed value (no JSON serialization)
+pub fn query_async<T, F, Fut>(operation: F) -> Result<T>
+where
+    F: FnOnce() -> Fut,
+    Fut: std::future::Future<Output = Result<T>>,
+{
+    block_on(operation())
+}
+
 /// Helper for asynchronous operations that return nothing
 ///
 /// # Example

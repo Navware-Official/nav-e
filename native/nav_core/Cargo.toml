@@ -21,6 +21,7 @@ crc32fast = "1"
 uuid = { version = "1", features = ["v4", "serde"] }
 async-trait = "0.1"
 sha2 = "0.10"
+# Aliased so source code uses `device_comm::*` for brevity; the actual crate is `nav_protocol`.
 device_comm = { package = "nav_protocol", path = "../nav_protocol" }
 nav_ir = { path = "../nav_ir" }
 nav_engine = { path = "../nav_engine" }

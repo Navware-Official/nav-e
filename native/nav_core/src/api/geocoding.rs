@@ -8,7 +8,7 @@ use crate::navigation::application::queries::*;
 use crate::shared::value_objects::*;
 
 /// Search for locations by address/name
-pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
+pub fn geocode_search(query: String, limit: Option<u32>) -> Result<Vec<GeocodingResultDto>> {
     let results = block_on(async {
         get_container()
             .geocoding
@@ -19,8 +19,7 @@ pub fn geocode_search(query: String, limit: Option<u32>) -> Result<String> {
             .await
     })?;
 
-    let dtos: Vec<GeocodingResultDto> = results.into_iter().map(GeocodingResultDto::from).collect();
-    Ok(serde_json::to_string(&dtos)?)
+    Ok(results.into_iter().map(GeocodingResultDto::from).collect())
 }
 
 /// Reverse geocode coordinates to address
