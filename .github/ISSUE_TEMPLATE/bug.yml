@@ -1,0 +1,75 @@
+name: Bug report
+description: Report something that isn't working as expected
+title: "[Bug]: "
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences describing the bug.
+      placeholder: e.g. The route preview crashes when an offline tile region is missing.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps that reliably trigger the bug.
+      placeholder: |
+        1. Open the app with no network connection
+        2. Tap "Plan route"
+        3. Select a destination outside the downloaded tile region
+        4. Observe the crash
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      placeholder: The app should show a clear "missing tiles" message and offer to download.
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: What happens instead. Include error messages, stack traces, or screenshots if useful.
+      placeholder: The app force-closes with no error visible to the user.
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Versions, platform, device, build flavour — whatever's relevant.
+      value: |
+        - App / version:
+        - Platform (iOS / Android / web / backend):
+        - Device / OS:
+        - Build (debug / release):
+        - Branch or commit:
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Anything else worth knowing — when it started, frequency, related issues, suspected cause.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: prechecks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues and this isn't a duplicate
+          required: true
+        - label: I removed any sensitive information from this report
+          required: true

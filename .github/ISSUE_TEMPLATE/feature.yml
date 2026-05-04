@@ -1,0 +1,68 @@
+name: Feature
+description: Propose new functionality or a meaningful change
+title: "[Feature]: "
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user-facing problem does this solve? Who is affected?
+      placeholder: Riders can't tell whether they have offline coverage for a planned route until they leave network range.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How do you suggest solving it? High-level shape is fine — implementation details can go in a plan comment.
+      placeholder: Before starting navigation, check whether the route corridor is fully covered by downloaded tile regions. If not, show a download prompt with size estimate.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Concrete, testable conditions that must hold for this to be considered done.
+      value: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches and why they were rejected. Optional but valuable for the next person reading this.
+    validations:
+      required: false
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Out of scope
+      description: Things this issue explicitly does *not* cover. Helps prevent scope creep.
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Mockups, links to related issues, technical constraints, dependencies.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: prechecks
+    attributes:
+      label: Pre-submission checks
+      options:
+        - label: I searched existing issues and this isn't a duplicate
+          required: true
+        - label: This issue contains no sensitive information
+          required: true
