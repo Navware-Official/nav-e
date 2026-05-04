@@ -40,47 +40,52 @@ class OfflineMapsCubit extends Cubit<OfflineMapsState> {
     }
   }
 
+  /// Fetch the catalog from `GET /v1/tiles/regions`.
+  Future<void> loadAvailableRegions() async {
+    emit(
+      state.copyWith(
+        availableStatus: AvailableRegionsStatus.loading,
+        availableErrorMessage: null,
+      ),
+    );
+    try {
+      final regions = await _repository.listAvailableRegions();
+      emit(
+        state.copyWith(
+          availableStatus: AvailableRegionsStatus.loaded,
+          availableRegions: regions,
+        ),
+      );
+    } catch (e) {
+      emit(
+        state.copyWith(
+          availableStatus: AvailableRegionsStatus.error,
+          availableErrorMessage: e.toString(),
+        ),
+      );
+    }
+  }
+
   Future<OfflineRegion?> downloadRegion({
-    required String name,
-    required double north,
-    required double south,
-    required double east,
-    required double west,
-    required int minZoom,
-    required int maxZoom,
-    void Function(int done, int total, int zoom)? onProgress,
+    required String regionId,
+    required String displayName,
   }) async {
     emit(
       state.copyWith(
         status: OfflineMapsStatus.downloading,
-        downloadProgress: 0,
-        downloadTotal: 1,
-        downloadZoom: minZoom,
+        downloadingRegionName: displayName,
         errorMessage: null,
-        downloadingRegionName: name,
       ),
     );
     try {
-      final region = await _repository.downloadRegion(
-        name: name,
-        north: north,
-        south: south,
-        east: east,
-        west: west,
-        minZoom: minZoom,
-        maxZoom: maxZoom,
-        onProgress: onProgress,
-      );
+      final region = await _repository.downloadRegion(regionId: regionId);
       if (region != null) {
         final regions = [...state.regions, region];
         emit(
           state.copyWith(
             status: OfflineMapsStatus.loaded,
             regions: regions,
-            downloadProgress: 0,
-            downloadTotal: 0,
             clearDownloadingRegionName: true,
-            errorMessage: null,
           ),
         );
       } else {
@@ -88,8 +93,6 @@ class OfflineMapsCubit extends Cubit<OfflineMapsState> {
           state.copyWith(
             status: OfflineMapsStatus.error,
             errorMessage: 'Download failed',
-            downloadProgress: 0,
-            downloadTotal: 0,
             clearDownloadingRegionName: true,
           ),
         );
@@ -100,8 +103,6 @@ class OfflineMapsCubit extends Cubit<OfflineMapsState> {
         state.copyWith(
           status: OfflineMapsStatus.error,
           errorMessage: e.toString(),
-          downloadProgress: 0,
-          downloadTotal: 0,
           clearDownloadingRegionName: true,
         ),
       );

@@ -12,6 +12,9 @@ class AppSpacing {
   /// 8 px
   static const double sm = 8;
 
+  /// 12 px
+  static const double s3 = 12;
+
   /// 16 px
   static const double md = 16;
 
@@ -23,4 +26,10 @@ class AppSpacing {
 
   /// 48 px
   static const double xxl = 48;
+
+  /// 64 px
+  static const double s8 = 64;
+
+  /// 96 px
+  static const double s9 = 96;
 }

@@ -17,7 +17,10 @@ import 'package:nav_e/features/map_layers/presentation/widgets/map_controls_fab.
 import 'package:nav_e/features/map_layers/presentation/widgets/recenter_fab.dart';
 import 'package:nav_e/features/map_layers/presentation/widgets/rotate_north_fab.dart';
 import 'package:nav_e/core/bloc/location_bloc.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/core/theme/palette.dart';
+import 'package:nav_e/core/theme/typography.dart';
+import 'package:nav_e/features/hud_widgets/presentation/hud_widget_strip.dart';
 import 'package:nav_e/widgets/user_location_marker.dart';
 import 'package:nav_e/features/nav/ui/route_finish_screen.dart';
 import 'package:nav_e/app/app_router.dart';
@@ -54,6 +57,18 @@ class _ActiveNavScreenState extends State<ActiveNavScreen>
   LatLng? _puckFrom;
   LatLng? _puckTo;
   LatLng? _puckCurrent;
+
+  // Cached ancestor lookup. Captured in didChangeDependencies so listeners
+  // can use it without going through context.read — context lookups crash
+  // when this screen is being torn down (Element can be in the inactive
+  // lifecycle state where mounted == true but ancestor lookup is unsafe).
+  MapBloc? _mapBlocRef;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _mapBlocRef = context.read<MapBloc>();
+  }
 
   void _onPuckTick() {
     if (_puckFrom == null || _puckTo == null) return;
@@ -140,8 +155,8 @@ class _ActiveNavScreenState extends State<ActiveNavScreen>
   @override
   void dispose() {
     _puckController.dispose();
-    try {
-      final mapBloc = context.read<MapBloc>();
+    final mapBloc = _mapBlocRef;
+    if (mapBloc != null && !mapBloc.isClosed) {
       final mapState = mapBloc.state;
       mapBloc.add(
         MapMoved(
@@ -153,7 +168,7 @@ class _ActiveNavScreenState extends State<ActiveNavScreen>
         ),
       );
       mapBloc.add(ToggleFollowUser(false));
-    } catch (_) {}
+    }
     _navBloc.close();
     super.dispose();
   }
@@ -170,21 +185,20 @@ class _ActiveNavScreenState extends State<ActiveNavScreen>
                 prev.progressPolyline != curr.progressPolyline &&
                 !curr.isRerouting,
             listener: (context, state) {
-              if (!context.mounted || state.progressPolyline.isEmpty) return;
-              try {
-                final mapBloc = context.read<MapBloc>();
-                mapBloc.add(
-                  ReplacePolylines([
-                    PolylineModel(
-                      id: state.routeId ?? 'rerouted',
-                      points: state.progressPolyline,
-                      colorArgb:
-                          mapBloc.state.defaultPolylineColorArgb ?? 0xFF375AF9,
-                      strokeWidth: mapBloc.state.defaultPolylineWidth ?? 4.0,
-                    ),
-                  ], fit: false),
-                );
-              } catch (_) {}
+              if (!mounted || state.progressPolyline.isEmpty) return;
+              final mapBloc = _mapBlocRef;
+              if (mapBloc == null || mapBloc.isClosed) return;
+              mapBloc.add(
+                ReplacePolylines([
+                  PolylineModel(
+                    id: state.routeId ?? 'rerouted',
+                    points: state.progressPolyline,
+                    colorArgb:
+                        mapBloc.state.defaultPolylineColorArgb ?? 0xFF375AF9,
+                    strokeWidth: mapBloc.state.defaultPolylineWidth ?? 4.0,
+                  ),
+                ], fit: false),
+              );
             },
           ),
           BlocListener<NavBloc, NavState>(
@@ -223,39 +237,44 @@ class _ActiveNavScreenState extends State<ActiveNavScreen>
                 return;
               }
 
-              if (!context.mounted) return;
-              try {
-                if (state.progressPolyline.isNotEmpty) {
-                  context.read<MapBloc>().add(
-                    ReplacePolylines([
-                      PolylineModel(
-                        id: '${widget.routeId}-prog',
-                        points: state.progressPolyline,
-                        colorArgb: AppPalette.blueRibbonDark02.toARGB32(),
-                        strokeWidth: 6.0,
-                      ),
-                    ], fit: false),
-                  );
-                }
-              } catch (_) {}
+              if (!mounted) return;
+              final mapBloc = _mapBlocRef;
+              if (mapBloc == null ||
+                  mapBloc.isClosed ||
+                  state.progressPolyline.isEmpty) {
+                return;
+              }
+              mapBloc.add(
+                ReplacePolylines([
+                  PolylineModel(
+                    id: '${widget.routeId}-prog',
+                    points: state.progressPolyline,
+                    colorArgb: AppPalette.blueRibbonDark02.toARGB32(),
+                    strokeWidth: 6.0,
+                  ),
+                ], fit: false),
+              );
             },
           ),
           BlocListener<LocationBloc, LocationState>(
             listenWhen: (prev, curr) =>
                 curr.position != null && prev.position != curr.position,
             listener: (context, locState) {
-              context.read<NavBloc>().add(PositionUpdate(locState.position!));
+              if (!mounted) return;
+              // Use the locally-owned _navBloc instead of context.read so we
+              // don't crash when LocationBloc fires while this screen is being
+              // torn down (Element can be inactive even when mounted).
+              _navBloc.add(PositionUpdate(locState.position!));
             },
           ),
           BlocListener<LocationBloc, LocationState>(
             listenWhen: (prev, curr) =>
                 prev.heading != curr.heading || prev.position != curr.position,
             listener: (context, locState) {
-              if (!context.mounted) return;
+              if (!mounted) return;
               // Update puck interpolation target.
               final rawPos =
-                  context.read<NavBloc>().state.snappedPosition ??
-                  locState.position;
+                  _navBloc.state.snappedPosition ?? locState.position;
               if (rawPos != null) {
                 if (_puckCurrent == null) {
                   setState(() => _puckCurrent = rawPos);
@@ -267,12 +286,13 @@ class _ActiveNavScreenState extends State<ActiveNavScreen>
                   ..value = 0.0
                   ..forward();
               }
-              final mapBloc = context.read<MapBloc>();
+              final mapBloc = _mapBlocRef;
+              if (mapBloc == null) return;
               final mapState = mapBloc.state;
               if (!mapState.followUser) return;
               final heading = locState.heading ?? mapState.bearing;
               final rawCenter =
-                  context.read<NavBloc>().state.snappedPosition ??
+                  _navBloc.state.snappedPosition ??
                   locState.position ??
                   mapState.center;
               // Offset the camera 150 m ahead so the user appears in the
@@ -317,10 +337,10 @@ class _ActiveNavScreenState extends State<ActiveNavScreen>
                   const RotateNorthFAB(),
                   const MapControlsFAB(),
                   const Positioned(
-                    left: 12,
-                    right: 12,
-                    bottom: 12,
-                    child: _BottomNavBar(),
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: SafeArea(top: false, child: HudWidgetStrip()),
                   ),
                 ],
               ),
@@ -354,9 +374,10 @@ class _TopTurnBar extends StatelessWidget {
             : null;
         final followingInstruction = followingCue?.instruction;
 
-        final colorScheme = Theme.of(context).colorScheme;
-        final textTheme = Theme.of(context).textTheme;
-        final onPrimaryFaded = colorScheme.onPrimary.withValues(alpha: 0.75);
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+        final appColors = theme.extension<AppColors>()!;
+        final textTheme = theme.textTheme;
 
         // Extract speed limit from constraint alerts if present.
         final speedLimitAlert = state.constraintAlerts
@@ -366,57 +387,68 @@ class _TopTurnBar extends StatelessWidget {
             ? int.tryParse(speedLimitAlert.split(':').last)
             : null;
 
+        // Split the distance text into number + unit so we can render the
+        // number in the Bitcount display face.
+        final (distNum, distUnit) = _splitDistance(distanceText);
+
         final turnCard = Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
           decoration: BoxDecoration(
-            color: colorScheme.primary,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: colorScheme.shadow.withValues(alpha: 0.3),
-                blurRadius: 8,
-              ),
-            ],
+            // Translucent dark panel sits above the map; brand-blue hairline
+            // identifies it as the active turn surface.
+            color: const Color(0xEB000000),
+            border: Border.all(color: appColors.hiVis, width: 1),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Maneuver icon
               Container(
                 width: 52,
                 height: 52,
                 decoration: BoxDecoration(
-                  color: colorScheme.onPrimary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  color: appColors.hiVis.withValues(alpha: 0.18),
+                  border: Border.all(color: appColors.hiVis, width: 1),
                 ),
                 child: Icon(
                   _iconForCue(nextCue?.maneuver),
-                  color: colorScheme.onPrimary,
-                  size: 30,
+                  color: appColors.hiVis,
+                  size: 28,
                 ),
               ),
-              const SizedBox(width: 12),
-              // Distance + instruction + following
+              const SizedBox(width: 14), // off-grid (matches design)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (distanceText != null) ...[
-                      Text(
-                        'In $distanceText',
-                        style: textTheme.labelLarge?.copyWith(
-                          color: onPrimaryFaded,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    if (distNum != null)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            distNum,
+                            style: AppTypography.readout.copyWith(
+                              fontSize: 36,
+                              height: 1.0,
+                              color: appColors.hiVis,
+                            ),
+                          ),
+                          if (distUnit != null) ...[
+                            const SizedBox(width: 4),
+                            Text(
+                              distUnit,
+                              style: AppTypography.labelMicro.copyWith(
+                                color: appColors.fgMuted,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
-                      const SizedBox(height: 2),
-                    ],
                     Text(
                       instruction,
-                      style: textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.w700,
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: appColors.fgPrimary,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -427,16 +459,15 @@ class _TopTurnBar extends StatelessWidget {
                         children: [
                           Icon(
                             Icons.subdirectory_arrow_left,
-                            color: onPrimaryFaded,
+                            color: appColors.fgMuted,
                             size: 14,
                           ),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              'Then: $followingInstruction',
-                              style: textTheme.bodySmall?.copyWith(
-                                color: onPrimaryFaded,
-                                fontWeight: FontWeight.w500,
+                              'THEN · ${followingInstruction.toUpperCase()}',
+                              style: AppTypography.labelMicro.copyWith(
+                                color: appColors.fgSecondary,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -465,15 +496,15 @@ class _TopTurnBar extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(10),
+                    color: const Color(0xEB000000),
+                    border: Border.all(color: appColors.borderStrong, width: 1),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       SizedBox(
-                        width: 16,
-                        height: 16,
+                        width: 14,
+                        height: 14,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           color: colorScheme.primary,
@@ -481,10 +512,10 @@ class _TopTurnBar extends StatelessWidget {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        'Recalculating…',
-                        style: textTheme.labelMedium?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
+                        'RECALCULATING',
+                        style: AppTypography.label.copyWith(
+                          fontSize: 10,
+                          color: appColors.fgSecondary,
                         ),
                       ),
                     ],
@@ -498,23 +529,23 @@ class _TopTurnBar extends StatelessWidget {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.amber.shade700,
-                    borderRadius: BorderRadius.circular(10),
+                    color: appColors.danger.withValues(alpha: 0.18),
+                    border: Border.all(color: appColors.danger, width: 1),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.warning_amber,
-                        color: Colors.white,
-                        size: 16,
+                        color: appColors.danger,
+                        size: 14,
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Off route',
-                        style: textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                        'OFF ROUTE',
+                        style: AppTypography.label.copyWith(
+                          fontSize: 10,
+                          color: appColors.danger,
                         ),
                       ),
                     ],
@@ -526,30 +557,23 @@ class _TopTurnBar extends StatelessWidget {
                   turnCard,
                   if (speedLimitKmh != null)
                     Positioned(
-                      top: -4,
-                      right: -4,
+                      top: -6,
+                      right: -6,
                       child: Container(
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppPalette.brandWhite,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.red, width: 3),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 4,
-                            ),
-                          ],
+                          border: Border.all(color: appColors.danger, width: 3),
                         ),
-                        child: Center(
-                          child: Text(
-                            '$speedLimitKmh',
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w900,
-                            ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '$speedLimitKmh',
+                          style: AppTypography.readout.copyWith(
+                            fontSize: 14,
+                            height: 1.0,
+                            color: AppPalette.brandBlack,
                           ),
                         ),
                       ),
@@ -563,201 +587,16 @@ class _TopTurnBar extends StatelessWidget {
     );
   }
 
+  static (String?, String?) _splitDistance(String? text) {
+    if (text == null || text.isEmpty) return (null, null);
+    final m = RegExp(r'^([\d.,]+)\s*(\D+)$').firstMatch(text);
+    if (m == null) return (text, null);
+    return (m.group(1), m.group(2)?.trim().toUpperCase());
+  }
+
   NavCue? _cueFromFeed(NavState state, int index) {
     if (state.turnFeed.length <= index) return null;
     return state.turnFeed[index];
-  }
-}
-
-class _BottomNavBar extends StatelessWidget {
-  const _BottomNavBar();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<NavBloc, NavState>(
-      builder: (context, state) {
-        if (!state.active) return const SizedBox.shrink();
-
-        final remainingTime = _formatRemainingTime(state.remainingSeconds);
-        final remainingKm = _formatDistance(state.remainingDistanceM);
-        final eta = _formatArrivalTime(context, state.remainingSeconds);
-
-        final textTheme = Theme.of(context).textTheme;
-
-        const bg = AppPalette.capeCodDark02;
-        const onBg = AppPalette.white;
-        const accent = AppPalette.blueRibbon;
-        const subtle = AppPalette.capeCodLight02;
-
-        return SafeArea(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  blurRadius: 12,
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    debugPrint(
-                      '[ActiveNav] turn feed pressed, count=${state.turnFeed.length}',
-                    );
-                    _showTurnFeedSheet(context);
-                  },
-                  icon: const Icon(Icons.list_alt, color: onBg),
-                ),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Text(
-                        remainingTime,
-                        style: textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: accent,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$remainingKm · $eta',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: subtle,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 4),
-                IconButton(
-                  icon: Icon(
-                    state.isPaused ? Icons.play_arrow : Icons.pause,
-                    color: onBg,
-                  ),
-                  tooltip: state.isPaused ? 'Resume' : 'Pause',
-                  onPressed: () => context.read<NavBloc>().add(
-                    state.isPaused ? const NavResume() : const NavPause(),
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => context.read<NavBloc>().add(
-                    const NavStop(completed: true),
-                  ),
-                  icon: const Icon(Icons.check_circle, color: accent),
-                  tooltip: 'Finish route',
-                ),
-                IconButton(
-                  onPressed: () => context.read<NavBloc>().add(
-                    const NavStop(completed: false),
-                  ),
-                  icon: const Icon(Icons.close, color: subtle),
-                  tooltip: 'Cancel',
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showTurnFeedSheet(BuildContext context) {
-    final navBloc = context.read<NavBloc>();
-    final rootContext = Navigator.of(context, rootNavigator: true).context;
-    showModalBottomSheet(
-      context: rootContext,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) =>
-          BlocProvider.value(value: navBloc, child: const _TurnFeedSheet()),
-    );
-  }
-}
-
-class _TurnFeedSheet extends StatelessWidget {
-  const _TurnFeedSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<NavBloc, NavState>(
-      buildWhen: (prev, curr) => prev.turnFeed != curr.turnFeed,
-      builder: (context, state) {
-        debugPrint(
-          '[ActiveNav] build turn feed sheet count=${state.turnFeed.length}',
-        );
-        if (state.turnFeed.isEmpty) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text('No turns available'),
-          );
-        }
-
-        return ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: state.turnFeed.length,
-          separatorBuilder: (_, _) => const Divider(height: 16),
-          itemBuilder: (context, index) {
-            final cue = state.turnFeed[index];
-            return InkWell(
-              onTap: () {
-                final mapBloc = context.read<MapBloc>();
-                final mapState = mapBloc.state;
-                mapBloc.add(ToggleFollowUser(false));
-                mapBloc.add(
-                  MapMoved(
-                    cue.location,
-                    mapState.zoom,
-                    force: true,
-                    tilt: mapState.tilt,
-                    bearing: mapState.bearing,
-                  ),
-                );
-                Navigator.of(context).maybePop();
-              },
-              borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Row(
-                  children: [
-                    Icon(
-                      _iconForCue(cue.maneuver),
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        cue.instruction,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      cue.distanceToCueText.isNotEmpty
-                          ? cue.distanceToCueText
-                          : '${cue.distanceToCueM.toStringAsFixed(0)} m',
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 }
 
@@ -803,25 +642,4 @@ IconData _iconForCue(String? maneuver) {
   if (m.contains('left')) return Icons.turn_left;
   if (m.contains('right')) return Icons.turn_right;
   return Icons.straight;
-}
-
-String _formatRemainingTime(int? seconds) {
-  if (seconds == null) return '—';
-  final mins = (seconds / 60).round();
-  if (mins < 60) return '$mins min';
-  final h = (mins / 60).floor();
-  final m = mins % 60;
-  return '${h}h ${m}m';
-}
-
-String _formatDistance(double? meters) {
-  if (meters == null) return '— km';
-  return '${(meters / 1000).toStringAsFixed(1)} km';
-}
-
-String _formatArrivalTime(BuildContext context, int? seconds) {
-  if (seconds == null) return '—';
-  final dt = DateTime.now().add(Duration(seconds: seconds));
-  final tod = TimeOfDay.fromDateTime(dt);
-  return MaterialLocalizations.of(context).formatTimeOfDay(tod);
 }

@@ -35,6 +35,10 @@ Future<void> setNavdspConfig({
   geocodingEnabled: geocodingEnabled,
 );
 
+/// Read back the currently-configured nav-dsp base URL. Useful for diagnostics
+/// (e.g. showing the active URL in a settings or offline-maps screen).
+String getNavdspBaseUrl() => RustBridge.instance.api.crateGetNavdspBaseUrl();
+
 /// Switch the active routing engine. Valid names: `"osrm"`, `"valhalla"`, `"googleRoutes"`.
 /// Google Routes is only available if an API key was provided to `initialize_database`.
 Future<void> setRoutingEngine({required String engine}) =>
@@ -295,11 +299,11 @@ String getAllOfflineRegions() =>
 String getOfflineRegionById({required String id}) =>
     RustBridge.instance.api.crateGetOfflineRegionById(id: id);
 
-/// Get list of tiles for a region as JSON array of {z, x, y}
+/// Return the bounds and zoom range stored in a region's PMTiles archive as JSON.
 String getOfflineRegionTileList({required String regionId}) =>
     RustBridge.instance.api.crateGetOfflineRegionTileList(regionId: regionId);
 
-/// Read one tile file for a region. Returns raw .pbf bytes.
+/// Read one tile from a region's PMTiles archive. Returns raw vector-tile bytes.
 Uint8List getOfflineRegionTileBytes({
   required String regionId,
   required int z,
@@ -342,7 +346,7 @@ Uint8List prepareTileChunkMessage({
   data: data,
 );
 
-/// Delete an offline region by id and remove its tile directory
+/// Delete an offline region by id and remove its PMTiles archive.
 void deleteOfflineRegion({required String id}) =>
     RustBridge.instance.api.crateDeleteOfflineRegion(id: id);
 
@@ -363,23 +367,11 @@ String getOfflineRegionForViewport({
 String getOfflineRegionsStoragePath() =>
     RustBridge.instance.api.crateGetOfflineRegionsStoragePath();
 
-/// Download a region: fetch tiles, write to directory, insert into DB. Returns region JSON.
-String downloadOfflineRegion({
-  required String name,
-  required double north,
-  required double south,
-  required double east,
-  required double west,
-  required int minZoom,
-  required int maxZoom,
-  String? tileUrlTemplate,
-}) => RustBridge.instance.api.crateDownloadOfflineRegion(
-  name: name,
-  north: north,
-  south: south,
-  east: east,
-  west: west,
-  minZoom: minZoom,
-  maxZoom: maxZoom,
-  tileUrlTemplate: tileUrlTemplate,
-);
+/// List the regions advertised by the nav-dsp gateway as JSON array.
+String listAvailableRegions() =>
+    RustBridge.instance.api.crateListAvailableRegions();
+
+/// Download a region's PMTiles archive from the nav-dsp gateway and register it
+/// in the local DB. Returns the persisted region as JSON.
+String downloadOfflineRegion({required String regionId}) =>
+    RustBridge.instance.api.crateDownloadOfflineRegion(regionId: regionId);

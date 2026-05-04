@@ -1,9 +1,12 @@
 /// Represents a downloaded offline map region.
 ///
-/// Stored as MBTiles (or tile directory) in app documents;
-/// registry holds id, name, bbox, path, zoom range, size.
+/// Stored as a single PMTiles archive in app documents; registry holds
+/// id, gateway region id, name, bbox, archive path, zoom range, size.
 class OfflineRegion {
   final String id;
+
+  /// Gateway-side region identifier (e.g. `"netherlands"`).
+  final String regionId;
   final String name;
   final double north;
   final double south;
@@ -12,7 +15,7 @@ class OfflineRegion {
   final int minZoom;
   final int maxZoom;
 
-  /// Relative path from offline storage root (e.g. "region_abc.mbtiles").
+  /// Relative path from offline storage root (e.g. "region_abc.pmtiles").
   final String relativePath;
 
   /// Approximate size in bytes.
@@ -21,6 +24,7 @@ class OfflineRegion {
 
   const OfflineRegion({
     required this.id,
+    required this.regionId,
     required this.name,
     required this.north,
     required this.south,
@@ -49,6 +53,7 @@ class OfflineRegion {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'regionId': regionId,
       'name': name,
       'north': north,
       'south': south,
@@ -65,6 +70,7 @@ class OfflineRegion {
   factory OfflineRegion.fromJson(Map<String, dynamic> json) {
     return OfflineRegion(
       id: json['id'] as String,
+      regionId: (json['regionId'] as String?) ?? '',
       name: json['name'] as String,
       north: (json['north'] as num).toDouble(),
       south: (json['south'] as num).toDouble(),

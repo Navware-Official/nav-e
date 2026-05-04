@@ -31,4 +31,4 @@ pub use multi::MultiRouteService;
 #[cfg(feature = "navdsp")]
 pub mod navdsp;
 #[cfg(feature = "navdsp")]
-pub use navdsp::{FallbackGeocodingService, NavDspGeocodingService};
+pub use navdsp::{FallbackGeocodingService, NavDspGeocodingService, NavDspTileArchiveService};

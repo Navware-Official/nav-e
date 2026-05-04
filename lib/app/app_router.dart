@@ -19,6 +19,7 @@ import 'package:nav_e/features/saved_routes/import_preview_screen.dart';
 import 'package:nav_e/features/saved_routes/saved_routes_screen.dart';
 import 'package:nav_e/features/search/bloc/search_bloc.dart';
 import 'package:nav_e/features/search/search_screen.dart';
+import 'package:nav_e/features/hud_widgets/presentation/widget_editor_screen.dart';
 import 'package:nav_e/features/settings/settings_screen.dart';
 import 'package:nav_e/features/settings/settings_subpages.dart';
 import 'package:nav_e/features/settings/licenses_screen.dart';
@@ -194,6 +195,11 @@ GoRouter buildRouter({Listenable? refreshListenable}) {
         path: '/settings/appearance',
         name: 'settingsAppearance',
         builder: (_, _) => const AppearanceSettingsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/hud-widgets',
+        name: 'settingsHudWidgets',
+        builder: (_, _) => const WidgetEditorScreen(),
       ),
       GoRoute(
         path: '/settings/navigation',

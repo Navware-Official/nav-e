@@ -2,14 +2,8 @@
 
 #[derive(Debug, Clone)]
 pub struct DownloadOfflineRegionCommand {
-    pub name: String,
-    pub north: f64,
-    pub south: f64,
-    pub east: f64,
-    pub west: f64,
-    pub min_zoom: i32,
-    pub max_zoom: i32,
-    pub tile_url_template: Option<String>,
+    /// Gateway-side region identifier (e.g. `"netherlands"`).
+    pub region_id: String,
 }
 
 #[derive(Debug, Clone)]

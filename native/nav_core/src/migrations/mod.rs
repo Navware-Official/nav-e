@@ -18,6 +18,7 @@ mod m20250224000000_trips;
 mod m20250225000000_saved_routes;
 mod m20260307000000_navigation_sessions;
 mod m20260309000000_nav_engine_state;
+mod m20260426000000_pmtiles_offline_regions;
 
 // Re-export migrations (internal use only, not for FFI)
 pub use m20231201000000_initial_schema::InitialSchema;
@@ -257,6 +258,7 @@ pub fn get_all_migrations() -> Vec<Box<dyn Migration>> {
         Box::new(m20250225000000_saved_routes::SavedRoutesSchema {}),
         Box::new(m20260307000000_navigation_sessions::NavigationSessionsSchema {}),
         Box::new(m20260309000000_nav_engine_state::NavEngineStateSchema {}),
+        Box::new(m20260426000000_pmtiles_offline_regions::PmTilesOfflineRegions {}),
     ]
 }
 

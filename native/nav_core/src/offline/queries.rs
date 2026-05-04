@@ -31,3 +31,6 @@ pub struct GetOfflineRegionTileBytesQuery {
 
 #[derive(Debug, Clone)]
 pub struct GetStoragePathQuery;
+
+#[derive(Debug, Clone)]
+pub struct ListAvailableRegionsQuery;

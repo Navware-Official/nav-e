@@ -27,6 +27,8 @@ nav_ir = { path = "../nav_ir" }
 nav_engine = { path = "../nav_engine" }
 geo-types = "0.7"
 rusqlite = { version = "0.32", features = ["bundled"] }
+pmtiles = { version = "0.23", default-features = false, features = ["mmap-async-tokio", "tilejson"] }
+futures-util = "0.3"
 
 [build-dependencies]
 prost-build = "0.13"

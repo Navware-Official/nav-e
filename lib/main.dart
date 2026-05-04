@@ -40,6 +40,8 @@ import 'package:nav_e/core/domain/repositories/offline_regions_repository.dart';
 import 'package:nav_e/features/offline_maps/cubit/offline_maps_cubit.dart';
 import 'package:nav_e/features/offline_maps/data/offline_map_style_resolver.dart';
 import 'package:nav_e/features/offline_maps/data/offline_regions_repository_rust.dart';
+import 'package:nav_e/features/hud_widgets/cubit/hud_layout_cubit.dart';
+import 'package:nav_e/features/hud_widgets/data/hud_layout_repository.dart';
 
 import 'package:nav_e/core/notifications/nav_notification_service.dart';
 import 'package:nav_e/core/theme/app_theme.dart';
@@ -251,6 +253,7 @@ class _AppLoaderState extends State<_AppLoader> {
             create: (ctx) =>
                 OfflineMapsCubit(ctx.read<IOfflineRegionsRepository>()),
           ),
+          BlocProvider(create: (_) => HudLayoutCubit(HudLayoutRepository())),
         ],
         child: BlocBuilder<ThemeCubit, AppThemeMode>(
           builder: (context, mode) {

@@ -1,4 +1,4 @@
-//! Offline map regions API: registry in Rust DB, tile download and file write in Rust.
+//! Offline map regions API: registry in Rust DB, archive downloaded as PMTiles.
 
 use anyhow::Result;
 
@@ -25,27 +25,34 @@ pub fn get_offline_region_by_id(id: String) -> Result<String> {
     })
 }
 
-/// Delete an offline region by id and remove its tile directory.
+/// Delete an offline region by id and remove its PMTiles archive.
 pub fn delete_offline_region(id: String) -> Result<()> {
-    get_container()
-        .offline
-        .delete_offline_region(DeleteOfflineRegionCommand { id })
-}
-
-/// Get list of tiles for a region as JSON array of {z, x, y}.
-pub fn get_offline_region_tile_list(region_id: String) -> Result<String> {
-    query_json(|| {
+    command_async(|| async {
         get_container()
             .offline
-            .get_tile_list(GetOfflineRegionTileListQuery { region_id })
+            .delete_offline_region(DeleteOfflineRegionCommand { id })
+            .await
     })
 }
 
-/// Read one tile file for a region. Returns raw .pbf bytes.
+/// Get the bounds and zoom range stored in a region's PMTiles archive.
+pub fn get_offline_region_tile_list(region_id: String) -> Result<String> {
+    query_json_async(|| async {
+        get_container()
+            .offline
+            .get_tile_list(GetOfflineRegionTileListQuery { region_id })
+            .await
+    })
+}
+
+/// Read one tile from a region's PMTiles archive. Returns raw vector-tile bytes.
 pub fn get_offline_region_tile_bytes(region_id: String, z: i32, x: i32, y: i32) -> Result<Vec<u8>> {
-    get_container()
-        .offline
-        .get_tile_bytes(GetOfflineRegionTileBytesQuery { region_id, z, x, y })
+    query_async(|| async {
+        get_container()
+            .offline
+            .get_tile_bytes(GetOfflineRegionTileBytesQuery { region_id, z, x, y })
+            .await
+    })
 }
 
 /// Get region for viewport bbox as JSON object (or null).
@@ -74,28 +81,22 @@ pub fn get_offline_regions_storage_path() -> Result<String> {
         .get_storage_path(GetStoragePathQuery)
 }
 
-/// Download a region: fetch tiles, write to directory, insert into DB. Returns region JSON.
-#[allow(clippy::too_many_arguments)]
-pub fn download_offline_region(
-    name: String,
-    north: f64,
-    south: f64,
-    east: f64,
-    west: f64,
-    min_zoom: i32,
-    max_zoom: i32,
-    tile_url_template: Option<String>,
-) -> Result<String> {
-    get_container()
-        .offline
-        .download_offline_region(DownloadOfflineRegionCommand {
-            name,
-            north,
-            south,
-            east,
-            west,
-            min_zoom,
-            max_zoom,
-            tile_url_template,
-        })
+/// List the regions advertised by the nav-dsp gateway as JSON array.
+pub fn list_available_regions() -> Result<String> {
+    query_json_async(|| async {
+        get_container()
+            .offline
+            .list_available_regions(ListAvailableRegionsQuery)
+            .await
+    })
+}
+
+/// Download a region's PMTiles archive and register it in the DB. Returns region JSON.
+pub fn download_offline_region(region_id: String) -> Result<String> {
+    query_json_async(|| async {
+        get_container()
+            .offline
+            .download_offline_region(DownloadOfflineRegionCommand { region_id })
+            .await
+    })
 }
