@@ -73,7 +73,9 @@ pub fn initialize_database(
         navdsp_geo, nominatim,
     ));
 
-    nav_core::api::initialize_database(db_path, multi, geocoding_service)
+    let tile_archive_service = Arc::new(nav_route::NavDspTileArchiveService::new());
+
+    nav_core::api::initialize_database(db_path, multi, geocoding_service, tile_archive_service)
 }
 
 /// Configure the nav-dsp gateway base URL, optional JWT token, and per-service toggles.
@@ -87,6 +89,13 @@ pub fn set_navdsp_config(
 ) -> Result<()> {
     nav_route::navdsp::config::set_config(base_url, token, geocoding_enabled);
     Ok(())
+}
+
+/// Read back the currently-configured nav-dsp base URL. Useful for diagnostics
+/// (e.g. showing the active URL in a settings or offline-maps screen).
+#[frb(sync)]
+pub fn get_navdsp_base_url() -> Result<String> {
+    Ok(nav_route::navdsp::config::get_config().base_url)
 }
 
 /// Switch the active routing engine. Valid names: `"osrm"`, `"valhalla"`, `"googleRoutes"`.
@@ -451,13 +460,13 @@ pub fn get_offline_region_by_id(id: String) -> Result<String> {
     nav_core::api::get_offline_region_by_id(id)
 }
 
-/// Get list of tiles for a region as JSON array of {z, x, y}
+/// Return the bounds and zoom range stored in a region's PMTiles archive as JSON.
 #[frb(sync)]
 pub fn get_offline_region_tile_list(region_id: String) -> Result<String> {
     nav_core::api::get_offline_region_tile_list(region_id)
 }
 
-/// Read one tile file for a region. Returns raw .pbf bytes.
+/// Read one tile from a region's PMTiles archive. Returns raw vector-tile bytes.
 #[frb(sync)]
 pub fn get_offline_region_tile_bytes(region_id: String, z: i32, x: i32, y: i32) -> Result<Vec<u8>> {
     nav_core::api::get_offline_region_tile_bytes(region_id, z, x, y)
@@ -490,7 +499,7 @@ pub fn prepare_tile_chunk_message(
     nav_core::api::prepare_tile_chunk_message(region_id, z, x, y, data)
 }
 
-/// Delete an offline region by id and remove its tile directory
+/// Delete an offline region by id and remove its PMTiles archive.
 #[frb(sync)]
 pub fn delete_offline_region(id: String) -> Result<()> {
     nav_core::api::delete_offline_region(id)
@@ -513,26 +522,15 @@ pub fn get_offline_regions_storage_path() -> Result<String> {
     nav_core::api::get_offline_regions_storage_path()
 }
 
-/// Download a region: fetch tiles, write to directory, insert into DB. Returns region JSON.
+/// List the regions advertised by the nav-dsp gateway as JSON array.
 #[frb(sync)]
-pub fn download_offline_region(
-    name: String,
-    north: f64,
-    south: f64,
-    east: f64,
-    west: f64,
-    min_zoom: i32,
-    max_zoom: i32,
-    tile_url_template: Option<String>,
-) -> Result<String> {
-    nav_core::api::download_offline_region(
-        name,
-        north,
-        south,
-        east,
-        west,
-        min_zoom,
-        max_zoom,
-        tile_url_template,
-    )
+pub fn list_available_regions() -> Result<String> {
+    nav_core::api::list_available_regions()
+}
+
+/// Download a region's PMTiles archive from the nav-dsp gateway and register it
+/// in the local DB. Returns the persisted region as JSON.
+#[frb(sync)]
+pub fn download_offline_region(region_id: String) -> Result<String> {
+    nav_core::api::download_offline_region(region_id)
 }

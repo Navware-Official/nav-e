@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:nav_e/core/theme/colors.dart';
+import 'package:nav_e/core/theme/typography.dart';
 
+/// Search bar in the Navware visual language: sharp 0px corners, 1px
+/// hairline border, mono-uppercase placeholder. Sits over a translucent
+/// dark fill so it remains legible above the map.
 class SearchBarWidget extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final VoidCallback? onTap;
@@ -20,64 +25,56 @@ class SearchBarWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final appColors = theme.extension<AppColors>()!;
     final textTheme = theme.textTheme;
-    final fillColor = colorScheme.surfaceContainerHighest;
+
+    final isDark = theme.brightness == Brightness.dark;
+    // The map sits behind the search bar; pin a translucent dark fill on
+    // dark mode and a clean surface on light mode so contrast holds.
+    final fillColor = isDark ? const Color(0xEB000000) : colorScheme.surface;
+    final borderColor = appColors.borderStrong;
+
     return Material(
       type: MaterialType.transparency,
       child: Container(
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.zero,
-          boxShadow: [
-            BoxShadow(
-              color: colorScheme.shadow.withValues(alpha: 0.12),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          color: fillColor,
+          border: Border.all(color: borderColor, width: 1),
         ),
-        clipBehavior: Clip.antiAlias,
         child: TextField(
           readOnly: onTap != null,
           onTap: onTap,
           onChanged: onChanged,
-          style: textTheme.bodyLarge?.copyWith(color: colorScheme.onSurface),
+          style: textTheme.bodyMedium?.copyWith(color: appColors.fgPrimary),
           decoration: InputDecoration(
-            hintText: hintText ?? 'Hinted search text',
-            hintStyle: textTheme.bodyLarge?.copyWith(
-              color: colorScheme.onSurfaceVariant,
-              fontWeight: FontWeight.w400,
+            hintText: hintText ?? 'Search for a place',
+            hintStyle: TextStyle(
+              fontFamily: AppTypography.monoFamily,
+              fontSize: 14,
+              letterSpacing: 0.56,
+              color: appColors.fgMuted,
             ),
             prefixIcon: Icon(
               Icons.search,
-              color: colorScheme.onSurfaceVariant,
-              size: 22,
+              color: appColors.fgSecondary,
+              size: 18,
             ),
             suffixIcon: onMenuTap != null
                 ? IconButton(
-                    icon: const Icon(Icons.menu, size: 24),
+                    icon: const Icon(Icons.menu, size: 22),
                     onPressed: onMenuTap,
                     style: IconButton.styleFrom(
-                      foregroundColor: colorScheme.onSurface,
+                      foregroundColor: appColors.fgPrimary,
                     ),
                     padding: const EdgeInsets.symmetric(horizontal: 12),
                   )
                 : null,
-            filled: true,
-            fillColor: fillColor,
-            border: const OutlineInputBorder(
-              borderRadius: BorderRadius.zero,
-              borderSide: BorderSide.none,
-            ),
-            enabledBorder: const OutlineInputBorder(
-              borderRadius: BorderRadius.zero,
-              borderSide: BorderSide.none,
-            ),
-            focusedBorder: const OutlineInputBorder(
-              borderRadius: BorderRadius.zero,
-              borderSide: BorderSide.none,
-            ),
+            filled: false,
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
             contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
+              horizontal: 12,
               vertical: 12,
             ),
           ),

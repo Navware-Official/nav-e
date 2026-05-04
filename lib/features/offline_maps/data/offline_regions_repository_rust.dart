@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:nav_e/bridge/lib.dart' as rust;
 import 'package:nav_e/core/domain/entities/offline_region.dart';
 import 'package:nav_e/core/domain/repositories/offline_regions_repository.dart';
+import 'package:nav_e/features/offline_maps/data/available_region.dart';
 import 'package:path/path.dart' as path;
 
 /// Rust-backed offline regions repository.
@@ -30,12 +31,6 @@ class OfflineRegionsRepositoryRust implements IOfflineRegionsRepository {
     final data = jsonDecode(json) as Map<String, dynamic>?;
     if (data == null) return null;
     return OfflineRegion.fromJson(data);
-  }
-
-  @override
-  Future<void> add(OfflineRegion region) async {
-    // Regions are added by Rust when downloading; no direct insert from Dart.
-    throw UnsupportedError('Use downloadRegion() to add regions');
   }
 
   @override
@@ -69,29 +64,18 @@ class OfflineRegionsRepositoryRust implements IOfflineRegionsRepository {
   }
 
   @override
-  Future<OfflineRegion?> downloadRegion({
-    required String name,
-    required double north,
-    required double south,
-    required double east,
-    required double west,
-    required int minZoom,
-    required int maxZoom,
-    String? tileUrlTemplate,
-    void Function(int done, int total, int zoom)? onProgress,
-  }) async {
-    // onProgress ignored: download runs in Rust without streaming progress for now
+  Future<List<AvailableRegion>> listAvailableRegions() async {
+    final json = rust.listAvailableRegions();
+    final list = jsonDecode(json) as List<dynamic>;
+    return list
+        .map((e) => AvailableRegion.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<OfflineRegion?> downloadRegion({required String regionId}) async {
     try {
-      final json = rust.downloadOfflineRegion(
-        name: name,
-        north: north,
-        south: south,
-        east: east,
-        west: west,
-        minZoom: minZoom,
-        maxZoom: maxZoom,
-        tileUrlTemplate: tileUrlTemplate,
-      );
+      final json = rust.downloadOfflineRegion(regionId: regionId);
       final data = jsonDecode(json) as Map<String, dynamic>;
       return OfflineRegion.fromJson(data);
     } catch (_) {

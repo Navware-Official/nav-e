@@ -1,38 +1,40 @@
 import 'package:flutter/material.dart';
-import 'package:nav_e/core/theme/styles/corner_block_border.dart';
 import '../palette.dart';
 import '../typography.dart';
 
+/// AppBar themes — flat, hairline bottom border, display-font title.
 class AppBarThemes {
+  AppBarThemes._();
+
   static const AppBarTheme light = AppBarTheme(
-    backgroundColor: AppPalette.white,
-    foregroundColor: AppPalette.capeCodDark02,
+    backgroundColor: AppPalette.paper000,
+    foregroundColor: AppPalette.brandCharcoal,
     elevation: 0,
+    scrolledUnderElevation: 0,
+    surfaceTintColor: Colors.transparent,
     titleTextStyle: TextStyle(
       fontFamily: AppTypography.decorativeFamily,
       fontWeight: FontWeight.w600,
       fontSize: 22,
-      color: AppPalette.capeCodDark02,
+      letterSpacing: -0.22,
+      color: AppPalette.brandCharcoal,
     ),
-    shape: CornerBlockBorder(
-      side: BorderSide(width: 2, color: AppPalette.lightGray),
-      blockOvershoot: 2,
-    ),
+    shape: Border(bottom: BorderSide(width: 1, color: AppPalette.brandGray)),
   );
 
   static const AppBarTheme dark = AppBarTheme(
-    backgroundColor: AppPalette.blueRibbonDark04,
-    foregroundColor: AppPalette.lightGray,
-    elevation: 2,
+    backgroundColor: AppPalette.ink050,
+    foregroundColor: AppPalette.brandWhite,
+    elevation: 0,
+    scrolledUnderElevation: 0,
+    surfaceTintColor: Colors.transparent,
     titleTextStyle: TextStyle(
       fontFamily: AppTypography.decorativeFamily,
       fontWeight: FontWeight.w600,
       fontSize: 22,
-      color: AppPalette.lightGray,
+      letterSpacing: -0.22,
+      color: AppPalette.brandWhite,
     ),
-    shape: CornerBlockBorder(
-      side: BorderSide(width: 2, color: AppPalette.lightGray),
-      blockOvershoot: 2,
-    ),
+    shape: Border(bottom: BorderSide(width: 1, color: AppPalette.ink400)),
   );
 }

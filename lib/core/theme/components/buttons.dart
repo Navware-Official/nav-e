@@ -1,55 +1,59 @@
 import 'package:flutter/material.dart';
 import '../palette.dart';
-import '../styles/corner_block_border.dart';
 
+/// Button themes — sharp 0px corners, flat fills, hairline borders.
 class AppButtonThemes {
+  AppButtonThemes._();
+
+  static const _sharpShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.zero,
+  );
+
   static ElevatedButtonThemeData elevatedLight = ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: AppPalette.blueRibbon,
-      foregroundColor: AppPalette.white,
-      textStyle: const TextStyle(fontWeight: FontWeight.w700),
-      shape: const CornerBlockBorder(
-        side: BorderSide(width: 2, color: AppPalette.blueRibbonDark02),
-        blockOvershoot: 2,
-        blockFillColor: AppPalette.blueRibbon,
-      ),
+      backgroundColor: AppPalette.brandBlue,
+      foregroundColor: AppPalette.brandWhite,
+      disabledBackgroundColor: AppPalette.paper300,
+      disabledForegroundColor: AppPalette.brandGray,
+      textStyle: const TextStyle(fontWeight: FontWeight.w500),
+      shape: _sharpShape,
+      elevation: 0,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     ),
   );
 
   static ElevatedButtonThemeData elevatedDark = ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
-      backgroundColor: AppPalette.lightGray,
-      foregroundColor: AppPalette.blueRibbon,
-      textStyle: const TextStyle(fontWeight: FontWeight.w700),
-      shape: const CornerBlockBorder(
-        side: BorderSide(width: 2, color: AppPalette.capeCodDark01),
-        blockOvershoot: 2,
-        blockFillColor: AppPalette.lightGray,
-      ),
+      backgroundColor: AppPalette.brandBlue,
+      foregroundColor: AppPalette.brandWhite,
+      disabledBackgroundColor: AppPalette.ink300,
+      disabledForegroundColor: AppPalette.ink600,
+      textStyle: const TextStyle(fontWeight: FontWeight.w500),
+      shape: _sharpShape,
+      elevation: 0,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     ),
   );
 
   static OutlinedButtonThemeData outlinedLight = OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
-      side: const BorderSide(color: AppPalette.blueRibbon, width: 2),
-      foregroundColor: AppPalette.blueRibbonDark02,
-      shape: const CornerBlockBorder(
-        side: BorderSide(color: AppPalette.blueRibbon, width: 2),
-        blockOvershoot: 2,
-        blockFillColor: AppPalette.white,
-      ),
+      side: const BorderSide(color: AppPalette.brandGray, width: 1),
+      foregroundColor: AppPalette.brandBlue,
+      backgroundColor: Colors.transparent,
+      textStyle: const TextStyle(fontWeight: FontWeight.w500),
+      shape: _sharpShape,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     ),
   );
 
   static OutlinedButtonThemeData outlinedDark = OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
-      side: const BorderSide(color: AppPalette.blueRibbon, width: 2),
-      foregroundColor: AppPalette.blueRibbon,
-      shape: const CornerBlockBorder(
-        side: BorderSide(color: AppPalette.blueRibbon, width: 2),
-        blockOvershoot: 2,
-        blockFillColor: AppPalette.capeCodDark01,
-      ),
+      side: const BorderSide(color: AppPalette.ink500, width: 1),
+      foregroundColor: AppPalette.brandWhite,
+      backgroundColor: Colors.transparent,
+      textStyle: const TextStyle(fontWeight: FontWeight.w500),
+      shape: _sharpShape,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     ),
   );
 }

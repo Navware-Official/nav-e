@@ -16,6 +16,7 @@ use crate::navigation::domain::{
     ports::{GeocodingService, NavigationRepository, RouteService},
 };
 use crate::navigation::infrastructure::SqliteNavigationRepository;
+use crate::offline::domain::ports::TileArchiveService;
 use crate::offline::handlers::OfflineHandlers;
 use crate::places::handlers::PlacesHandlers;
 use std::sync::{Arc, OnceLock};
@@ -42,6 +43,7 @@ impl AppContainer {
         db_path: String,
         route_service: Arc<dyn RouteService>,
         geocoding_service: Arc<dyn GeocodingService>,
+        tile_archive_service: Arc<dyn TileArchiveService>,
     ) -> Self {
         let path = std::path::PathBuf::from(&db_path);
         let db = Database::new(path.clone()).expect("Failed to initialize database");
@@ -75,10 +77,10 @@ impl AppContainer {
                 SavedRoutesRepository::new(Arc::clone(&db_conn)),
             ),
             devices: DevicesHandlers::new(DeviceRepository::new(Arc::clone(&db_conn))),
-            offline: OfflineHandlers::new(OfflineRegionsRepository::new(
-                Arc::clone(&db_conn),
-                storage_base,
-            )),
+            offline: OfflineHandlers::new(
+                OfflineRegionsRepository::new(Arc::clone(&db_conn), storage_base),
+                tile_archive_service,
+            ),
             device_adapter,
         }
     }
@@ -109,14 +111,22 @@ pub(crate) fn get_container() -> &'static AppContainer {
 
 /// Initialize the application with a platform-specific database path and injected services.
 ///
-/// `route_service` and `geocoding_service` are provided by the caller (nav_e_ffi uses nav_route).
-/// Must be called before any other API functions.
+/// `route_service`, `geocoding_service`, and `tile_archive_service` are provided by the
+/// caller (nav_e_ffi uses nav_route). Must be called before any other API functions.
 pub fn initialize_database(
     db_path: String,
     route_service: Arc<dyn RouteService>,
     geocoding_service: Arc<dyn GeocodingService>,
+    tile_archive_service: Arc<dyn TileArchiveService>,
 ) -> anyhow::Result<()> {
-    APP_CONTAINER.get_or_init(|| AppContainer::new(db_path, route_service, geocoding_service));
+    APP_CONTAINER.get_or_init(|| {
+        AppContainer::new(
+            db_path,
+            route_service,
+            geocoding_service,
+            tile_archive_service,
+        )
+    });
     Ok(())
 }
 

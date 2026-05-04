@@ -12,15 +12,15 @@ class AppBadgeThemes {
   AppBadgeThemes._();
 
   static BadgeThemeData light() => const BadgeThemeData(
-    backgroundColor: AppPalette.blueRibbon,
-    textColor: AppPalette.white,
+    backgroundColor: AppPalette.brandBlue,
+    textColor: AppPalette.brandWhite,
     smallSize: 6,
     largeSize: 16,
   );
 
   static BadgeThemeData dark() => const BadgeThemeData(
-    backgroundColor: AppPalette.blueRibbon,
-    textColor: AppPalette.white,
+    backgroundColor: AppPalette.brandBlue,
+    textColor: AppPalette.brandWhite,
     smallSize: 6,
     largeSize: 16,
   );

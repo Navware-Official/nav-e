@@ -24,4 +24,6 @@ pub use api::*;
 // Port traits and value types — exposed so nav_route can implement them
 pub use navigation::domain::events::NavigationEvent;
 pub use navigation::domain::ports::{GeocodingService, RouteService};
+pub use offline::domain::ports::TileArchiveService;
+pub use offline::domain::value_objects::{DownloadedRegion, RegionBounds, RegionMetadata};
 pub use shared::value_objects::{GeocodingSearchResult, Position};

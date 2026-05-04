@@ -1,14 +1,13 @@
 import 'package:nav_e/core/domain/entities/offline_region.dart';
+import 'package:nav_e/features/offline_maps/data/available_region.dart';
 
 abstract class IOfflineRegionsRepository {
-  /// Root directory for offline region files (e.g. MBTiles).
+  /// Root directory holding `.pmtiles` archives.
   Future<String> getStoragePath();
 
   Future<List<OfflineRegion>> getAll();
 
   Future<OfflineRegion?> getById(String id);
-
-  Future<void> add(OfflineRegion region);
 
   Future<void> delete(String id);
 
@@ -20,19 +19,13 @@ abstract class IOfflineRegionsRepository {
     double west,
   );
 
-  /// Full path to the region's tile directory (z/x/y.pbf under it).
+  /// Full path to the region's PMTiles archive on disk.
   Future<String> getAbsolutePath(OfflineRegion region);
 
-  /// Download a region (Rust: fetch tiles, write dir, insert). Returns the new region or null on error.
-  Future<OfflineRegion?> downloadRegion({
-    required String name,
-    required double north,
-    required double south,
-    required double east,
-    required double west,
-    required int minZoom,
-    required int maxZoom,
-    String? tileUrlTemplate,
-    void Function(int done, int total, int zoom)? onProgress,
-  });
+  /// Catalog of regions advertised by the nav-dsp gateway.
+  Future<List<AvailableRegion>> listAvailableRegions();
+
+  /// Download a region's PMTiles archive from the gateway and register it locally.
+  /// Returns the new region or `null` on error.
+  Future<OfflineRegion?> downloadRegion({required String regionId});
 }

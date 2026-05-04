@@ -1,97 +1,151 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:nav_e/core/theme/colors.dart';
 import 'package:nav_e/core/theme/spacing.dart';
+import 'package:nav_e/core/theme/typography.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final appColors = theme.extension<AppColors>()!;
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: const Text('Settings'),
+        toolbarHeight: 0,
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        children: [
-          _SettingsGroup(
-            label: 'Appearance',
-            items: [
-              _SettingsTile(
-                icon: Icons.palette_outlined,
-                title: 'Appearance',
-                subtitle: 'Theme and map style',
-                onTap: () => context.pushNamed('settingsAppearance'),
+      body: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: [
+            // Eyebrow + display title — matches design's section header
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.s3,
               ),
-            ],
-          ),
-          _SettingsGroup(
-            label: 'Navigation',
-            items: [
-              _SettingsTile(
-                icon: Icons.route_outlined,
-                title: 'Navigation',
-                subtitle: 'Routing engine, off-route alerts',
-                onTap: () => context.pushNamed('settingsNavigation'),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: const Icon(Icons.arrow_back, size: 20),
+                        onPressed: () => context.pop(),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        'CONFIGURATION',
+                        style: AppTypography.eyebrow.copyWith(
+                          fontSize: 10,
+                          letterSpacing: 1.8,
+                          color: appColors.info,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 32),
+                    child: Text(
+                      'SETTINGS',
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                        color: appColors.fgPrimary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              _SettingsTile(
-                icon: Icons.download_outlined,
-                title: 'Offline Maps',
-                subtitle: 'Download maps for offline use',
-                onTap: () => context.pushNamed('offlineMaps'),
-              ),
-            ],
-          ),
-          _SettingsGroup(
-            label: 'Services & Data',
-            items: [
-              _SettingsTile(
-                icon: Icons.cloud_outlined,
-                title: 'Navware Services',
-                subtitle: 'Geocoding, API token',
-                onTap: () => context.pushNamed('settingsServices'),
-              ),
-              _SettingsTile(
-                icon: Icons.history,
-                title: 'Trip History',
-                subtitle: 'Auto-save and recording preferences',
-                onTap: () => context.pushNamed('settingsData'),
-              ),
-            ],
-          ),
-          _SettingsGroup(
-            label: 'About',
-            items: [
-              _SettingsTile(
-                icon: Icons.info_outline,
-                title: 'About nav-e',
-                subtitle: 'Version, licenses, source code',
-                onTap: () => context.pushNamed('settingsAbout'),
-              ),
-            ],
-          ),
-          if (kDebugMode)
-            _SettingsGroup(
-              label: 'Developer',
+            ),
+            Divider(color: appColors.borderStrong, height: 1, thickness: 1),
+            const _SettingsGroup(
+              label: 'PROFILE',
               items: [
                 _SettingsTile(
-                  icon: Icons.developer_mode,
-                  title: 'Developer Settings',
-                  subtitle: 'nav-dsp server, connectivity',
-                  onTap: () => context.pushNamed('developerSettings'),
+                  icon: Icons.palette_outlined,
+                  title: 'Appearance',
+                  trailing: 'Theme · map',
+                  routeName: 'settingsAppearance',
+                ),
+                _SettingsTile(
+                  icon: Icons.dashboard_customize_outlined,
+                  title: 'HUD widgets',
+                  trailing: 'Edit modules',
+                  routeName: 'settingsHudWidgets',
                 ),
               ],
             ),
-          const SizedBox(height: AppSpacing.md),
-        ],
+            const _SettingsGroup(
+              label: 'NAVIGATION',
+              items: [
+                _SettingsTile(
+                  icon: Icons.route_outlined,
+                  title: 'Navigation',
+                  trailing: 'Routing engine',
+                  routeName: 'settingsNavigation',
+                ),
+                _SettingsTile(
+                  icon: Icons.download_outlined,
+                  title: 'Offline Maps',
+                  trailing: 'Regions',
+                  routeName: 'offlineMaps',
+                ),
+              ],
+            ),
+            const _SettingsGroup(
+              label: 'SERVICES & DATA',
+              items: [
+                _SettingsTile(
+                  icon: Icons.cloud_outlined,
+                  title: 'Navware Services',
+                  trailing: 'API · token',
+                  routeName: 'settingsServices',
+                ),
+                _SettingsTile(
+                  icon: Icons.history,
+                  title: 'Trip History',
+                  trailing: 'Auto-save',
+                  routeName: 'settingsData',
+                ),
+              ],
+            ),
+            const _SettingsGroup(
+              label: 'ABOUT',
+              items: [
+                _SettingsTile(
+                  icon: Icons.info_outline,
+                  title: 'About nav-e',
+                  trailing: 'Version · licenses',
+                  routeName: 'settingsAbout',
+                ),
+              ],
+            ),
+            if (kDebugMode)
+              const _SettingsGroup(
+                label: 'DEVELOPER',
+                items: [
+                  _SettingsTile(
+                    icon: Icons.developer_mode,
+                    title: 'Developer Settings',
+                    trailing: 'nav-dsp · BLE',
+                    routeName: 'developerSettings',
+                  ),
+                ],
+              ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+        ),
       ),
     );
   }
@@ -106,49 +160,40 @@ class _SettingsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final appColors = theme.extension<AppColors>()!;
 
-    return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-              left: AppSpacing.xs,
-              bottom: AppSpacing.sm,
-            ),
-            child: Text(
-              label,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.md,
+            AppSpacing.md,
+            6, // off-grid
+          ),
+          child: Row(
+            children: [
+              Container(width: 14, height: 1, color: appColors.info),
+              const SizedBox(width: AppSpacing.sm),
+              Text(
+                label,
+                style: AppTypography.eyebrow.copyWith(
+                  fontSize: 10,
+                  letterSpacing: 2.0,
+                  color: appColors.info,
+                ),
               ),
-            ),
+            ],
           ),
-          Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerLow,
-              border: Border.all(color: colorScheme.outlineVariant),
-            ),
-            child: Column(
-              children: [
-                for (int i = 0; i < items.length; i++) ...[
-                  items[i],
-                  if (i < items.length - 1)
-                    Divider(
-                      height: 1,
-                      indent: 52, // off-grid – aligns with text after icon+gap
-                      color: colorScheme.outlineVariant,
-                    ),
-                ],
-              ],
-            ),
-          ),
+        ),
+        for (int i = 0; i < items.length; i++) ...[
+          if (i == 0)
+            Divider(color: appColors.borderStrong, height: 1, thickness: 1),
+          items[i],
+          Divider(color: appColors.borderStrong, height: 1, thickness: 1),
         ],
-      ),
+      ],
     );
   }
 }
@@ -157,63 +202,48 @@ class _SettingsTile extends StatelessWidget {
   const _SettingsTile({
     required this.icon,
     required this.title,
-    this.subtitle,
-    required this.onTap,
+    this.trailing,
+    required this.routeName,
   });
 
   final IconData icon;
   final String title;
-  final String? subtitle;
-  final VoidCallback onTap;
+  final String? trailing;
+  final String routeName;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+    final appColors = theme.extension<AppColors>()!;
 
     return InkWell(
-      onTap: onTap,
+      onTap: () => context.pushNamed(routeName),
       child: Padding(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: 14, // off-grid
+          vertical: AppSpacing.s3,
         ),
         child: Row(
           children: [
-            Icon(
-              icon,
-              size: 22, // off-grid
-              color: colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(width: 14), // off-grid
+            Icon(icon, size: 18, color: appColors.fgSecondary),
+            const SizedBox(width: AppSpacing.s3),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (subtitle != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2), // off-grid
-                      child: Text(
-                        subtitle!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                ],
+              child: Text(
+                title,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: appColors.fgPrimary,
+                ),
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              size: 20, // off-grid
-              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
-            ),
+            if (trailing != null)
+              Text(
+                trailing!,
+                style: AppTypography.labelMicro.copyWith(
+                  color: appColors.fgSecondary,
+                ),
+              ),
+            const SizedBox(width: AppSpacing.s3),
+            Icon(Icons.chevron_right, size: 14, color: appColors.fgMuted),
           ],
         ),
       ),

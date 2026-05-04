@@ -407,6 +407,8 @@ impl Repository<DeviceEntity, i64> for DeviceRepository {
 #[serde(rename_all = "camelCase")]
 pub struct OfflineRegionEntity {
     pub id: String,
+    /// Gateway-side region identifier (e.g. `"netherlands"`).
+    pub region_id: String,
     pub name: String,
     pub north: f64,
     pub south: f64,
@@ -414,6 +416,7 @@ pub struct OfflineRegionEntity {
     pub west: f64,
     pub min_zoom: i32,
     pub max_zoom: i32,
+    /// Path to the region's `.pmtiles` archive, relative to the storage base.
     pub relative_path: String,
     pub size_bytes: i64,
     pub created_at: i64,
@@ -436,22 +439,23 @@ impl OfflineRegionsRepository {
     pub fn get_all(&self) -> Result<Vec<OfflineRegionEntity>> {
         let conn = self.db.lock().unwrap();
         let mut stmt = conn.prepare(
-            "SELECT id, name, north, south, east, west, min_zoom, max_zoom, relative_path, size_bytes, created_at
+            "SELECT id, region_id, name, north, south, east, west, min_zoom, max_zoom, relative_path, size_bytes, created_at
              FROM offline_regions ORDER BY created_at DESC",
         )?;
         let rows = stmt.query_map([], |row| {
             Ok(OfflineRegionEntity {
                 id: row.get(0)?,
-                name: row.get(1)?,
-                north: row.get(2)?,
-                south: row.get(3)?,
-                east: row.get(4)?,
-                west: row.get(5)?,
-                min_zoom: row.get(6)?,
-                max_zoom: row.get(7)?,
-                relative_path: row.get(8)?,
-                size_bytes: row.get(9)?,
-                created_at: row.get(10)?,
+                region_id: row.get(1)?,
+                name: row.get(2)?,
+                north: row.get(3)?,
+                south: row.get(4)?,
+                east: row.get(5)?,
+                west: row.get(6)?,
+                min_zoom: row.get(7)?,
+                max_zoom: row.get(8)?,
+                relative_path: row.get(9)?,
+                size_bytes: row.get(10)?,
+                created_at: row.get(11)?,
             })
         })?;
         rows.collect::<rusqlite::Result<Vec<_>>>()
@@ -461,22 +465,23 @@ impl OfflineRegionsRepository {
     pub fn get_by_id(&self, id: &str) -> Result<Option<OfflineRegionEntity>> {
         let conn = self.db.lock().unwrap();
         let mut stmt = conn.prepare(
-            "SELECT id, name, north, south, east, west, min_zoom, max_zoom, relative_path, size_bytes, created_at
+            "SELECT id, region_id, name, north, south, east, west, min_zoom, max_zoom, relative_path, size_bytes, created_at
              FROM offline_regions WHERE id = ?",
         )?;
         let result = stmt.query_row([id], |row| {
             Ok(OfflineRegionEntity {
                 id: row.get(0)?,
-                name: row.get(1)?,
-                north: row.get(2)?,
-                south: row.get(3)?,
-                east: row.get(4)?,
-                west: row.get(5)?,
-                min_zoom: row.get(6)?,
-                max_zoom: row.get(7)?,
-                relative_path: row.get(8)?,
-                size_bytes: row.get(9)?,
-                created_at: row.get(10)?,
+                region_id: row.get(1)?,
+                name: row.get(2)?,
+                north: row.get(3)?,
+                south: row.get(4)?,
+                east: row.get(5)?,
+                west: row.get(6)?,
+                min_zoom: row.get(7)?,
+                max_zoom: row.get(8)?,
+                relative_path: row.get(9)?,
+                size_bytes: row.get(10)?,
+                created_at: row.get(11)?,
             })
         });
         match result {
@@ -489,10 +494,11 @@ impl OfflineRegionsRepository {
     pub fn insert(&self, entity: &OfflineRegionEntity) -> Result<()> {
         let conn = self.db.lock().unwrap();
         conn.execute(
-            "INSERT INTO offline_regions (id, name, north, south, east, west, min_zoom, max_zoom, relative_path, size_bytes, created_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            "INSERT INTO offline_regions (id, region_id, name, north, south, east, west, min_zoom, max_zoom, relative_path, size_bytes, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)",
             rusqlite::params![
                 entity.id,
+                entity.region_id,
                 entity.name,
                 entity.north,
                 entity.south,
@@ -604,6 +610,7 @@ mod tests {
     fn make_region(n: f64, s: f64, e: f64, w: f64) -> OfflineRegionEntity {
         OfflineRegionEntity {
             id: "r1".to_string(),
+            region_id: "test".to_string(),
             name: "Test Region".to_string(),
             north: n,
             south: s,
@@ -611,7 +618,7 @@ mod tests {
             west: w,
             min_zoom: 8,
             max_zoom: 14,
-            relative_path: "r1.mbtiles".to_string(),
+            relative_path: "r1.pmtiles".to_string(),
             size_bytes: 0,
             created_at: 0,
         }
@@ -662,6 +669,7 @@ mod tests {
     fn make_offline_region_entity(id: &str) -> OfflineRegionEntity {
         OfflineRegionEntity {
             id: id.to_string(),
+            region_id: "test".to_string(),
             name: "Region".to_string(),
             north: 52.0,
             south: 48.0,
@@ -669,7 +677,7 @@ mod tests {
             west: -2.0,
             min_zoom: 8,
             max_zoom: 14,
-            relative_path: format!("{id}.mbtiles"),
+            relative_path: format!("{id}.pmtiles"),
             size_bytes: 1024,
             created_at: chrono::Utc::now().timestamp(),
         }

@@ -2,33 +2,50 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:nav_e/core/domain/repositories/offline_regions_repository.dart';
+import 'package:nav_e/bridge/lib.dart' as rust_api;
 import 'package:nav_e/core/device_comm/device_comm_transport.dart';
 import 'package:nav_e/features/device_comm/device_comm_bloc.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_events.dart';
 import 'package:nav_e/features/device_comm/presentation/bloc/device_comm_states.dart';
 import 'package:nav_e/features/offline_maps/cubit/offline_maps_cubit.dart';
 import 'package:nav_e/features/offline_maps/cubit/offline_maps_state.dart';
-import 'package:nav_e/features/offline_maps/presentation/widgets/download_region_sheet.dart';
-import 'package:nav_e/features/offline_maps/presentation/widgets/select_region_sheet.dart';
-import 'package:nav_e/features/offline_maps/presentation/widgets/offline_region_list_tile.dart';
+import 'package:nav_e/features/offline_maps/data/available_region.dart';
+import 'package:nav_e/core/domain/entities/offline_region.dart';
 
-class OfflineMapsScreen extends StatelessWidget {
+/// Single-page offline maps UI.
+///
+/// Lists the regions advertised by the nav-dsp gateway up top with inline
+/// download buttons; lists already-downloaded regions below with delete and
+/// "send to device" actions. No modal sheets — the catalog and the local list
+/// are always both visible so the user can see at a glance what is downloaded,
+/// what is available, and what's in flight.
+///
+/// Uses the app-level [OfflineMapsCubit] provided in `main.dart`; do not wrap
+/// in another BlocProvider here.
+class OfflineMapsScreen extends StatefulWidget {
   const OfflineMapsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) =>
-          OfflineMapsCubit(context.read<IOfflineRegionsRepository>())
-            ..loadRegions(),
-      child: const _OfflineMapsView(),
-    );
-  }
+  State<OfflineMapsScreen> createState() => _OfflineMapsScreenState();
 }
 
-class _OfflineMapsView extends StatelessWidget {
-  const _OfflineMapsView();
+class _OfflineMapsScreenState extends State<OfflineMapsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final cubit = context.read<OfflineMapsCubit>();
+    cubit.loadRegions();
+    cubit.loadAvailableRegions();
+  }
+
+  String _readBaseUrl() {
+    try {
+      final url = rust_api.getNavdspBaseUrl();
+      return url.isEmpty ? '(no URL configured)' : url;
+    } catch (e) {
+      return '(failed to read URL)';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +61,7 @@ class _OfflineMapsView extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Region downloaded')),
               );
-            } else if (state.status == OfflineMapsStatus.error &&
-                state.errorMessage != null) {
+            } else if (state.errorMessage != null) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(state.errorMessage!),
@@ -80,215 +96,290 @@ class _OfflineMapsView extends StatelessWidget {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.pop(),
           ),
-          title: const Text('Offline maps'),
-          actions: [
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) {
-                if (value == 'manual') _openDownloadSheet(context);
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'manual',
-                  child: Text('Add manually (enter bounds)'),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Offline maps'),
+              Text(
+                _readBaseUrl(),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
-              ],
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh catalog',
+              onPressed: () =>
+                  context.read<OfflineMapsCubit>().loadAvailableRegions(),
             ),
           ],
         ),
         body: BlocBuilder<OfflineMapsCubit, OfflineMapsState>(
-          buildWhen: (prev, curr) =>
-              prev.status != curr.status ||
-              prev.regions != curr.regions ||
-              prev.errorMessage != curr.errorMessage ||
-              prev.downloadProgress != curr.downloadProgress ||
-              prev.downloadTotal != curr.downloadTotal ||
-              prev.downloadingRegionName != curr.downloadingRegionName,
           builder: (context, state) {
-            final isDownloading = state.status == OfflineMapsStatus.downloading;
-            if (state.status == OfflineMapsStatus.loading &&
-                state.regions.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state.errorMessage != null && state.regions.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        state.errorMessage!,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: () =>
-                            context.read<OfflineMapsCubit>().loadRegions(),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
-            final regions = state.regions;
-            Widget listOrEmpty;
-            if (regions.isEmpty && !isDownloading) {
-              listOrEmpty = Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.map_outlined,
-                      size: 64,
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No offline regions yet',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Download a region to use maps without internet',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              listOrEmpty = ListView.builder(
-                itemCount: regions.length,
-                itemBuilder: (context, index) {
-                  final region = regions[index];
-                  return OfflineRegionListTile(
-                    region: region,
-                    onDelete: () =>
-                        _confirmDelete(context, region.name, region.id),
-                    onSendToDevice: () => _openSendToDevice(context, region.id),
-                  );
-                },
-              );
-            }
-            if (isDownloading) {
-              final name = state.downloadingRegionName ?? 'region';
-              final hasProgress =
-                  state.downloadTotal > 0 &&
-                  state.downloadTotal >= state.downloadProgress;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+            return RefreshIndicator(
+              onRefresh: () async {
+                final cubit = context.read<OfflineMapsCubit>();
+                await Future.wait([
+                  cubit.loadRegions(),
+                  cubit.loadAvailableRegions(),
+                ]);
+              },
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 children: [
-                  Material(
-                    elevation: 1,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.primaryContainer.withValues(alpha: 0.5),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
-                                  'Downloading $name…',
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w600),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (hasProgress) ...[
-                            const SizedBox(height: 8),
-                            LinearProgressIndicator(
-                              value: state.downloadTotal > 0
-                                  ? state.downloadProgress / state.downloadTotal
-                                  : null,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '${state.downloadProgress} / ${state.downloadTotal} tiles (zoom ${state.downloadZoom})',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                  Expanded(child: listOrEmpty),
+                  if (state.downloadingRegionName != null)
+                    _DownloadingBanner(name: state.downloadingRegionName!),
+                  _SectionHeader(title: 'Available from server'),
+                  _AvailableSection(state: state),
+                  const SizedBox(height: 16),
+                  _SectionHeader(title: 'Downloaded'),
+                  _DownloadedSection(state: state),
+                  const SizedBox(height: 32),
                 ],
-              );
-            }
-            return listOrEmpty;
+              ),
+            );
           },
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () => _openAddRegion(context),
-          icon: const Icon(Icons.add),
-          label: const Text('Add region'),
         ),
       ),
     );
   }
+}
 
-  Future<void> _openAddRegion(BuildContext context) async {
-    final selected = await showSelectRegionSheetResult(context);
-    if (!context.mounted) return;
-    final cubit = context.read<OfflineMapsCubit>();
-    if (selected != null) {
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (_) => BlocProvider.value(
-          value: cubit,
-          child: DownloadRegionSheet(
-            initialBbox: selected.bbox,
-            initialName: selected.name,
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Text(
+        title.toUpperCase(),
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: Theme.of(context).colorScheme.primary,
+          letterSpacing: 1.1,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
+class _DownloadingBanner extends StatelessWidget {
+  const _DownloadingBanner({required this.name});
+
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: Theme.of(
+        context,
+      ).colorScheme.primaryContainer.withValues(alpha: 0.5),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
           ),
-        ),
-      );
-    } else {
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        useSafeArea: true,
-        builder: (_) => BlocProvider.value(
-          value: cubit,
-          child: const DownloadRegionSheet(),
-        ),
-      );
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Downloading $name…',
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AvailableSection extends StatelessWidget {
+  const _AvailableSection({required this.state});
+
+  final OfflineMapsState state;
+
+  @override
+  Widget build(BuildContext context) {
+    switch (state.availableStatus) {
+      case AvailableRegionsStatus.initial:
+      case AvailableRegionsStatus.loading:
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      case AvailableRegionsStatus.error:
+        return _ErrorBlock(
+          message: state.availableErrorMessage ?? 'Failed to load catalog',
+          onRetry: () =>
+              context.read<OfflineMapsCubit>().loadAvailableRegions(),
+        );
+      case AvailableRegionsStatus.loaded:
+        if (state.availableRegions.isEmpty) {
+          return _InfoBlock(
+            icon: Icons.cloud_off_outlined,
+            title: 'No regions on the server',
+            body:
+                'The gateway has not published any regions yet. Make sure the '
+                'tile pipeline has run and try refreshing.',
+          );
+        }
+        final downloadedRegionIds = state.regions
+            .map((r) => r.regionId)
+            .toSet();
+        final isDownloading = state.status == OfflineMapsStatus.downloading;
+        return Column(
+          children: [
+            for (final r in state.availableRegions)
+              _AvailableRegionTile(
+                region: r,
+                alreadyDownloaded: downloadedRegionIds.contains(r.regionId),
+                downloadDisabled: isDownloading,
+                onDownload: () => context.read<OfflineMapsCubit>().downloadRegion(
+                  regionId: r.regionId,
+                  displayName: r.name,
+                ),
+              ),
+          ],
+        );
     }
   }
+}
 
-  void _openDownloadSheet(BuildContext context) {
+class _AvailableRegionTile extends StatelessWidget {
+  const _AvailableRegionTile({
+    required this.region,
+    required this.alreadyDownloaded,
+    required this.downloadDisabled,
+    required this.onDownload,
+  });
+
+  final AvailableRegion region;
+  final bool alreadyDownloaded;
+  final bool downloadDisabled;
+  final VoidCallback onDownload;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(
+        alreadyDownloaded ? Icons.check_circle : Icons.public,
+        color: alreadyDownloaded
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.onSurfaceVariant,
+      ),
+      title: Text(region.name),
+      subtitle: Text('${region.sizeMb} MB'),
+      trailing: alreadyDownloaded
+          ? Text(
+              'Downloaded',
+              style: Theme.of(context).textTheme.bodySmall,
+            )
+          : FilledButton.tonalIcon(
+              onPressed: downloadDisabled ? null : onDownload,
+              icon: const Icon(Icons.download),
+              label: const Text('Download'),
+            ),
+    );
+  }
+}
+
+class _DownloadedSection extends StatelessWidget {
+  const _DownloadedSection({required this.state});
+
+  final OfflineMapsState state;
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.status == OfflineMapsStatus.loading && state.regions.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 24),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (state.regions.isEmpty) {
+      return _InfoBlock(
+        icon: Icons.map_outlined,
+        title: 'No offline regions yet',
+        body:
+            'Tap Download next to a region above to use the map without '
+            'an internet connection.',
+      );
+    }
+    return Column(
+      children: [
+        for (final r in state.regions) _DownloadedRegionTile(region: r),
+      ],
+    );
+  }
+}
+
+class _DownloadedRegionTile extends StatelessWidget {
+  const _DownloadedRegionTile({required this.region});
+
+  final OfflineRegion region;
+
+  static String _formatBytes(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: const Icon(Icons.map),
+      title: Text(region.name),
+      subtitle: Text(_formatBytes(region.sizeBytes)),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.send_outlined),
+            tooltip: 'Send to device',
+            onPressed: () => _openSendToDevice(context, region.id),
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline),
+            tooltip: 'Delete',
+            onPressed: () => _confirmDelete(context, region.name, region.id),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context, String name, String id) {
     final cubit = context.read<OfflineMapsCubit>();
-    showModalBottomSheet<void>(
+    showDialog<void>(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) =>
-          BlocProvider.value(value: cubit, child: const DownloadRegionSheet()),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete region?'),
+        content: Text(
+          'Remove "$name" from offline storage? The map data will be deleted.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              cubit.deleteRegion(id);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -357,27 +448,80 @@ class _OfflineMapsView extends StatelessWidget {
       ),
     );
   }
+}
 
-  void _confirmDelete(BuildContext context, String name, String id) {
-    final cubit = context.read<OfflineMapsCubit>();
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Delete region?'),
-        content: Text(
-          'Remove "$name" from offline storage? The map data will be deleted.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
+class _ErrorBlock extends StatelessWidget {
+  const _ErrorBlock({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(
+                context,
+              ).colorScheme.errorContainer.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              message,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onErrorContainer,
+              ),
+            ),
           ),
-          FilledButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              cubit.deleteRegion(id);
-            },
-            child: const Text('Delete'),
+          const SizedBox(height: 12),
+          Center(
+            child: FilledButton.tonal(
+              onPressed: onRetry,
+              child: const Text('Retry'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoBlock extends StatelessWidget {
+  const _InfoBlock({
+    required this.icon,
+    required this.title,
+    required this.body,
+  });
+
+  final IconData icon;
+  final String title;
+  final String body;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Column(
+        children: [
+          Icon(
+            icon,
+            size: 48,
+            color: Theme.of(context).colorScheme.outline,
+          ),
+          const SizedBox(height: 12),
+          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 6),
+          Text(
+            body,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
         ],
       ),
