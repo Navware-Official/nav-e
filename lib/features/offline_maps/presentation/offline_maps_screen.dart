@@ -243,10 +243,9 @@ class _AvailableSection extends StatelessWidget {
                 region: r,
                 alreadyDownloaded: downloadedRegionIds.contains(r.regionId),
                 downloadDisabled: isDownloading,
-                onDownload: () => context.read<OfflineMapsCubit>().downloadRegion(
-                  regionId: r.regionId,
-                  displayName: r.name,
-                ),
+                onDownload: () => context
+                    .read<OfflineMapsCubit>()
+                    .downloadRegion(regionId: r.regionId, displayName: r.name),
               ),
           ],
         );
@@ -279,10 +278,7 @@ class _AvailableRegionTile extends StatelessWidget {
       title: Text(region.name),
       subtitle: Text('${region.sizeMb} MB'),
       trailing: alreadyDownloaded
-          ? Text(
-              'Downloaded',
-              style: Theme.of(context).textTheme.bodySmall,
-            )
+          ? Text('Downloaded', style: Theme.of(context).textTheme.bodySmall)
           : FilledButton.tonalIcon(
               onPressed: downloadDisabled ? null : onDownload,
               icon: const Icon(Icons.download),
@@ -508,11 +504,7 @@ class _InfoBlock extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Column(
         children: [
-          Icon(
-            icon,
-            size: 48,
-            color: Theme.of(context).colorScheme.outline,
-          ),
+          Icon(icon, size: 48, color: Theme.of(context).colorScheme.outline),
           const SizedBox(height: 12),
           Text(title, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 6),

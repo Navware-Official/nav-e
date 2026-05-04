@@ -18,7 +18,11 @@ void main() {
       final removed = layout.toggle(WidgetKind.speed);
       expect(removed.active, [WidgetKind.eta]);
       final added = layout.toggle(WidgetKind.compass);
-      expect(added.active, [WidgetKind.speed, WidgetKind.eta, WidgetKind.compass]);
+      expect(added.active, [
+        WidgetKind.speed,
+        WidgetKind.eta,
+        WidgetKind.compass,
+      ]);
     });
 
     test('encode / decode round-trips', () {

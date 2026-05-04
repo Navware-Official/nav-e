@@ -643,4 +643,3 @@ IconData _iconForCue(String? maneuver) {
   if (m.contains('right')) return Icons.turn_right;
   return Icons.straight;
 }
-
